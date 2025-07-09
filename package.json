@@ -1,0 +1,29 @@
+{
+  "name": "aesyros-suite",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n \"align,catalyst,foresight,pulse,flow\" -c \"blue,green,yellow,magenta,cyan\" \"npm run dev:align\" \"npm run dev:catalyst\" \"npm run dev:foresight\" \"npm run dev:pulse\" \"npm run dev:flow\"",
+    "dev:align": "cd apps/align && npm run dev",
+    "dev:catalyst": "cd apps/catalyst && npm run dev", 
+    "dev:foresight": "cd apps/foresight && npm run dev",
+    "dev:pulse": "cd apps/pulse && npm run dev",
+    "dev:flow": "cd apps/flow && npm run dev",
+    "build": "npm run build:packages && npm run build:apps",
+    "build:packages": "npm run build --workspaces --if-present --workspace=packages/*",
+    "build:apps": "npm run build --workspaces --if-present --workspace=apps/*",
+    "clean": "rm -rf node_modules && rm -rf apps/*/node_modules && rm -rf packages/*/node_modules",
+    "install:all": "npm install && npm install --workspaces"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": ["aesyros", "suite", "monorepo"],
+  "author": "",
+  "license": "ISC",
+  "description": "Aesyros Suite - Strategic Operating System"
+}
