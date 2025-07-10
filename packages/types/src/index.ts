@@ -1,4 +1,3 @@
-// packages/types/src/index.ts
 export interface User {
   id: string;
   name: string;
@@ -11,8 +10,18 @@ export interface Organization {
   id: string;
   name: string;
   slug: string;
-  members: User[];
 }
+
+export type AppName = 'align' | 'catalyst' | 'flow' | 'foresight' | 'pulse';
+
+export interface AppConfig {
+  name: AppName;
+  title: string;
+  description: string;
+  port: number;
+  path: string;
+}
+
 
 export interface KPI {
   id: string;
