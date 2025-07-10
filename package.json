@@ -16,14 +16,32 @@
     "build": "npm run build:packages && npm run build:apps",
     "build:packages": "npm run build --workspaces --if-present --workspace=packages/*",
     "build:apps": "npm run build --workspaces --if-present --workspace=apps/*",
-    "clean": "rm -rf node_modules && rm -rf apps/*/node_modules && rm -rf packages/*/node_modules",
-    "install:all": "npm install && npm install --workspaces"
+    "lint": "npm run lint --workspaces --if-present",
+    "lint:fix": "npm run lint --workspaces --if-present -- --fix",
+    "type-check": "npm run type-check --workspaces --if-present",
+    "clean": "rm -rf node_modules && rm -rf apps/*/node_modules && rm -rf packages/*/node_modules && rm -rf apps/*/dist && rm -rf packages/*/dist",
+    "fresh": "npm run clean && npm install && npm run install:all",
+    "install:all": "npm install && npm install --workspaces",
+    "preview": "concurrently -n \"align,catalyst,foresight,pulse,flow\" -c \"blue,green,yellow,magenta,cyan\" \"npm run preview:align\" \"npm run preview:catalyst\" \"npm run preview:foresight\" \"npm run preview:pulse\" \"npm run preview:flow\"",
+    "preview:align": "cd apps/align && npm run preview",
+    "preview:catalyst": "cd apps/catalyst && npm run preview",
+    "preview:foresight": "cd apps/foresight && npm run preview",
+    "preview:pulse": "cd apps/pulse && npm run preview",
+    "preview:flow": "cd apps/flow && npm run preview"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
   },
-  "keywords": ["aesyros", "suite", "monorepo"],
+  "keywords": ["aesyros", "suite", "monorepo", "strategic", "operating", "system"],
   "author": "",
   "license": "ISC",
-  "description": "Aesyros Suite - Strategic Operating System"
+  "description": "Aesyros Suite - Strategic Operating System for modern organizations",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/aesyros-suite"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
 }
