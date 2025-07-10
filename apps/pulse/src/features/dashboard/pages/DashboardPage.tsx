@@ -277,14 +277,53 @@ const DashboardPage: React.FC = () => {
               </Link>
               
               <Link 
-                to="/builder"
+                to="/advanced-builder"
                 className="w-full p-3 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors text-left block"
               >
                 <div className="flex items-center gap-3">
                   <Icon path="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" className="w-5 h-5 text-sky-400" />
                   <div>
-                    <div className="font-medium">KPI Builder</div>
-                    <div className="text-xs text-slate-400">Use AI-guided creation</div>
+                    <div className="font-medium">Advanced KPI Builder</div>
+                    <div className="text-xs text-slate-400">AI-guided sophisticated KPI creation</div>
+                  </div>
+                </div>
+              </Link>
+              
+              <Link 
+                to="/alignment"
+                className="w-full p-3 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors text-left block"
+              >
+                <div className="flex items-center gap-3">
+                  <Icon path="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" className="w-5 h-5 text-sky-400" />
+                  <div>
+                    <div className="font-medium">Strategic Alignment</div>
+                    <div className="text-xs text-slate-400">Link KPIs to objectives</div>
+                  </div>
+                </div>
+              </Link>
+              
+              <Link 
+                to="/data-connectivity"
+                className="w-full p-3 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors text-left block"
+              >
+                <div className="flex items-center gap-3">
+                  <Icon path="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" className="w-5 h-5 text-sky-400" />
+                  <div>
+                    <div className="font-medium">Data Connectivity</div>
+                    <div className="text-xs text-slate-400">Connect data sources</div>
+                  </div>
+                </div>
+              </Link>
+              
+              <Link 
+                to="/dashboards"
+                className="w-full p-3 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors text-left block"
+              >
+                <div className="flex items-center gap-3">
+                  <Icon path="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" className="w-5 h-5 text-sky-400" />
+                  <div>
+                    <div className="font-medium">Role-Based Dashboards</div>
+                    <div className="text-xs text-slate-400">Customized views by role</div>
                   </div>
                 </div>
               </Link>

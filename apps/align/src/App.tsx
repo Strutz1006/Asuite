@@ -6,6 +6,10 @@ import GoalsListPage from './features/goals/pages/GoalsListPage';
 import GoalDetailPage from './features/goals/pages/GoalDetailPage';
 import GoalFormPage from './features/goals/pages/GoalFormPage';
 import AnalyticsPage from './features/analytics/pages/AnalyticsPage';
+import VisionMissionPage from './features/vision-mission/pages/VisionMissionPage';
+import ObjectivesPage from './features/objectives/pages/ObjectivesPage';
+import UsersPage from './features/users/pages/UsersPage';
+import ReportingPage from './features/reporting/pages/ReportingPage';
 
 const App: React.FC = () => {
   return (
@@ -13,6 +17,10 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<DashboardPage />} />
+          <Route path="vision-mission" element={<VisionMissionPage />} />
+          <Route path="objectives" element={<ObjectivesPage />} />
+          <Route path="users" element={<UsersPage />} />
+          <Route path="reporting" element={<ReportingPage />} />
           <Route path="goals" element={<GoalsListPage />} />
           <Route path="goals/new" element={<GoalFormPage />} />
           <Route path="goals/:id" element={<GoalDetailPage />} />

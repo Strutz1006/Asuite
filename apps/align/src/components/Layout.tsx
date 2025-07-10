@@ -14,7 +14,10 @@ const Layout: React.FC = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Icon path="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2h10a2 2 0 002-2v-1a2 2 0 012-2h1.945" className="w-8 h-8 text-sky-400" />
-            <h1 className="text-2xl font-bold text-white">Aesyros Align</h1>
+            <div>
+              <h1 className="text-2xl font-bold text-white">Align</h1>
+              <p className="text-sm text-sky-300">for ACME Corporation</p>
+            </div>
           </div>
           
           <div className="flex items-center gap-4">

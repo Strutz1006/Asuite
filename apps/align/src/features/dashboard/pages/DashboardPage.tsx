@@ -155,6 +155,15 @@ const DashboardPage: React.FC = () => {
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Link 
+          to="/vision-mission" 
+          className="p-4 bg-slate-800/60 rounded-lg border border-slate-700 hover:border-sky-500/50 transition-colors text-left block"
+        >
+          <Icon path="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" className="w-6 h-6 text-sky-400 mb-2" />
+          <div className="font-semibold">Vision & Mission</div>
+          <div className="text-sm text-slate-400">Strategic foundation</div>
+        </Link>
+        
+        <Link 
           to="/goals/new" 
           className="p-4 bg-slate-800/60 rounded-lg border border-slate-700 hover:border-sky-500/50 transition-colors text-left block"
         >
@@ -164,28 +173,31 @@ const DashboardPage: React.FC = () => {
         </Link>
         
         <Link 
-          to="/analytics" 
+          to="/reporting" 
           className="p-4 bg-slate-800/60 rounded-lg border border-slate-700 hover:border-sky-500/50 transition-colors text-left block"
         >
           <Icon path="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" className="w-6 h-6 text-sky-400 mb-2" />
-          <div className="font-semibold">View Analytics</div>
-          <div className="text-sm text-slate-400">Deep dive into progress</div>
+          <div className="font-semibold">Strategic Reports</div>
+          <div className="text-sm text-slate-400">Cascade & alignment analysis</div>
         </Link>
         
         <Link 
-          to="/goals" 
+          to="/objectives" 
+          className="p-4 bg-slate-800/60 rounded-lg border border-slate-700 hover:border-sky-500/50 transition-colors text-left block"
+        >
+          <Icon path="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" className="w-6 h-6 text-sky-400 mb-2" />
+          <div className="font-semibold">Strategic Objectives</div>
+          <div className="text-sm text-slate-400">Hierarchical goal management</div>
+        </Link>
+        
+        <Link 
+          to="/users" 
           className="p-4 bg-slate-800/60 rounded-lg border border-slate-700 hover:border-sky-500/50 transition-colors text-left block"
         >
           <Icon path="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" className="w-6 h-6 text-sky-400 mb-2" />
-          <div className="font-semibold">Manage Goals</div>
-          <div className="text-sm text-slate-400">View all objectives</div>
+          <div className="font-semibold">Team Management</div>
+          <div className="text-sm text-slate-400">Users and org chart</div>
         </Link>
-        
-        <button className="p-4 bg-slate-800/60 rounded-lg border border-slate-700 hover:border-sky-500/50 transition-colors text-left">
-          <Icon path="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" className="w-6 h-6 text-sky-400 mb-2" />
-          <div className="font-semibold">Set Deadline</div>
-          <div className="text-sm text-slate-400">Add time constraints</div>
-        </button>
       </div>
     </div>
   );
