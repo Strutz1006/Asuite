@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "concurrently -n \"align,catalyst,foresight,pulse,flow\" -c \"blue,green,yellow,magenta,cyan\" \"npm run dev:align\" \"npm run dev:catalyst\" \"npm run dev:foresight\" \"npm run dev:pulse\" \"npm run dev:flow\"",
     "dev:align": "cd apps/align && npm run dev",
-    "dev:catalyst": "cd apps/catalyst && npm run dev", 
+    "dev:catalyst": "cd apps/catalyst && npm run dev",
     "dev:foresight": "cd apps/foresight && npm run dev",
     "dev:pulse": "cd apps/pulse && npm run dev",
     "dev:flow": "cd apps/flow && npm run dev",
@@ -32,7 +32,14 @@
   "devDependencies": {
     "concurrently": "^8.2.2"
   },
-  "keywords": ["aesyros", "suite", "monorepo", "strategic", "operating", "system"],
+  "keywords": [
+    "aesyros",
+    "suite",
+    "monorepo",
+    "strategic",
+    "operating",
+    "system"
+  ],
   "author": "",
   "license": "ISC",
   "description": "Aesyros Suite - Strategic Operating System for modern organizations",
@@ -43,5 +50,8 @@
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=8.0.0"
+  },
+  "dependencies": {
+    "clean": "^4.0.2"
   }
 }
