@@ -1,4 +1,4 @@
-import type { User, Role, Permission, Resource, Action, PermissionCondition } from '@aesyros/types';
+import type { User, Role, Resource, Action, PermissionCondition } from '@aesyros/types';
 
 export interface AuthState {
   user: User | null;
@@ -117,7 +117,7 @@ export const DEFAULT_ROLES: Role[] = [
 
 // Mock auth functions
 export const mockAuth = {
-  login: async (email: string, password: string): Promise<User> => {
+  login: async (email: string, _password: string): Promise<User> => {
     // Mock implementation - return admin role
     const adminRole = DEFAULT_ROLES.find(r => r.id === 'admin')!;
     return {

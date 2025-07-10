@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently -n \"align,catalyst,foresight,pulse,flow\" -c \"blue,green,yellow,magenta,cyan\" \"npm run dev:align\" \"npm run dev:catalyst\" \"npm run dev:foresight\" \"npm run dev:pulse\" \"npm run dev:flow\"",
+    "dev": "concurrently -n \"align,catalyst,foresight,pulse,flow\" -c \"blue,green,yellow,magenta,cyan\" \"npm run dev:align\" \"sleep 1 && npm run dev:catalyst\" \"sleep 2 && npm run dev:foresight\" \"sleep 3 && npm run dev:pulse\" \"sleep 4 && npm run dev:flow\"",
     "dev:align": "cd apps/align && npm run dev",
     "dev:catalyst": "cd apps/catalyst && npm run dev",
     "dev:foresight": "cd apps/foresight && npm run dev",

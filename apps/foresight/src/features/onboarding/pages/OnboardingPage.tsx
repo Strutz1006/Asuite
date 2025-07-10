@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { GlassCard, Icon } from '@aesyros/ui';
 import { scenarioTemplates } from '../data/templates';
-import type { ScenarioTemplate, TemplateCategory, OnboardingFlow } from '../types';
+import type { ScenarioTemplate, TemplateCategory } from '../types';
 
 const OnboardingPage: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [showTemplates, setShowTemplates] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<ScenarioTemplate | null>(null);
+  const [_selectedTemplate, setSelectedTemplate] = useState<ScenarioTemplate | null>(null);
   
   const onboardingSteps = [
     {

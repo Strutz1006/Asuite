@@ -98,3 +98,150 @@ export const mockCatalystMetrics = {
   completionRate: 85,
   riskLevel: "Medium" as const
 };
+
+export const mockSentimentData = [
+  { id: '1', journeyId: '1', timestamp: '2025-07-10T10:00:00Z', score: 0.7, confidence: 0.85, source: 'survey' as const, department: 'Technology', stakeholderId: '2', text: 'The new tools are really helpful' },
+  { id: '2', journeyId: '1', timestamp: '2025-07-10T09:30:00Z', score: -0.3, confidence: 0.75, source: 'feedback' as const, department: 'Operations', stakeholderId: '1', text: 'Some concerns about the timeline' },
+  { id: '3', journeyId: '1', timestamp: '2025-07-10T09:00:00Z', score: 0.9, confidence: 0.92, source: 'meeting' as const, department: 'Sales', stakeholderId: '5', text: 'Excited about the efficiency gains' },
+  { id: '4', journeyId: '2', timestamp: '2025-07-10T08:45:00Z', score: -0.6, confidence: 0.88, source: 'chat' as const, department: 'Sales', stakeholderId: '5', text: 'The new CRM seems complicated' },
+  { id: '5', journeyId: '1', timestamp: '2025-07-10T08:15:00Z', score: 0.4, confidence: 0.70, source: 'interaction' as const, department: 'HR', stakeholderId: '3', text: 'Progress is steady' }
+];
+
+export const mockVelocityMetrics = [
+  { id: '1', journeyId: '1', metric: 'adoption_rate' as const, value: 78, timestamp: '2025-07-10T10:00:00Z', target: 80, trend: 'up' as const, department: 'Technology' },
+  { id: '2', journeyId: '1', metric: 'completion_rate' as const, value: 65, timestamp: '2025-07-10T10:00:00Z', target: 70, trend: 'up' as const, department: 'Operations' },
+  { id: '3', journeyId: '1', metric: 'engagement_rate' as const, value: 82, timestamp: '2025-07-10T10:00:00Z', target: 75, trend: 'stable' as const, department: 'HR' },
+  { id: '4', journeyId: '2', metric: 'resistance_rate' as const, value: 45, timestamp: '2025-07-10T10:00:00Z', target: 30, trend: 'down' as const, department: 'Sales' },
+  { id: '5', journeyId: '1', metric: 'adoption_rate' as const, value: 72, timestamp: '2025-07-09T10:00:00Z', target: 80, trend: 'up' as const, department: 'Technology' }
+];
+
+export const mockPulseSurveys = [
+  {
+    id: '1',
+    journeyId: '1',
+    title: 'Digital Workplace Readiness Check',
+    questions: [
+      { id: '1', question: 'How confident do you feel about using the new digital tools?', type: 'scale' as const, required: true },
+      { id: '2', question: 'Do you feel adequately trained for this change?', type: 'boolean' as const, required: true },
+      { id: '3', question: 'What is your biggest concern about this transformation?', type: 'text' as const, required: false }
+    ],
+    responseRate: 78,
+    avgScore: 3.4,
+    status: 'active' as const,
+    createdAt: '2025-07-08T09:00:00Z',
+    targetAudience: ['Technology', 'Operations', 'HR']
+  },
+  {
+    id: '2', 
+    journeyId: '2',
+    title: 'Sales Process Feedback',
+    questions: [
+      { id: '4', question: 'Rate the new CRM system ease of use', type: 'rating' as const, required: true, options: ['1', '2', '3', '4', '5'] },
+      { id: '5', question: 'How likely are you to recommend this change to a colleague?', type: 'scale' as const, required: true }
+    ],
+    responseRate: 45,
+    avgScore: 2.8,
+    status: 'active' as const,
+    createdAt: '2025-07-09T14:00:00Z',
+    targetAudience: ['Sales']
+  }
+];
+
+export const mockEarlyWarningAlerts = [
+  {
+    id: '1',
+    journeyId: '2',
+    type: 'sentiment_drop' as const,
+    severity: 'high' as const,
+    title: 'Sentiment declining in Sales department',
+    description: 'Sales team sentiment has dropped 25% over the past week, with concerns about CRM complexity.',
+    metrics: ['sentiment_score', 'engagement_rate'],
+    recommendedActions: [
+      'Schedule additional CRM training sessions',
+      'Organize Q&A sessions with sales leadership', 
+      'Create simplified user guides'
+    ],
+    createdAt: '2025-07-10T08:00:00Z',
+    acknowledged: false
+  },
+  {
+    id: '2',
+    journeyId: '1',
+    type: 'velocity_decline' as const,
+    severity: 'medium' as const,
+    title: 'Adoption velocity slowing in Technology',
+    description: 'Technology team adoption rate has plateaued at 78%, below target of 80%.',
+    metrics: ['adoption_rate', 'completion_rate'],
+    recommendedActions: [
+      'Identify specific adoption barriers',
+      'Pair high adopters with struggling team members',
+      'Review training effectiveness'
+    ],
+    createdAt: '2025-07-10T06:30:00Z',
+    acknowledged: true
+  }
+];
+
+export const mockChangePulseMetrics = [
+  {
+    journeyId: '1',
+    overallSentiment: 0.45,
+    sentimentTrend: 'stable' as const,
+    velocityScore: 75,
+    velocityTrend: 'accelerating' as const,
+    riskScore: 35,
+    lastUpdated: '2025-07-10T10:00:00Z',
+    departmentBreakdown: [
+      { department: 'Technology', sentiment: 0.6, velocity: 78, participationRate: 85, riskLevel: 'low' as const, lastActivity: '2025-07-10T10:00:00Z' },
+      { department: 'Operations', sentiment: 0.3, velocity: 65, participationRate: 90, riskLevel: 'medium' as const, lastActivity: '2025-07-10T09:30:00Z' },
+      { department: 'HR', sentiment: 0.5, velocity: 82, participationRate: 78, riskLevel: 'low' as const, lastActivity: '2025-07-10T09:45:00Z' }
+    ],
+    activeAlerts: 1,
+    responseRate: 82
+  },
+  {
+    journeyId: '2',
+    overallSentiment: -0.2,
+    sentimentTrend: 'declining' as const,
+    velocityScore: 45,
+    velocityTrend: 'decelerating' as const,
+    riskScore: 70,
+    lastUpdated: '2025-07-10T10:00:00Z',
+    departmentBreakdown: [
+      { department: 'Sales', sentiment: -0.2, velocity: 45, participationRate: 60, riskLevel: 'high' as const, lastActivity: '2025-07-10T08:45:00Z' }
+    ],
+    activeAlerts: 2,
+    responseRate: 45
+  }
+];
+
+export const mockPredictiveInsights = [
+  {
+    id: '1',
+    journeyId: '1',
+    type: 'success_probability' as const,
+    prediction: '87% likelihood of meeting project goals by target date',
+    confidence: 0.82,
+    dataPoints: ['adoption_trends', 'sentiment_trajectory', 'velocity_metrics'],
+    recommendations: [
+      'Maintain current pace in Technology team',
+      'Address sentiment concerns in Operations',
+      'Consider extending timeline by 2 weeks for buffer'
+    ],
+    createdAt: '2025-07-10T09:00:00Z'
+  },
+  {
+    id: '2',
+    journeyId: '2',
+    type: 'risk_forecast' as const,
+    prediction: 'High risk of project delays without intervention',
+    confidence: 0.75,
+    dataPoints: ['resistance_rates', 'sentiment_decline', 'engagement_metrics'],
+    recommendations: [
+      'Implement intensive change support program',
+      'Increase leadership visibility and communication',
+      'Consider phased rollout approach'
+    ],
+    createdAt: '2025-07-10T08:30:00Z'
+  }
+];

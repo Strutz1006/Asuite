@@ -4,7 +4,7 @@ export class AlertEngine {
   private rules: Map<string, AlertRule> = new Map();
   private alerts: Alert[] = [];
   private isRunning = false;
-  private checkInterval?: NodeJS.Timeout;
+  private checkInterval?: number;
 
   constructor() {
     this.loadRules();
@@ -224,7 +224,7 @@ export class AlertEngine {
     }
   }
 
-  private showNotification(alert: Alert, config: any): void {
+  private showNotification(alert: Alert, _config: any): void {
     // Mock notification - in real app, integrate with notification system
     console.log('📢 Notification:', alert.message);
   }

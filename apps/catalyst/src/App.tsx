@@ -5,6 +5,7 @@ import DashboardPage from './features/dashboard/pages/DashboardPage';
 import JourneysPage from './features/journeys/pages/JourneysPage';
 import StakeholdersPage from './features/stakeholders/pages/StakeholdersPage';
 import InsightsPage from './features/insights/pages/InsightsPage';
+import PulsePage from './features/pulse/pages/PulsePage';
 
 const App: React.FC = () => {
   return (
@@ -19,6 +20,7 @@ const App: React.FC = () => {
           <Route path="journeys/new" element={<JourneysPage />} />
           <Route path="stakeholders" element={<StakeholdersPage />} />
           <Route path="insights" element={<InsightsPage />} />
+          <Route path="pulse" element={<PulsePage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

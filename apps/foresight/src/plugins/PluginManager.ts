@@ -1,3 +1,4 @@
+import React from 'react';
 import type { 
   Plugin, 
   PluginManifest, 
@@ -88,7 +89,7 @@ export class PluginManager {
           // Mock implementation
           return { ...data, id };
         },
-        delete: async (id: string) => {
+        delete: async (_id: string) => {
           // Mock implementation
         }
       },
@@ -103,7 +104,7 @@ export class PluginManager {
         }
       },
       recommendations: {
-        generate: async (scenarioId: string) => {
+        generate: async (_scenarioId: string) => {
           // Mock implementation
           return [];
         }

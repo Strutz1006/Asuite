@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { GlassCard, Icon } from '@aesyros/ui';
 import { alertEngine } from '../AlertEngine';
-import type { AlertRule, Alert, AlertCondition, AlertAction } from '../types';
+import type { AlertRule, Alert } from '../types';
 
 const AlertsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'alerts' | 'rules'>('alerts');

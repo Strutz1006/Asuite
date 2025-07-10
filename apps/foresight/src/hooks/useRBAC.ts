@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+// import { useContext } from 'react'; // TODO: Implement when AuthContext is ready
 import { RBACService } from '@aesyros/auth';
 import type { Resource, Action, User } from '@aesyros/types';
 

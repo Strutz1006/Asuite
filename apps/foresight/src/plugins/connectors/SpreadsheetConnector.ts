@@ -120,25 +120,15 @@ export class SpreadsheetConnector implements DataConnector {
   }
 
   // Helper methods for Google Sheets integration
-  private async validateSpreadsheetAccess(): Promise<void> {
-    // In real implementation, validate API access and permissions
-    const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${this.config.spreadsheetId}`, {
-      headers: {
-        'Authorization': `Bearer ${this.config.apiKey}`
-      }
-    });
+  // TODO: Implement spreadsheet validation when needed
 
-    if (!response.ok) {
-      throw new Error('Cannot access spreadsheet');
-    }
-  }
-
-  async getSpreadsheetData(range: string): Promise<any[][]> {
+  async getSpreadsheetData(_range: string): Promise<any[][]> {
     if (!this.connected) {
       throw new Error('Connector not connected');
     }
 
-    // Mock implementation
+    // Mock implementation - in real version would use this.config
+    console.log('Reading from spreadsheet:', this.config.spreadsheetId);
     return [
       ['id', 'name', 'description', 'confidence'],
       ['1', 'Scenario 1', 'Test scenario', '0.8'],

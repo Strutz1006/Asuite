@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { GlassCard, Icon } from '../../shared/components';
-import { mockChangeJourneys, mockChangeTemplates, mockCatalystMetrics, mockRecentActivities } from '../../shared/data/mockData';
+import { mockChangeJourneys, mockChangeTemplates, mockCatalystMetrics, mockRecentActivities, mockChangePulseMetrics, mockEarlyWarningAlerts } from '../../shared/data/mockData';
 
 const DashboardPage: React.FC = () => {
   return (
@@ -171,6 +171,19 @@ const DashboardPage: React.FC = () => {
                   </div>
                 </div>
               </Link>
+              
+              <Link 
+                to="/pulse"
+                className="w-full p-3 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors text-left block"
+              >
+                <div className="flex items-center gap-3">
+                  <Icon path="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" className="w-5 h-5 text-sky-400" />
+                  <div>
+                    <div className="font-medium">Change Pulse</div>
+                    <div className="text-xs text-slate-400">Real-time analytics</div>
+                  </div>
+                </div>
+              </Link>
             </div>
           </GlassCard>
 
@@ -195,6 +208,62 @@ const DashboardPage: React.FC = () => {
                 <div className="flex justify-between items-center">
                   <span className="text-sm">Training Complete</span>
                   <span className="text-sm font-mono text-blue-400">68%</span>
+                </div>
+              </div>
+            </div>
+          </GlassCard>
+
+          {/* Change Pulse Summary */}
+          <GlassCard className="p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold">Change Pulse</h3>
+              <Link 
+                to="/pulse" 
+                className="text-sm text-sky-400 hover:text-sky-300 transition-colors"
+              >
+                View Details →
+              </Link>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-400 mb-1">
+                  {(mockChangePulseMetrics[0].overallSentiment * 100).toFixed(0)}%
+                </div>
+                <p className="text-slate-400 text-xs mb-3">Overall Sentiment</p>
+                <div className="flex items-center justify-center gap-2">
+                  <Icon 
+                    path={mockChangePulseMetrics[0].sentimentTrend === 'improving' ? "M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" : mockChangePulseMetrics[0].sentimentTrend === 'declining' ? "M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" : "M20 12H4"} 
+                    className={`w-4 h-4 ${ 
+                      mockChangePulseMetrics[0].sentimentTrend === 'improving' ? 'text-green-400' :
+                      mockChangePulseMetrics[0].sentimentTrend === 'declining' ? 'text-red-400' :
+                      'text-slate-400'
+                    }`} 
+                  />
+                  <span className={`text-xs ${ 
+                    mockChangePulseMetrics[0].sentimentTrend === 'improving' ? 'text-green-400' :
+                    mockChangePulseMetrics[0].sentimentTrend === 'declining' ? 'text-red-400' :
+                    'text-slate-400'
+                  }`}>
+                    {mockChangePulseMetrics[0].sentimentTrend}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">Velocity Score</span>
+                  <span className="font-mono text-blue-400">{mockChangePulseMetrics[0].velocityScore}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">Active Alerts</span>
+                  <span className={`font-mono ${mockEarlyWarningAlerts.filter(a => !a.acknowledged).length > 0 ? 'text-red-400' : 'text-green-400'}`}>
+                    {mockEarlyWarningAlerts.filter(a => !a.acknowledged).length}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">Response Rate</span>
+                  <span className="font-mono text-purple-400">{mockChangePulseMetrics[0].responseRate}%</span>
                 </div>
               </div>
             </div>
