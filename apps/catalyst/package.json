@@ -1,5 +1,5 @@
 {
-  "name": "align",
+  "name": "catalyst",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,11 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@aesyros/ui": "workspace:*",
-    "@aesyros/types": "workspace:*",
-    "@aesyros/utils": "workspace:*",
-    "@aesyros/hooks": "workspace:*",
-    "@aesyros/auth": "workspace:*",
+    "@aesyros/ui": "*",
+    "@aesyros/types": "*",
+    "@aesyros/utils": "*",
+    "@aesyros/hooks": "*",
+    "@aesyros/auth": "*",
     "@tailwindcss/vite": "^4.1.11",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
