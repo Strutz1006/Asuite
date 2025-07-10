@@ -2,8 +2,44 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'user' | 'viewer';
+  role: Role;
+  permissions: Permission[];
   avatar?: string;
+}
+
+export interface Role {
+  id: string;
+  name: string;
+  description?: string;
+  permissions: Permission[];
+  isSystemRole: boolean;
+}
+
+export interface Permission {
+  id: string;
+  resource: Resource;
+  action: Action;
+  conditions?: PermissionCondition[];
+}
+
+export type Resource = 
+  | 'scenarios' 
+  | 'insights' 
+  | 'natural-language' 
+  | 'recommendations' 
+  | 'sensitivity-analysis' 
+  | 'batch-runs' 
+  | 'collaboration' 
+  | 'versioning'
+  | 'admin'
+  | 'settings';
+
+export type Action = 'create' | 'read' | 'update' | 'delete' | 'execute' | 'share' | 'admin';
+
+export interface PermissionCondition {
+  field: string;
+  operator: 'eq' | 'neq' | 'in' | 'not_in' | 'gt' | 'lt' | 'gte' | 'lte';
+  value: any;
 }
 
 export interface Organization {
