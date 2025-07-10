@@ -1,5 +1,5 @@
-// apps/align/eslint.config.js - REPLACE ENTIRE FILE CONTENT
-import rootConfig from '../../esLint.config'
+
+import rootConfig from '../../esLint.config.js'
 
 export default [
   ...rootConfig,
