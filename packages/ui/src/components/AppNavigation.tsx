@@ -66,44 +66,69 @@ const AppNavigation: React.FC<AppNavigationProps> = ({
   };
 
   return (
-    <div className="bg-slate-800/90 backdrop-blur-lg border-b border-slate-700 px-6 py-4" style={{ minHeight: '72px' }}>
-      <div className="flex items-center justify-between h-full">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <svg className="w-8 h-8 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            <span className="text-xl font-bold text-white">Aesyros Suite</span>
+    <div className="lg:ml-64">
+      <div className="bg-slate-800/90 backdrop-blur-lg border-b border-slate-700 px-6 py-4 relative z-20" style={{ minHeight: '72px' }}>
+        <div className="flex items-center justify-between h-full">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <svg className="w-8 h-8 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <span className="text-xl font-bold text-white">Aesyros Suite</span>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2 flex-shrink-0" style={{ minWidth: '700px' }}>
+            {apps.map((app) => {
+              const isActive = app.name === currentApp;
+              
+              return (
+                <button
+                  key={app.name}
+                  onClick={() => handleNavigation(app)}
+                  className={`
+                    flex items-center gap-2 px-4 py-2 rounded-lg border transition-all min-w-[120px] max-w-[140px] justify-center flex-shrink-0
+                    ${isActive 
+                      ? 'bg-sky-500/20 text-sky-300 border-sky-500/50'
+                      : 'bg-slate-700/50 text-slate-400 border-slate-600/50 hover:bg-slate-600/50 hover:text-slate-300'
+                    }
+                  `}
+                  style={{ width: '130px', height: '40px' }}
+                  title={app.description}
+                >
+                  <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={app.icon} />
+                  </svg>
+                  <span className="font-medium whitespace-nowrap">{app.title}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
-        
-        <div className="flex items-center gap-2 flex-shrink-0" style={{ minWidth: '700px' }}>
-          {apps.map((app) => {
-            const isActive = app.name === currentApp;
-            
-            return (
-              <button
-                key={app.name}
-                onClick={() => handleNavigation(app)}
-                className={`
-                  flex items-center gap-2 px-4 py-2 rounded-lg border transition-all min-w-[120px] max-w-[140px] justify-center flex-shrink-0
-                  ${isActive 
-                    ? 'bg-sky-500/20 text-sky-300 border-sky-500/50'
-                    : 'bg-slate-700/50 text-slate-400 border-slate-600/50 hover:bg-slate-600/50 hover:text-slate-300'
-                  }
-                `}
-                style={{ width: '130px', height: '40px' }}
-                title={app.description}
-              >
-                <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={app.icon} />
-                </svg>
-                <span className="font-medium whitespace-nowrap">{app.title}</span>
-              </button>
-            );
-          })}
-        </div>
       </div>
+      
+      {/* Standardized Header with Tagline */}
+      <header className="bg-slate-800/90 backdrop-blur-lg border-b border-slate-700 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div></div>
+          
+          <div className="flex-1 flex justify-center">
+            <div className="text-5xl font-bold text-sky-400 tracking-wide">
+              Strategy to Impact, Simplified
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 text-sm text-slate-400">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span>All systems operational</span>
+            </div>
+            <div className="w-8 h-8 bg-sky-500 rounded-full flex items-center justify-center">
+              <span className="text-white font-semibold text-sm">JD</span>
+            </div>
+          </div>
+        </div>
+      </header>
     </div>
   );
 };

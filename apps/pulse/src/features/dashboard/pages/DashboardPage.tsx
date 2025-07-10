@@ -178,10 +178,34 @@ const DashboardPage: React.FC = () => {
             </div>
           </GlassCard>
 
+          {/* AI Coach */}
+          <GlassCard className="p-6">
+            <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <Icon path="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.466V19a2 2 0 11-4 0v-.534a3.374 3.374 0 00-.547-1.962l-.548-.547z" className="w-6 h-6 text-sky-400"/>
+              AI Coach
+            </h3>
+            <div className="space-y-4">
+              <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+                <h4 className="font-semibold text-red-300 mb-2">Critical Alert</h4>
+                <p className="text-sm text-slate-300 mb-3">"Team Morale Index is trending down and below target. Consider launching an engagement survey to identify root causes."</p>
+                <button className="text-sm font-semibold text-red-400 hover:text-red-300">Take Action</button>
+              </div>
+              
+              <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
+                <h4 className="font-semibold text-green-300 mb-2">Opportunity</h4>
+                <p className="text-sm text-slate-300 mb-3">"Customer satisfaction is exceeding targets. Consider leveraging this for case studies and referrals."</p>
+                <button className="text-sm font-semibold text-green-400 hover:text-green-300">Explore</button>
+              </div>
+            </div>
+          </GlassCard>
+        </div>
+
+        {/* Right Column: Performance & Feed */}
+        <div className="space-y-8">
           {/* Category Performance */}
           <GlassCard className="p-6">
             <h3 className="text-xl font-semibold mb-4">Performance by Category</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               {mockKPICategories.map(category => (
                 <div key={category.name} className="p-4 bg-slate-700/50 rounded-lg">
                   <div className="flex justify-between items-center mb-2">
@@ -201,30 +225,6 @@ const DashboardPage: React.FC = () => {
                   </div>
                 </div>
               ))}
-            </div>
-          </GlassCard>
-        </div>
-
-        {/* Right Column: AI Insights & Feed */}
-        <div className="space-y-8">
-          {/* AI Coach */}
-          <GlassCard className="p-6">
-            <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <Icon path="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.466V19a2 2 0 11-4 0v-.534a3.374 3.374 0 00-.547-1.962l-.548-.547z" className="w-6 h-6 text-sky-400"/>
-              AI Coach
-            </h3>
-            <div className="space-y-4">
-              <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
-                <h4 className="font-semibold text-red-300 mb-2">Critical Alert</h4>
-                <p className="text-sm text-slate-300 mb-3">"Team Morale Index is trending down and below target. Consider launching an engagement survey to identify root causes."</p>
-                <button className="text-sm font-semibold text-red-400 hover:text-red-300">Take Action</button>
-              </div>
-              
-              <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
-                <h4 className="font-semibold text-green-300 mb-2">Opportunity</h4>
-                <p className="text-sm text-slate-300 mb-3">"Customer satisfaction is exceeding targets. Consider leveraging this for case studies and referrals."</p>
-                <button className="text-sm font-semibold text-green-400 hover:text-green-300">Explore</button>
-              </div>
             </div>
           </GlassCard>
           
@@ -259,86 +259,7 @@ const DashboardPage: React.FC = () => {
             </div>
           </GlassCard>
 
-          {/* Quick Actions */}
-          <GlassCard className="p-6">
-            <h3 className="text-xl font-semibold mb-4">Quick Actions</h3>
-            <div className="space-y-3">
-              <Link 
-                to="/kpis/new"
-                className="w-full p-3 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors text-left block"
-              >
-                <div className="flex items-center gap-3">
-                  <Icon path="M12 4v16m8-8H4" className="w-5 h-5 text-sky-400" />
-                  <div>
-                    <div className="font-medium">Add New KPI</div>
-                    <div className="text-xs text-slate-400">Create custom metric</div>
-                  </div>
-                </div>
-              </Link>
-              
-              <Link 
-                to="/advanced-builder"
-                className="w-full p-3 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors text-left block"
-              >
-                <div className="flex items-center gap-3">
-                  <Icon path="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" className="w-5 h-5 text-sky-400" />
-                  <div>
-                    <div className="font-medium">Advanced KPI Builder</div>
-                    <div className="text-xs text-slate-400">AI-guided sophisticated KPI creation</div>
-                  </div>
-                </div>
-              </Link>
-              
-              <Link 
-                to="/alignment"
-                className="w-full p-3 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors text-left block"
-              >
-                <div className="flex items-center gap-3">
-                  <Icon path="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" className="w-5 h-5 text-sky-400" />
-                  <div>
-                    <div className="font-medium">Strategic Alignment</div>
-                    <div className="text-xs text-slate-400">Link KPIs to objectives</div>
-                  </div>
-                </div>
-              </Link>
-              
-              <Link 
-                to="/data-connectivity"
-                className="w-full p-3 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors text-left block"
-              >
-                <div className="flex items-center gap-3">
-                  <Icon path="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" className="w-5 h-5 text-sky-400" />
-                  <div>
-                    <div className="font-medium">Data Connectivity</div>
-                    <div className="text-xs text-slate-400">Connect data sources</div>
-                  </div>
-                </div>
-              </Link>
-              
-              <Link 
-                to="/dashboards"
-                className="w-full p-3 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors text-left block"
-              >
-                <div className="flex items-center gap-3">
-                  <Icon path="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" className="w-5 h-5 text-sky-400" />
-                  <div>
-                    <div className="font-medium">Role-Based Dashboards</div>
-                    <div className="text-xs text-slate-400">Customized views by role</div>
-                  </div>
-                </div>
-              </Link>
-              
-              <button className="w-full p-3 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors text-left">
-                <div className="flex items-center gap-3">
-                  <Icon path="M15 17h5l-5 5v-5z" className="w-5 h-5 text-sky-400" />
-                  <div>
-                    <div className="font-medium">Export Report</div>
-                    <div className="text-xs text-slate-400">Generate dashboard PDF</div>
-                  </div>
-                </div>
-              </button>
-            </div>
-          </GlassCard>
+          </div>
         </div>
       </div>
     </div>
