@@ -47,7 +47,7 @@ const GoalsListPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-slate-100">Goals & Objectives</h1>

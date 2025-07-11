@@ -19,6 +19,9 @@ const App: React.FC = () => {
           <Route index element={<DashboardPage />} />
           <Route path="vision-mission" element={<VisionMissionPage />} />
           <Route path="objectives" element={<ObjectivesPage />} />
+          <Route path="objectives/new" element={<GoalFormPage />} />
+          <Route path="objectives/:id" element={<GoalDetailPage />} />
+          <Route path="objectives/:id/edit" element={<GoalFormPage />} />
           <Route path="users" element={<UsersPage />} />
           <Route path="reporting" element={<ReportingPage />} />
           <Route path="goals" element={<GoalsListPage />} />

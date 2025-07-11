@@ -220,7 +220,7 @@ const UsersPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="min-h-screen space-y-8">
       <div className="flex justify-between items-center">
         <h2 className="text-3xl font-bold text-slate-100">Team Management</h2>
         <div className="flex items-center gap-4">

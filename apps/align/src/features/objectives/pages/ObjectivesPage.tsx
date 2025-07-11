@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { GlassCard, Icon } from '../../shared/components';
+import GoalVisualizationContainer from '../components/GoalVisualizationContainer';
 
 interface Objective {
   id: string;
@@ -134,6 +135,9 @@ const mockObjectives: Objective[] = [
 const ObjectivesPage: React.FC = () => {
   const [selectedLevel, setSelectedLevel] = useState<string>('all');
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set(['corp-1', 'dept-1', 'team-1']));
+  
+  // Visualization state management (currently unused but ready for future enhancements)
+  // const { state: vizState, actions: vizActions } = useVisualizationState(mockObjectives);
 
   const toggleExpanded = (id: string) => {
     const newExpanded = new Set(expandedIds);
@@ -143,6 +147,27 @@ const ObjectivesPage: React.FC = () => {
       newExpanded.add(id);
     }
     setExpandedIds(newExpanded);
+  };
+
+  // Handlers for visualization interactions
+  const handleUpdateObjective = (objective: Objective) => {
+    // TODO: Implement objective update logic
+    console.log('Update objective:', objective);
+  };
+
+  const handleAddChild = (parentId: string) => {
+    // TODO: Implement add child logic
+    console.log('Add child to:', parentId);
+  };
+
+  const handleEditObjective = (objectiveId: string) => {
+    // TODO: Implement edit logic
+    console.log('Edit objective:', objectiveId);
+  };
+
+  const handleReorganize = (sourceId: string, targetId: string) => {
+    // TODO: Implement reorganization logic
+    console.log('Reorganize:', sourceId, 'to', targetId);
   };
 
   const getStatusColor = (status: string) => {
@@ -267,7 +292,13 @@ const ObjectivesPage: React.FC = () => {
           {/* Key Results */}
           {objective.keyResults.length > 0 && (
             <div className="mt-4 pt-4 border-t border-slate-600">
-              <h4 className="text-sm font-medium text-slate-300 mb-3">Key Results</h4>
+              <div className="flex justify-between items-center mb-3">
+                <h4 className="text-sm font-medium text-slate-300">Key Results</h4>
+                <button className="text-xs text-sky-400 hover:text-sky-300 transition-colors flex items-center gap-1">
+                  <Icon path="M12 4v16m8-8H4" className="w-3 h-3" />
+                  Add Key Result
+                </button>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {objective.keyResults.map(kr => (
                   <div key={kr.id} className="bg-slate-800/50 p-3 rounded-lg">
@@ -287,6 +318,24 @@ const ObjectivesPage: React.FC = () => {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* Add Key Results when empty */}
+          {objective.keyResults.length === 0 && (
+            <div className="mt-4 pt-4 border-t border-slate-600">
+              <div className="flex justify-between items-center mb-3">
+                <h4 className="text-sm font-medium text-slate-300">Key Results</h4>
+                <button className="text-xs text-sky-400 hover:text-sky-300 transition-colors flex items-center gap-1">
+                  <Icon path="M12 4v16m8-8H4" className="w-3 h-3" />
+                  Add Key Result
+                </button>
+              </div>
+              <div className="text-center py-8 text-slate-400">
+                <Icon path="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" className="w-8 h-8 mx-auto mb-2 text-slate-500" />
+                <p className="text-sm">No key results defined yet</p>
+                <p className="text-xs mt-1">Add measurable outcomes to track progress</p>
               </div>
             </div>
           )}
@@ -328,7 +377,7 @@ const ObjectivesPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="min-h-screen space-y-8">
       <div className="flex justify-between items-center">
         <h2 className="text-3xl font-bold text-slate-100">Strategic Objectives</h2>
         <div className="flex items-center gap-4">
@@ -376,10 +425,19 @@ const ObjectivesPage: React.FC = () => {
         </div>
       </GlassCard>
 
-      {/* Objectives List */}
-      <div className="space-y-6">
-        {mockObjectives.map(objective => renderObjective(objective))}
-      </div>
+      {/* Interactive Goal Visualization */}
+      <GoalVisualizationContainer
+        objectives={mockObjectives}
+        onUpdateObjective={handleUpdateObjective}
+        onAddChild={handleAddChild}
+        onEditObjective={handleEditObjective}
+        onReorganize={handleReorganize}
+        renderListView={() => (
+          <div className="space-y-6">
+            {mockObjectives.map(objective => renderObjective(objective))}
+          </div>
+        )}
+      />
     </div>
   );
 };

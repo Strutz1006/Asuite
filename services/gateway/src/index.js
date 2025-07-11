@@ -9,6 +9,7 @@ import pulseRoutes from './routes/pulse.js';
 import catalystRoutes from './routes/catalyst.js';
 import flowRoutes from './routes/flow.js';
 import foresightRoutes from './routes/foresight.js';
+import geminiRoutes from './routes/gemini.js';
 
 dotenv.config();
 
@@ -60,6 +61,7 @@ app.use('/api/pulse', pulseRoutes);
 app.use('/api/catalyst', catalystRoutes);
 app.use('/api/flow', flowRoutes);
 app.use('/api/foresight', foresightRoutes);
+app.use('/api/gemini', geminiRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

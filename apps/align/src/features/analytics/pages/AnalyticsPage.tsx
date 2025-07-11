@@ -20,7 +20,7 @@ const AnalyticsPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>

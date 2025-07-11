@@ -68,7 +68,7 @@ const GoalFormPage: React.FC = () => {
   const possibleParents = allGoals.filter(g => g.id !== id);
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link 

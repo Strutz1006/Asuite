@@ -60,7 +60,7 @@ const GoalDetailPage: React.FC = () => {
   const parentGoal = goal.parentGoal ? allGoals.find(g => g.id === goal.parentGoal) : null;
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">

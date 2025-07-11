@@ -51,7 +51,7 @@ const VisionMissionPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="min-h-screen space-y-8">
       <div className="flex justify-between items-center">
         <h2 className="text-3xl font-bold text-slate-100">Vision & Mission</h2>
         <div className="flex gap-3">
