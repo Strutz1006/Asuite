@@ -1,9 +1,9 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { AppNavigation, QuickActions } from '@aesyros/ui';
+import { AppLayout } from '@aesyros/ui';
 
 const Layout: React.FC = () => {
-  const quickActions = [
+  const sidebarActions = [
     {
       to: "/scenarios/new",
       icon: "M12 4v16m8-8H4",
@@ -31,24 +31,15 @@ const Layout: React.FC = () => {
   ];
 
   return (
-    <div className="bg-slate-900 text-slate-200 min-h-screen font-sans">
-      {/* Standardized Navigation with Sidebar and Tagline */}
-      <AppNavigation currentApp="foresight" />
-      
-      {/* Quick Actions Sidebar */}
-      <QuickActions 
-        currentApp="foresight"
-        appTitle="Foresight"
-        appDescription="Strategy Sandbox"
-        appIcon="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-        actions={quickActions}
-      />
-
-      {/* Main Content */}
-      <main className="p-4 sm:p-6 lg:p-8 lg:ml-64">
-        <Outlet />
-      </main>
-    </div>
+    <AppLayout
+      currentApp="foresight"
+      appTitle="Foresight"
+      appDescription="Strategy Simulation & Impact Modeling"
+      appIcon="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+      sidebarActions={sidebarActions}
+    >
+      <Outlet />
+    </AppLayout>
   );
 };
 

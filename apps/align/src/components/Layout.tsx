@@ -1,9 +1,9 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { AppNavigation, QuickActions } from '@aesyros/ui';
+import { AppLayout } from '@aesyros/ui';
 
 const Layout: React.FC = () => {
-  const quickActions = [
+  const sidebarActions = [
     {
       to: "/objectives/new",
       icon: "M12 4v16m8-8H4",
@@ -23,7 +23,13 @@ const Layout: React.FC = () => {
       description: "Strategic initiatives"
     },
     {
-      to: "/reporting",
+      to: "/key-results",
+      icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z",
+      title: "Key Results",
+      description: "Track measurable outcomes"
+    },
+    {
+      to: "/progress",
       icon: "M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
       title: "Progress Reports",
       description: "Track alignment progress"
@@ -31,24 +37,15 @@ const Layout: React.FC = () => {
   ];
 
   return (
-    <div className="bg-slate-900 text-slate-200 min-h-screen font-sans">
-      {/* Standardized Navigation with Sidebar and Tagline */}
-      <AppNavigation currentApp="align" />
-      
-      {/* Quick Actions Sidebar */}
-      <QuickActions 
-        currentApp="align"
-        appTitle="Align"
-        appDescription="Strategic Goals & OKRs"
-        appIcon="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2h10a2 2 0 002-2v-1a2 2 0 012-2h1.945"
-        actions={quickActions}
-      />
-
-      {/* Main Content */}
-      <main className="p-4 sm:p-6 lg:p-8 lg:ml-64">
-        <Outlet />
-      </main>
-    </div>
+    <AppLayout
+      currentApp="align"
+      appTitle="Align"
+      appDescription="Strategic Goals & OKRs"
+      appIcon="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2h10a2 2 0 002-2v-1a2 2 0 012-2h1.945"
+      sidebarActions={sidebarActions}
+    >
+      <Outlet />
+    </AppLayout>
   );
 };
 

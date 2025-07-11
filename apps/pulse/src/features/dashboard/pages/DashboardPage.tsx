@@ -258,8 +258,6 @@ const DashboardPage: React.FC = () => {
               ))}
             </div>
           </GlassCard>
-
-          </div>
         </div>
       </div>
     </div>
