@@ -1,15 +1,17 @@
-import React, { useState, Suspense } from 'react';
+import React, { useState, Suspense, useMemo } from 'react';
 import { ReactFlowProvider } from 'reactflow';
 import VisualizationToggle from './VisualizationToggle';
 import type { ViewMode } from './VisualizationToggle';
-import type { Objective } from '../utils/hierarchyTransformers';
+import type { Objective, alignObjectivesToLegacy } from '../utils/hierarchyTransformers';
+import type { AlignObjective } from '../../../types/database';
 
 // Lazy load the heavy visualization components
 const GoalTree = React.lazy(() => import('./visualizations/GoalTree/GoalTree'));
+const SunburstChart = React.lazy(() => import('./visualizations/Sunburst/SunburstChart'));
 
 interface GoalVisualizationContainerProps {
-  objectives: Objective[];
-  onUpdateObjective?: (objective: Objective) => void;
+  objectives: AlignObjective[];
+  onUpdateObjective?: (objective: AlignObjective) => void;
   onAddChild?: (parentId: string) => void;
   onEditObjective?: (objectiveId: string) => void;
   onReorganize?: (sourceId: string, targetId: string) => void;
@@ -67,6 +69,33 @@ const GoalVisualizationContainer: React.FC<GoalVisualizationContainerProps> = ({
 }) => {
   const [currentView, setCurrentView] = useState<ViewMode>('list');
 
+  // Convert AlignObjective to legacy Objective format for visualization components
+  const legacyObjectives = useMemo(() => {
+    return alignObjectivesToLegacy(objectives);
+  }, [objectives]);
+
+  // Wrapper functions to handle the conversion back to AlignObjective
+  const handleUpdateObjective = (legacyObj: Objective) => {
+    if (onUpdateObjective) {
+      // Find the original AlignObjective
+      const findObjective = (objs: AlignObjective[]): AlignObjective | undefined => {
+        for (const obj of objs) {
+          if (obj.id === legacyObj.id) return obj;
+          if (obj.children) {
+            const found = findObjective(obj.children);
+            if (found) return found;
+          }
+        }
+        return undefined;
+      };
+      
+      const originalObj = findObjective(objectives);
+      if (originalObj) {
+        onUpdateObjective(originalObj);
+      }
+    }
+  };
+
   const renderVisualization = () => {
     switch (currentView) {
       case 'list':
@@ -78,8 +107,8 @@ const GoalVisualizationContainer: React.FC<GoalVisualizationContainerProps> = ({
             <ReactFlowProvider>
               <Suspense fallback={<LoadingSpinner />}>
                 <GoalTree
-                  objectives={objectives}
-                  onUpdateObjective={onUpdateObjective}
+                  objectives={legacyObjectives}
+                  onUpdateObjective={handleUpdateObjective}
                   onAddChild={onAddChild}
                   onEditObjective={onEditObjective}
                   onReorganize={onReorganize}
@@ -90,7 +119,18 @@ const GoalVisualizationContainer: React.FC<GoalVisualizationContainerProps> = ({
         );
         
       case 'sunburst':
-        return <ComingSoonView viewType="Sunburst" />;
+        return (
+          <div className="w-full">
+            <Suspense fallback={<LoadingSpinner />}>
+              <SunburstChart
+                objectives={legacyObjectives}
+                onUpdateObjective={handleUpdateObjective}
+                onAddChild={onAddChild}
+                onEditObjective={onEditObjective}
+              />
+            </Suspense>
+          </div>
+        );
         
       case 'mindmap':
         return <ComingSoonView viewType="Mind Map" />;
@@ -127,6 +167,30 @@ const GoalVisualizationContainer: React.FC<GoalVisualizationContainerProps> = ({
                 <li>• Drag nodes to reorganize the hierarchy (experimental)</li>
                 <li>• Click the edit icon on any goal to modify its details</li>
                 <li>• Use "Fit to View" to center and scale the entire tree</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Help Text for Sunburst View */}
+      {currentView === 'sunburst' && (
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <svg className="w-5 h-5 text-amber-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div className="text-sm text-amber-200">
+              <strong>Sunburst Chart Tips:</strong>
+              <ul className="mt-1 space-y-1 text-amber-300">
+                <li>• Each ring represents a different organizational level (corporate → department → team → individual)</li>
+                <li>• Segment size is proportional to the number of key results</li>
+                <li>• Progress is shown as colored fill within each segment</li>
+                <li>• Hover over segments to see detailed tooltips</li>
+                <li>• Click segments to select and view detailed information</li>
+                <li>• Double-click any segment to edit that goal</li>
+                <li>• Colors indicate both organizational level and goal status</li>
               </ul>
             </div>
           </div>

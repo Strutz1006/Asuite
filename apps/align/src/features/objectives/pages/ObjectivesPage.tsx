@@ -1,143 +1,97 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { GlassCard, Icon } from '../../shared/components';
 import GoalVisualizationContainer from '../components/GoalVisualizationContainer';
-
-interface Objective {
-  id: string;
-  title: string;
-  description: string;
-  level: 'corporate' | 'department' | 'team' | 'individual';
-  parentId?: string;
-  ownerId: string;
-  ownerName: string;
-  department?: string;
-  team?: string;
-  progress: number;
-  status: 'active' | 'on-track' | 'at-risk' | 'completed' | 'paused';
-  priority: 'high' | 'medium' | 'low';
-  startDate: Date;
-  dueDate: Date;
-  keyResults: Array<{
-    id: string;
-    title: string;
-    currentValue: string;
-    targetValue: string;
-    unit: string;
-    progress: number;
-  }>;
-  children?: Objective[];
-}
-
-const mockObjectives: Objective[] = [
-  {
-    id: 'corp-1',
-    title: 'Achieve Carbon Neutrality by 2026',
-    description: 'Implement comprehensive sustainability initiatives across all operations to achieve net-zero carbon emissions.',
-    level: 'corporate',
-    ownerId: 'exec-1',
-    ownerName: 'Executive Team',
-    progress: 68,
-    status: 'on-track',
-    priority: 'high',
-    startDate: new Date('2024-01-01'),
-    dueDate: new Date('2026-12-31'),
-    keyResults: [
-      { id: 'kr-1', title: 'Reduce emissions', currentValue: '450', targetValue: '200', unit: 'tCO2e', progress: 65 },
-      { id: 'kr-2', title: 'Renewable energy', currentValue: '70', targetValue: '100', unit: '%', progress: 70 },
-      { id: 'kr-3', title: 'Carbon offset projects', currentValue: '8', targetValue: '15', unit: 'projects', progress: 53 }
-    ],
-    children: [
-      {
-        id: 'dept-1',
-        title: 'Operations Carbon Reduction',
-        description: 'Reduce carbon footprint in manufacturing and facilities operations.',
-        level: 'department',
-        parentId: 'corp-1',
-        ownerId: 'dept-1',
-        ownerName: 'Sarah Chen',
-        department: 'Operations',
-        progress: 75,
-        status: 'on-track',
-        priority: 'high',
-        startDate: new Date('2024-02-01'),
-        dueDate: new Date('2025-12-31'),
-        keyResults: [
-          { id: 'kr-4', title: 'Energy efficiency', currentValue: '15', targetValue: '25', unit: '%', progress: 60 },
-          { id: 'kr-5', title: 'Waste reduction', currentValue: '30', targetValue: '50', unit: '%', progress: 60 }
-        ],
-        children: [
-          {
-            id: 'team-1',
-            title: 'Manufacturing Efficiency Program',
-            description: 'Optimize manufacturing processes for energy efficiency.',
-            level: 'team',
-            parentId: 'dept-1',
-            ownerId: 'team-1',
-            ownerName: 'Manufacturing Team',
-            department: 'Operations',
-            team: 'Manufacturing',
-            progress: 82,
-            status: 'on-track',
-            priority: 'high',
-            startDate: new Date('2024-03-01'),
-            dueDate: new Date('2024-12-31'),
-            keyResults: [
-              { id: 'kr-6', title: 'Machine efficiency', currentValue: '78', targetValue: '85', unit: '%', progress: 82 }
-            ],
-            children: [
-              {
-                id: 'ind-1',
-                title: 'Q4 Energy Audit Completion',
-                description: 'Complete comprehensive energy audit of manufacturing equipment.',
-                level: 'individual',
-                parentId: 'team-1',
-                ownerId: 'user-1',
-                ownerName: 'Alex Kim',
-                department: 'Operations',
-                team: 'Manufacturing',
-                progress: 90,
-                status: 'on-track',
-                priority: 'medium',
-                startDate: new Date('2024-10-01'),
-                dueDate: new Date('2024-12-31'),
-                keyResults: [
-                  { id: 'kr-7', title: 'Audits completed', currentValue: '18', targetValue: '20', unit: 'audits', progress: 90 }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        id: 'dept-2',
-        title: 'R&D Sustainable Innovation',
-        description: 'Develop eco-friendly products and sustainable technologies.',
-        level: 'department',
-        parentId: 'corp-1',
-        ownerId: 'dept-2',
-        ownerName: 'Mike Torres',
-        department: 'R&D',
-        progress: 45,
-        status: 'on-track',
-        priority: 'high',
-        startDate: new Date('2024-01-15'),
-        dueDate: new Date('2025-09-30'),
-        keyResults: [
-          { id: 'kr-8', title: 'Sustainable products', currentValue: '2', targetValue: '5', unit: 'products', progress: 40 },
-          { id: 'kr-9', title: 'Green materials', currentValue: '25', targetValue: '75', unit: '%', progress: 33 }
-        ]
-      }
-    ]
-  }
-];
+import { useAuth } from '../../../hooks/useAuth';
+import { useObjectives, useObjectiveStats, useObjectiveHierarchy } from '../../../hooks/useObjectives';
+import { useOrganizationStructure } from '../../../hooks/useOrganization';
+import type { AlignObjective, ObjectiveFilters } from '../../../types/database';
 
 const ObjectivesPage: React.FC = () => {
+  const { user, organizationId } = useAuth();
   const [selectedLevel, setSelectedLevel] = useState<string>('all');
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set(['corp-1', 'dept-1', 'team-1']));
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
+  // Fetch data from Supabase
+  const filters: ObjectiveFilters = useMemo(() => {
+    const baseFilters: ObjectiveFilters = {};
+    
+    if (selectedLevel !== 'all') {
+      baseFilters.level = [selectedLevel as any];
+    }
+    
+    return baseFilters;
+  }, [selectedLevel]);
+
+  const { objectives, loading: objectivesLoading, error: objectivesError, refetch } = useObjectives(
+    filters,
+    { field: 'created_at', direction: 'desc' }
+  );
   
-  // Visualization state management (currently unused but ready for future enhancements)
-  // const { state: vizState, actions: vizActions } = useVisualizationState(mockObjectives);
+  const { stats, loading: statsLoading } = useObjectiveStats();
+  const { structure } = useOrganizationStructure();
+
+  // Build hierarchy for display
+  const hierarchicalObjectives = useMemo(() => {
+    if (!objectives) return [];
+    
+    // Create a map of objectives by ID
+    const objectiveMap = new Map(objectives.map(obj => [obj.id, { ...obj, children: [] as AlignObjective[] }]));
+    
+    // Build the hierarchy
+    const rootObjectives: AlignObjective[] = [];
+    
+    objectives.forEach(obj => {
+      const objWithChildren = objectiveMap.get(obj.id)!;
+      
+      if (obj.parent_id && objectiveMap.has(obj.parent_id)) {
+        objectiveMap.get(obj.parent_id)!.children.push(objWithChildren);
+      } else {
+        rootObjectives.push(objWithChildren);
+      }
+    });
+    
+    return rootObjectives;
+  }, [objectives]);
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-slate-200 mb-4">
+            Please sign in to view objectives
+          </h2>
+        </div>
+      </div>
+    );
+  }
+
+  if (objectivesLoading || statsLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-600"></div>
+      </div>
+    );
+  }
+
+  if (objectivesError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-red-400 mb-4">
+            Error loading objectives
+          </h2>
+          <p className="text-slate-400 mb-4">{objectivesError}</p>
+          <button 
+            onClick={refetch}
+            className="px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const toggleExpanded = (id: string) => {
     const newExpanded = new Set(expandedIds);
@@ -150,24 +104,25 @@ const ObjectivesPage: React.FC = () => {
   };
 
   // Handlers for visualization interactions
-  const handleUpdateObjective = (objective: Objective) => {
-    // TODO: Implement objective update logic
+  const handleUpdateObjective = (objective: AlignObjective) => {
+    // TODO: Implement objective update logic with Supabase
     console.log('Update objective:', objective);
+    refetch(); // Refresh data after update
   };
 
   const handleAddChild = (parentId: string) => {
-    // TODO: Implement add child logic
-    console.log('Add child to:', parentId);
+    // Navigate to create new objective with parent
+    window.location.href = `/objectives/new?parent=${parentId}`;
   };
 
   const handleEditObjective = (objectiveId: string) => {
-    // TODO: Implement edit logic
-    console.log('Edit objective:', objectiveId);
+    window.location.href = `/objectives/${objectiveId}/edit`;
   };
 
   const handleReorganize = (sourceId: string, targetId: string) => {
-    // TODO: Implement reorganization logic
+    // TODO: Implement reorganization logic with Supabase
     console.log('Reorganize:', sourceId, 'to', targetId);
+    refetch(); // Refresh data after reorganization
   };
 
   const getStatusColor = (status: string) => {
@@ -209,7 +164,7 @@ const ObjectivesPage: React.FC = () => {
     }
   };
 
-  const renderObjective = (objective: Objective, depth: number = 0) => {
+  const renderObjective = (objective: AlignObjective, depth: number = 0) => {
     const isExpanded = expandedIds.has(objective.id);
     const hasChildren = objective.children && objective.children.length > 0;
     const indentClass = depth > 0 ? `ml-${depth * 8}` : '';
@@ -227,14 +182,14 @@ const ObjectivesPage: React.FC = () => {
                 <span className={`text-xs font-medium px-2 py-1 rounded-full ${getLevelColor(objective.level)} bg-opacity-20`}>
                   {objective.level.toUpperCase()}
                 </span>
-                {objective.department && (
+                {objective.department?.name && (
                   <span className="text-xs text-slate-400 px-2 py-1 bg-slate-700 rounded-full">
-                    {objective.department}
+                    {objective.department.name}
                   </span>
                 )}
-                {objective.team && (
+                {objective.team?.name && (
                   <span className="text-xs text-slate-400 px-2 py-1 bg-slate-600 rounded-full">
-                    {objective.team}
+                    {objective.team.name}
                   </span>
                 )}
               </div>
@@ -254,16 +209,18 @@ const ObjectivesPage: React.FC = () => {
                 <h3 className="text-lg font-semibold text-white">{objective.title}</h3>
               </div>
               
-              <p className="text-slate-300 text-sm mb-3">{objective.description}</p>
+              <p className="text-slate-300 text-sm mb-3">{objective.description || 'No description provided'}</p>
               
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
                   <span className="text-slate-400">Owner:</span>
-                  <div className="font-medium">{objective.ownerName}</div>
+                  <div className="font-medium">{objective.owner?.full_name || 'Unassigned'}</div>
                 </div>
                 <div>
                   <span className="text-slate-400">Due Date:</span>
-                  <div className="font-medium">{objective.dueDate.toLocaleDateString()}</div>
+                  <div className="font-medium">
+                    {objective.due_date ? new Date(objective.due_date).toLocaleDateString() : 'No due date'}
+                  </div>
                 </div>
                 <div>
                   <span className="text-slate-400">Status:</span>
@@ -273,24 +230,24 @@ const ObjectivesPage: React.FC = () => {
                 </div>
                 <div>
                   <span className="text-slate-400">Progress:</span>
-                  <div className="font-mono font-bold">{objective.progress}%</div>
+                  <div className="font-mono font-bold">{objective.progress_percentage}%</div>
                 </div>
               </div>
             </div>
             
             <div className="text-right ml-4">
-              <div className="text-3xl font-bold text-sky-400 mb-1">{objective.progress}%</div>
+              <div className="text-3xl font-bold text-sky-400 mb-1">{objective.progress_percentage}%</div>
               <div className="w-24 bg-slate-700 rounded-full h-2 mb-2">
                 <div 
                   className="bg-gradient-to-r from-sky-500 to-blue-500 h-2 rounded-full" 
-                  style={{ width: `${objective.progress}%` }}
+                  style={{ width: `${objective.progress_percentage}%` }}
                 ></div>
               </div>
             </div>
           </div>
 
           {/* Key Results */}
-          {objective.keyResults.length > 0 && (
+          {objective.key_results && objective.key_results.length > 0 && (
             <div className="mt-4 pt-4 border-t border-slate-600">
               <div className="flex justify-between items-center mb-3">
                 <h4 className="text-sm font-medium text-slate-300">Key Results</h4>
@@ -300,20 +257,20 @@ const ObjectivesPage: React.FC = () => {
                 </button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {objective.keyResults.map(kr => (
+                {objective.key_results.map(kr => (
                   <div key={kr.id} className="bg-slate-800/50 p-3 rounded-lg">
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-sm font-medium">{kr.title}</span>
-                      <span className="text-xs font-mono">{kr.progress}%</span>
+                      <span className="text-xs font-mono">{kr.progress_percentage}%</span>
                     </div>
                     <div className="flex justify-between text-xs text-slate-400 mb-2">
-                      <span>{kr.currentValue} {kr.unit}</span>
-                      <span>Target: {kr.targetValue} {kr.unit}</span>
+                      <span>{kr.current_value || 0} {kr.unit || ''}</span>
+                      <span>Target: {kr.target_value || 'Not set'} {kr.unit || ''}</span>
                     </div>
                     <div className="w-full bg-slate-600 rounded-full h-1.5">
                       <div 
                         className="bg-sky-400 h-1.5 rounded-full" 
-                        style={{ width: `${kr.progress}%` }}
+                        style={{ width: `${kr.progress_percentage}%` }}
                       ></div>
                     </div>
                   </div>
@@ -323,7 +280,7 @@ const ObjectivesPage: React.FC = () => {
           )}
 
           {/* Add Key Results when empty */}
-          {objective.keyResults.length === 0 && (
+          {(!objective.key_results || objective.key_results.length === 0) && (
             <div className="mt-4 pt-4 border-t border-slate-600">
               <div className="flex justify-between items-center mb-3">
                 <h4 className="text-sm font-medium text-slate-300">Key Results</h4>
@@ -407,37 +364,80 @@ const ObjectivesPage: React.FC = () => {
         <h3 className="text-xl font-semibold mb-4 text-sky-300">Objective Hierarchy</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div className="text-center">
-            <div className="text-2xl font-bold text-purple-400 mb-1">1</div>
+            <div className="text-2xl font-bold text-purple-400 mb-1">{stats?.by_level.corporate || 0}</div>
             <div className="text-sm text-slate-400">Corporate Objectives</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-400 mb-1">2</div>
+            <div className="text-2xl font-bold text-blue-400 mb-1">{stats?.by_level.department || 0}</div>
             <div className="text-sm text-slate-400">Department Objectives</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-400 mb-1">1</div>
+            <div className="text-2xl font-bold text-green-400 mb-1">{stats?.by_level.team || 0}</div>
             <div className="text-sm text-slate-400">Team Objectives</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-sky-400 mb-1">1</div>
+            <div className="text-2xl font-bold text-sky-400 mb-1">{stats?.by_level.individual || 0}</div>
             <div className="text-sm text-slate-400">Individual Objectives</div>
           </div>
         </div>
-      </GlassCard>
 
-      {/* Interactive Goal Visualization */}
-      <GoalVisualizationContainer
-        objectives={mockObjectives}
-        onUpdateObjective={handleUpdateObjective}
-        onAddChild={handleAddChild}
-        onEditObjective={handleEditObjective}
-        onReorganize={handleReorganize}
-        renderListView={() => (
-          <div className="space-y-6">
-            {mockObjectives.map(objective => renderObjective(objective))}
+        {structure && (
+          <div className="mt-6 pt-6 border-t border-slate-700">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+              <div>
+                <div className="text-lg font-bold text-slate-300">{structure.departments.length}</div>
+                <div className="text-xs text-slate-400">Departments</div>
+              </div>
+              <div>
+                <div className="text-lg font-bold text-slate-300">{structure.teams.length}</div>
+                <div className="text-xs text-slate-400">Teams</div>
+              </div>
+              <div>
+                <div className="text-lg font-bold text-slate-300">{structure.total_employees}</div>
+                <div className="text-xs text-slate-400">Employees</div>
+              </div>
+              <div>
+                <div className="text-lg font-bold text-slate-300">{structure.hierarchy_depth}</div>
+                <div className="text-xs text-slate-400">Hierarchy Depth</div>
+              </div>
+            </div>
           </div>
         )}
-      />
+      </GlassCard>
+
+      {/* Objectives List */}
+      {hierarchicalObjectives.length > 0 ? (
+        <GoalVisualizationContainer
+          objectives={hierarchicalObjectives}
+          onUpdateObjective={handleUpdateObjective}
+          onAddChild={handleAddChild}
+          onEditObjective={handleEditObjective}
+          onReorganize={handleReorganize}
+          renderListView={() => (
+            <div className="space-y-6">
+              {hierarchicalObjectives.map(objective => renderObjective(objective))}
+            </div>
+          )}
+        />
+      ) : (
+        <GlassCard className="p-8 text-center">
+          <Icon path="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" className="w-12 h-12 mx-auto mb-4 text-slate-500" />
+          <h3 className="text-lg font-semibold text-slate-300 mb-2">No Objectives Found</h3>
+          <p className="text-slate-400 mb-6">
+            {selectedLevel === 'all' 
+              ? "Get started by creating your first strategic objective." 
+              : `No ${selectedLevel} objectives found. Try selecting "All Levels" or create a new objective.`
+            }
+          </p>
+          <Link
+            to="/objectives/new"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white rounded-lg transition-colors"
+          >
+            <Icon path="M12 4v16m8-8H4" className="w-4 h-4" />
+            Create Your First Objective
+          </Link>
+        </GlassCard>
+      )}
     </div>
   );
 };

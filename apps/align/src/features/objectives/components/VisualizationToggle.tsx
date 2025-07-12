@@ -30,8 +30,7 @@ const viewOptions: Array<{
     value: 'sunburst',
     label: 'Sunburst',
     icon: 'M12 2l3.09 6.26L22 9l-5.91 5.2L17.82 22 12 18.27 6.18 22l1.73-7.8L2 9l6.91-.74L12 2z',
-    description: 'Radial hierarchy chart',
-    comingSoon: true
+    description: 'Radial hierarchy chart'
   },
   {
     value: 'mindmap',
@@ -124,8 +123,8 @@ const VisualizationToggle: React.FC<VisualizationToggleProps> = ({
       {/* Help Text */}
       <div className="mt-4 pt-3 border-t border-slate-700">
         <div className="text-xs text-slate-400">
-          💡 <strong>Tree View</strong> allows you to drag and drop goals to reorganize hierarchy, 
-          expand/collapse sections, and see detailed progress indicators.
+          💡 <strong>Tree View</strong> allows drag & drop reorganization and detailed interactions. 
+          <strong>Sunburst Chart</strong> provides radial hierarchy visualization with progress arcs.
         </div>
       </div>
     </div>

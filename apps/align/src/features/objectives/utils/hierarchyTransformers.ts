@@ -1,5 +1,7 @@
 import type { Node, Edge } from 'reactflow';
+import type { AlignObjective } from '../../../types/database';
 
+// Legacy interface for backward compatibility with existing visualization components
 export interface Objective {
   id: string;
   title: string;
@@ -24,6 +26,40 @@ export interface Objective {
     progress: number;
   }>;
   children?: Objective[];
+}
+
+// Transform AlignObjective to legacy Objective format for visualization compatibility
+export function alignObjectiveToLegacy(alignObj: AlignObjective): Objective {
+  return {
+    id: alignObj.id,
+    title: alignObj.title,
+    description: alignObj.description || '',
+    level: alignObj.level,
+    parentId: alignObj.parent_id || undefined,
+    ownerId: alignObj.owner_id || '',
+    ownerName: alignObj.owner?.full_name || 'Unassigned',
+    department: alignObj.department?.name,
+    team: alignObj.team?.name,
+    progress: alignObj.progress_percentage,
+    status: alignObj.status,
+    priority: alignObj.priority,
+    startDate: alignObj.start_date ? new Date(alignObj.start_date) : new Date(),
+    dueDate: alignObj.due_date ? new Date(alignObj.due_date) : new Date(),
+    keyResults: alignObj.key_results?.map(kr => ({
+      id: kr.id,
+      title: kr.title,
+      currentValue: kr.current_value || '0',
+      targetValue: kr.target_value || '100',
+      unit: kr.unit || '',
+      progress: kr.progress_percentage
+    })) || [],
+    children: alignObj.children?.map(child => alignObjectiveToLegacy(child))
+  };
+}
+
+// Transform array of AlignObjectives to legacy format
+export function alignObjectivesToLegacy(alignObjs: AlignObjective[]): Objective[] {
+  return alignObjs.map(alignObjectiveToLegacy);
 }
 
 const levelColors = {
