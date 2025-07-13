@@ -12,13 +12,53 @@ import type {
 } from '../types/database'
 
 export function useOrganization() {
-  const { organizationId } = useAuth()
+  const { organizationId, profile } = useAuth()
   const [organization, setOrganization] = useState<Organization | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const createOrganizationWithData = async (visionMissionData: UpdateVisionMissionForm & { name?: string }) => {
+    try {
+      // Create the organization first
+      const orgName = visionMissionData.name || 'My Organisation';
+      const createResponse = await OrganizationsService.createOrganization({
+        name: orgName,
+        slug: orgName.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + Date.now(),
+        vision_statement: visionMissionData.vision_statement,
+        mission_statement: visionMissionData.mission_statement,
+        core_values: visionMissionData.core_values || []
+      });
+
+      if (createResponse.error) {
+        throw new Error(createResponse.error.message);
+      }
+
+      const newOrg = createResponse.data;
+      if (!newOrg) {
+        throw new Error('Failed to create organisation');
+      }
+
+      // Store the organization and user IDs in localStorage for development
+      localStorage.setItem('aesyros_dev_organization_id', newOrg.id);
+      localStorage.setItem('aesyros_dev_user_id', profile?.id || 'dev-user-' + Date.now());
+
+      setOrganization(newOrg);
+      
+      // Trigger a page reload to update the auth context
+      setTimeout(() => window.location.reload(), 500);
+      
+      return newOrg;
+    } catch (error) {
+      throw error;
+    }
+  };
+
   const fetchOrganization = useCallback(async () => {
-    if (!organizationId) return
+    if (!organizationId) {
+      setOrganization(null)
+      setLoading(false)
+      return
+    }
 
     setLoading(true)
     setError(null)
@@ -43,12 +83,16 @@ export function useOrganization() {
   }, [fetchOrganization])
 
   const updateVisionMission = useCallback(async (updates: UpdateVisionMissionForm) => {
-    if (!organizationId) return null
-
     setLoading(true)
     setError(null)
 
     try {
+      // If no organization exists, we need to create one first
+      if (!organizationId) {
+        // Create organization via wizard setup
+        return await createOrganizationWithData(updates);
+      }
+
       const response = await OrganizationsService.updateVisionMission(organizationId, updates)
 
       if (response.error) {

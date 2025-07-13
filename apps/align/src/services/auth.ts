@@ -1,5 +1,6 @@
-import { supabase } from '../lib/supabase'
 import type { User, ApiResponse } from '../types/database'
+
+const API_BASE_URL = 'http://localhost:3001/api';
 
 export class AuthService {
   // =========================================================================
@@ -8,38 +9,52 @@ export class AuthService {
 
   static async signIn(email: string, password: string): Promise<ApiResponse<{ user: any; profile: User }>> {
     try {
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
+      console.log('AuthService: Attempting to sign in with email:', email);
+      
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ email, password })
+      });
 
-      if (authError) throw authError
+      const data = await response.json();
+      console.log('AuthService: Backend response:', data);
 
-      if (!authData.user) {
-        throw new Error('Authentication failed')
+      if (!response.ok) {
+        console.error('AuthService: Authentication error:', data);
+        return { 
+          error: { 
+            message: data.error || 'Sign in failed' 
+          } 
+        };
       }
 
-      // Get user profile with organization context
-      const { data: profile, error: profileError } = await supabase
-        .from('users')
-        .select(`
-          *,
-          organization:organizations(*),
-          department_info:departments(*),
-          primary_team:teams(*)
-        `)
-        .eq('id', authData.user.id)
-        .single()
+      if (!data.success) {
+        return { 
+          error: { 
+            message: data.error || 'Authentication failed' 
+          } 
+        };
+      }
 
-      if (profileError) throw profileError
+      console.log('AuthService: Successfully authenticated user:', data.user.email);
+
+      // Store JWT token in localStorage
+      if (data.token) {
+        localStorage.setItem('auth_token', data.token);
+      }
 
       return { 
         data: { 
-          user: authData.user, 
-          profile: profile as User 
+          user: data.user, 
+          profile: data.profile 
         } 
       }
     } catch (error) {
+      console.error('AuthService: Sign in error:', error);
       return { 
         error: { 
           message: error instanceof Error ? error.message : 'Sign in failed' 
@@ -114,11 +129,37 @@ export class AuthService {
 
   static async signOut(): Promise<ApiResponse<void>> {
     try {
-      const { error } = await supabase.auth.signOut()
-      if (error) throw error
+      const token = localStorage.getItem('auth_token');
+      
+      const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        credentials: 'include'
+      });
+
+      // Clear token regardless of response
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('aesyros_dev_bypass');
+      localStorage.removeItem('aesyros_dev_organization_id');
+      localStorage.removeItem('aesyros_dev_user_id');
+
+      if (!response.ok) {
+        const data = await response.json();
+        console.warn('Sign out error:', data);
+      }
 
       return {}
     } catch (error) {
+      // Clear token even if request fails
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('aesyros_dev_bypass');
+      localStorage.removeItem('aesyros_dev_organization_id');
+      localStorage.removeItem('aesyros_dev_user_id');
+      
+      console.error('Sign out error:', error);
       return { 
         error: { 
           message: error instanceof Error ? error.message : 'Sign out failed' 
@@ -129,38 +170,41 @@ export class AuthService {
 
   static async getCurrentUser(): Promise<ApiResponse<{ user: any; profile: User | null }>> {
     try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
+      const token = localStorage.getItem('auth_token');
       
-      if (userError) throw userError
-
-      if (!user) {
+      if (!token) {
         return { data: { user: null, profile: null } }
       }
 
-      // Get user profile with organization context
-      const { data: profile, error: profileError } = await supabase
-        .from('users')
-        .select(`
-          *,
-          organization:organizations(*),
-          department_info:departments(*),
-          primary_team:teams(*)
-        `)
-        .eq('id', user.id)
-        .single()
+      const response = await fetch(`${API_BASE_URL}/auth/session`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        credentials: 'include'
+      });
 
-      // Profile might not exist for new users
-      if (profileError && profileError.code !== 'PGRST116') {
-        throw profileError
+      if (!response.ok) {
+        // Token is invalid, clear it
+        localStorage.removeItem('auth_token');
+        return { data: { user: null, profile: null } }
+      }
+
+      const data = await response.json();
+
+      if (!data.success) {
+        localStorage.removeItem('auth_token');
+        return { data: { user: null, profile: null } }
       }
 
       return { 
         data: { 
-          user, 
-          profile: profile as User | null 
+          user: data.user, 
+          profile: data.profile 
         } 
       }
     } catch (error) {
+      localStorage.removeItem('auth_token');
       return { 
         error: { 
           message: error instanceof Error ? error.message : 'Failed to get current user' 

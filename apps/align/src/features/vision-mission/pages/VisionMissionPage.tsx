@@ -3,6 +3,7 @@ import { GlassCard, Icon } from '../../shared/components';
 import { useAuth } from '../../../hooks/useAuth';
 import { useOrganization } from '../../../hooks/useOrganization';
 import { useObjectiveStats } from '../../../hooks/useObjectives';
+import SetupWizard from '../../onboarding/components/SetupWizard';
 import type { UpdateVisionMissionForm } from '../../../types/database';
 
 const VisionMissionPage: React.FC = () => {
@@ -12,6 +13,7 @@ const VisionMissionPage: React.FC = () => {
   
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
   const [editData, setEditData] = useState<UpdateVisionMissionForm>({
     vision_statement: '',
     mission_statement: '',
@@ -54,6 +56,19 @@ const VisionMissionPage: React.FC = () => {
     setIsEditing(false);
   };
 
+  const handleWizardComplete = () => {
+    setShowWizard(false);
+    // Refresh the page to show updated content
+    window.location.reload();
+  };
+
+  const shouldShowWizard = isManager && (!organization || (!organization.vision_statement && !organization.mission_statement && (!organization.core_values || organization.core_values.length === 0)));
+
+  // Show wizard if no content exists and user clicked "Begin Your Journey"
+  if (showWizard) {
+    return <SetupWizard onComplete={handleWizardComplete} />;
+  }
+
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -91,13 +106,11 @@ const VisionMissionPage: React.FC = () => {
           )}
           {isManager && !isEditing ? (
             <button
-              onClick={() => setIsEditing(true)}
+              onClick={() => shouldShowWizard ? setShowWizard(true) : setIsEditing(true)}
               className="flex items-center gap-2 px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg transition-colors"
             >
               <Icon path="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" className="w-4 h-4" />
-              {!organization?.vision_statement && !organization?.mission_statement && (!organization?.core_values || organization.core_values.length === 0) 
-                ? 'Begin Your Journey' 
-                : 'Edit'}
+              {shouldShowWizard ? 'Begin Your Journey' : 'Edit'}
             </button>
           ) : isManager && isEditing ? (
             <div className="flex gap-2">

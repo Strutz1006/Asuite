@@ -4,12 +4,14 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
+import authRoutes from './routes/auth.js';
 import alignRoutes from './routes/align.js';
 import pulseRoutes from './routes/pulse.js';
 import catalystRoutes from './routes/catalyst.js';
 import flowRoutes from './routes/flow.js';
 import foresightRoutes from './routes/foresight.js';
 import geminiRoutes from './routes/gemini.js';
+import { authenticate, authorize, requireOrganization, optionalAuth } from './middleware/auth.js';
 
 dotenv.config();
 
@@ -55,13 +57,18 @@ app.get('/health', (req, res) => {
   });
 });
 
-// API Routes
-app.use('/api/align', alignRoutes);
-app.use('/api/pulse', pulseRoutes);
-app.use('/api/catalyst', catalystRoutes);
-app.use('/api/flow', flowRoutes);
-app.use('/api/foresight', foresightRoutes);
-app.use('/api/gemini', geminiRoutes);
+// Authentication routes (no auth required)
+app.use('/api/auth', authRoutes);
+
+// Protected API Routes (require authentication + organization access)
+app.use('/api/align', authenticate, requireOrganization, alignRoutes);
+app.use('/api/pulse', authenticate, requireOrganization, pulseRoutes);
+app.use('/api/catalyst', authenticate, requireOrganization, catalystRoutes);
+app.use('/api/flow', authenticate, requireOrganization, flowRoutes);
+app.use('/api/foresight', authenticate, requireOrganization, foresightRoutes);
+
+// Gemini route can be accessed by any authenticated user (no org requirement for AI assistance)
+app.use('/api/gemini', authenticate, geminiRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

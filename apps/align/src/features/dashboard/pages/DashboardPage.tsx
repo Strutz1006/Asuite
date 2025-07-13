@@ -16,17 +16,7 @@ const DashboardPage: React.FC = () => {
     10
   );
 
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-slate-200 mb-4">
-            Please sign in to access the dashboard
-          </h2>
-        </div>
-      </div>
-    );
-  }
+
 
   const corporateObjectives = objectives.filter(obj => obj.level === 'corporate');
   const departmentObjectives = objectives.filter(obj => obj.level === 'department');

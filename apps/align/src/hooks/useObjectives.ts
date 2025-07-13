@@ -24,7 +24,11 @@ export function useObjectives(
   const [pagination, setPagination] = useState<any>(null)
 
   const fetchObjectives = useCallback(async () => {
-    if (!organizationId) return
+    if (!organizationId) {
+      setObjectives([])
+      setLoading(false)
+      return
+    }
 
     setLoading(true)
     setError(null)
@@ -117,7 +121,11 @@ export function useObjectiveStats() {
   const [error, setError] = useState<string | null>(null)
 
   const fetchStats = useCallback(async () => {
-    if (!organizationId) return
+    if (!organizationId) {
+      setStats(null)
+      setLoading(false)
+      return
+    }
 
     setLoading(true)
     setError(null)

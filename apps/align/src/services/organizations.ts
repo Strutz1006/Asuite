@@ -16,6 +16,38 @@ export class OrganizationsService {
   // ORGANIZATION METHODS
   // =========================================================================
 
+  static async createOrganization(orgData: {
+    name: string;
+    slug: string;
+    vision_statement?: string;
+    mission_statement?: string;
+    core_values?: string[];
+  }): Promise<ApiResponse<Organization>> {
+    try {
+      const { data, error } = await supabase
+        .from('organizations')
+        .insert([{
+          name: orgData.name,
+          slug: orgData.slug,
+          vision_statement: orgData.vision_statement || null,
+          mission_statement: orgData.mission_statement || null,
+          core_values: orgData.core_values || []
+        }])
+        .select()
+        .single()
+
+      if (error) throw error
+
+      return { data }
+    } catch (error) {
+      return { 
+        error: { 
+          message: error instanceof Error ? error.message : 'Failed to create organization' 
+        } 
+      }
+    }
+  }
+
   static async getOrganization(id: string): Promise<ApiResponse<Organization>> {
     try {
       const { data, error } = await supabase

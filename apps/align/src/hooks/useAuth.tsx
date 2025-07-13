@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react'
-import { supabase } from '../lib/supabase'
 import { AuthService } from '../services/auth'
 import type { User } from '../types/database'
 
@@ -30,25 +29,71 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // Mock user data for development
-  const mockUser = { id: 'dev-user-123', email: 'dev@example.com' }
-  const mockProfile: User = {
-    id: 'dev-user-123',
-    email: 'dev@example.com',
-    full_name: 'Development User',
-    role: 'admin',
-    organization_id: 'dev-org-123',
-    department_id: 'dev-dept-123',
-    job_title: 'Developer',
-    is_active: true,
-    preferences: {},
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  }
+  const [user, setUser] = useState<any | null>(null)
+  const [profile, setProfile] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  const [user, setUser] = useState<any | null>(mockUser)
-  const [profile, setProfile] = useState<User | null>(mockProfile)
-  const [loading, setLoading] = useState(false)
+  // Check for existing session
+  useEffect(() => {
+    const initAuth = async () => {
+      try {
+        // First check if dev mode bypass is enabled
+        const devBypass = localStorage.getItem('aesyros_dev_bypass');
+        if (devBypass === 'true') {
+          console.log('Dev bypass enabled, setting up mock user');
+          const storedOrg = localStorage.getItem('aesyros_dev_organization_id');
+          const storedUser = localStorage.getItem('aesyros_dev_user_id');
+          
+          if (storedOrg && storedUser) {
+            const mockUser = { id: storedUser, email: 'dev@example.com' }
+            const mockProfile: User = {
+              id: storedUser,
+              email: 'dev@example.com',
+              full_name: 'Development User',
+              role: 'admin',
+              organization_id: storedOrg,
+              department_id: null,
+              job_title: 'Developer',
+              is_active: true,
+              preferences: {},
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            }
+            
+            setUser(mockUser);
+            setProfile(mockProfile);
+            setLoading(false);
+            return;
+          }
+        }
+
+        // Check for backend JWT token session
+        const result = await AuthService.getCurrentUser();
+        
+        if (result.error) {
+          console.error('Session error:', result.error);
+          setUser(null);
+          setProfile(null);
+        } else if (result.data?.user) {
+          console.log('Found backend session for user:', result.data.user.email);
+          setUser(result.data.user);
+          setProfile(result.data.profile);
+        } else {
+          console.log('No session found, user not authenticated');
+          setUser(null);
+          setProfile(null);
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        setUser(null);
+        setProfile(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initAuth();
+  }, []);
 
   const signIn = async (email: string, password: string) => {
     const result = await AuthService.signIn(email, password)
@@ -81,6 +126,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     await AuthService.signOut()
+    // Clear dev mode bypass
+    localStorage.removeItem('aesyros_dev_bypass')
+    localStorage.removeItem('aesyros_dev_organization_id')
+    localStorage.removeItem('aesyros_dev_user_id')
     setUser(null)
     setProfile(null)
   }

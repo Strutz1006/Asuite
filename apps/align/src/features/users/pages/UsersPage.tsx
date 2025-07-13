@@ -1,16 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GlassCard, Icon } from '../../shared/components';
+import { UsersService } from '../../../services/users';
+import { DepartmentsService } from '../../../services/departments';
+import type { User, Department, ApiResponse } from '../../../types/database';
 
-interface User {
-  id: string;
-  fullName: string;
-  email: string;
-  role: 'admin' | 'manager' | 'contributor' | 'viewer';
-  department: string;
-  jobTitle: string;
-  managerId?: string;
-  avatarUrl?: string;
-  lastActive: Date;
+interface UserWithObjectives extends User {
+  manager_id?: string;
   status: 'active' | 'inactive' | 'pending';
   objectives: {
     total: number;
@@ -20,101 +15,81 @@ interface User {
   };
 }
 
-const mockUsers: User[] = [
-  {
-    id: '1',
-    fullName: 'Sarah Chen',
-    email: 'sarah.chen@company.com',
-    role: 'admin',
-    department: 'Operations',
-    jobTitle: 'VP of Operations',
-    lastActive: new Date('2024-07-10T09:30:00'),
-    status: 'active',
-    objectives: { total: 8, completed: 2, onTrack: 5, atRisk: 1 }
-  },
-  {
-    id: '2',
-    fullName: 'Mike Torres',
-    email: 'mike.torres@company.com',
-    role: 'manager',
-    department: 'R&D',
-    jobTitle: 'R&D Director',
-    lastActive: new Date('2024-07-10T08:15:00'),
-    status: 'active',
-    objectives: { total: 6, completed: 1, onTrack: 4, atRisk: 1 }
-  },
-  {
-    id: '3',
-    fullName: 'Lisa Park',
-    email: 'lisa.park@company.com',
-    role: 'manager',
-    department: 'Facilities',
-    jobTitle: 'Facilities Manager',
-    managerId: '1',
-    lastActive: new Date('2024-07-09T17:45:00'),
-    status: 'active',
-    objectives: { total: 4, completed: 0, onTrack: 2, atRisk: 2 }
-  },
-  {
-    id: '4',
-    fullName: 'Alex Kim',
-    email: 'alex.kim@company.com',
-    role: 'contributor',
-    department: 'Operations',
-    jobTitle: 'Energy Specialist',
-    managerId: '3',
-    lastActive: new Date('2024-07-10T10:00:00'),
-    status: 'active',
-    objectives: { total: 3, completed: 1, onTrack: 2, atRisk: 0 }
-  },
-  {
-    id: '5',
-    fullName: 'Jordan Lee',
-    email: 'jordan.lee@company.com',
-    role: 'contributor',
-    department: 'R&D',
-    jobTitle: 'Materials Researcher',
-    managerId: '2',
-    lastActive: new Date('2024-07-08T16:20:00'),
-    status: 'active',
-    objectives: { total: 2, completed: 0, onTrack: 1, atRisk: 1 }
-  },
-  {
-    id: '6',
-    fullName: 'Sam Rivera',
-    email: 'sam.rivera@company.com',
-    role: 'contributor',
-    department: 'Marketing',
-    jobTitle: 'Marketing Specialist',
-    lastActive: new Date('2024-07-10T11:30:00'),
-    status: 'active',
-    objectives: { total: 2, completed: 1, onTrack: 1, atRisk: 0 }
-  },
-  {
-    id: '7',
-    fullName: 'Emily Watson',
-    email: 'emily.watson@company.com',
-    role: 'viewer',
-    department: 'Finance',
-    jobTitle: 'Financial Analyst',
-    lastActive: new Date('2024-07-07T14:10:00'),
-    status: 'pending',
-    objectives: { total: 0, completed: 0, onTrack: 0, atRisk: 0 }
-  }
-];
+// Mock objectives data for now - will be replaced with real data later
+const getMockObjectives = (userId: string) => {
+  const mockData: Record<string, any> = {
+    '1': { total: 8, completed: 2, onTrack: 5, atRisk: 1 },
+    '2': { total: 6, completed: 1, onTrack: 4, atRisk: 1 },
+    '3': { total: 4, completed: 0, onTrack: 2, atRisk: 2 },
+    '4': { total: 3, completed: 1, onTrack: 2, atRisk: 0 },
+    '5': { total: 2, completed: 0, onTrack: 1, atRisk: 1 },
+    '6': { total: 2, completed: 1, onTrack: 1, atRisk: 0 },
+    '7': { total: 0, completed: 0, onTrack: 0, atRisk: 0 }
+  };
+  return mockData[userId] || { total: 0, completed: 0, onTrack: 0, atRisk: 0 };
+};
 
 const UsersPage: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState<'list' | 'org-chart'>('list');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [users, setUsers] = useState<UserWithObjectives[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const departments = Array.from(new Set(mockUsers.map(user => user.department)));
+  // Load users and departments
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Load users and departments in parallel
+        const [usersResponse, departmentsResponse] = await Promise.all([
+          UsersService.getUsers(),
+          DepartmentsService.getDepartments()
+        ]);
+
+        if (usersResponse.error) {
+          throw new Error(usersResponse.error.message);
+        }
+        if (departmentsResponse.error) {
+          throw new Error(departmentsResponse.error.message);
+        }
+
+        // Transform users to include objectives data
+        const usersWithObjectives: UserWithObjectives[] = (usersResponse.data || []).map(user => ({
+          ...user,
+          status: 'active' as const, // Default status - should come from API
+          objectives: getMockObjectives(user.id)
+        }));
+
+        setUsers(usersWithObjectives);
+        setDepartments(departmentsResponse.data || []);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load data');
+        console.error('Error loading team management data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  const departmentNames = departments.map(dept => dept.name);
   
-  const filteredUsers = mockUsers.filter(user => {
-    const matchesSearch = user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.jobTitle.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesDepartment = selectedDepartment === 'all' || user.department === selectedDepartment;
+  const filteredUsers = users.filter(user => {
+    const userName = user.full_name || '';
+    const userEmail = user.email || '';
+    const userJobTitle = user.job_title || '';
+    const userDepartment = user.department_info?.name || user.department || '';
+    
+    const matchesSearch = userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         userEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         userJobTitle.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesDepartment = selectedDepartment === 'all' || userDepartment === selectedDepartment;
     return matchesSearch && matchesDepartment;
   });
 
@@ -138,18 +113,18 @@ const UsersPage: React.FC = () => {
   };
 
   const buildOrgChart = () => {
-    const userMap = new Map(mockUsers.map(user => [user.id, user]));
-    const tree: { user: User; children: any[] }[] = [];
+    const userMap = new Map(users.map(user => [user.id, user]));
+    const tree: { user: UserWithObjectives; children: any[] }[] = [];
     
     // Find root users (no manager)
-    const rootUsers = mockUsers.filter(user => !user.managerId);
+    const rootUsers = users.filter(user => !user.manager_id);
     
     const buildSubtree = (userId: string): any => {
       const user = userMap.get(userId);
       if (!user) return null;
       
-      const children = mockUsers
-        .filter(u => u.managerId === userId)
+      const children = users
+        .filter(u => u.manager_id === userId)
         .map(child => buildSubtree(child.id))
         .filter(Boolean);
       
@@ -159,7 +134,7 @@ const UsersPage: React.FC = () => {
     return rootUsers.map(user => buildSubtree(user.id)).filter(Boolean);
   };
 
-  const renderOrgNode = (node: { user: User; children: any[] }, depth: number = 0) => {
+  const renderOrgNode = (node: { user: UserWithObjectives; children: any[] }, depth: number = 0) => {
     const { user, children } = node;
     
     return (
@@ -176,13 +151,13 @@ const UsersPage: React.FC = () => {
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-br from-sky-500 to-blue-600 rounded-full flex items-center justify-center">
                 <span className="text-white font-semibold">
-                  {user.fullName.split(' ').map(n => n[0]).join('')}
+                  {(user.full_name || user.email).split(' ').map(n => n[0]).join('')}
                 </span>
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-white">{user.fullName}</h3>
-                <p className="text-sm text-slate-400">{user.jobTitle}</p>
-                <p className="text-xs text-slate-500">{user.department}</p>
+                <h3 className="font-semibold text-white">{user.full_name || user.email}</h3>
+                <p className="text-sm text-slate-400">{user.job_title}</p>
+                <p className="text-xs text-slate-500">{user.department_info?.name || user.department}</p>
               </div>
               <div className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
                 {user.role.toUpperCase()}
@@ -219,6 +194,34 @@ const UsersPage: React.FC = () => {
     );
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mx-auto mb-4"></div>
+          <p className="text-slate-400">Loading team management data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-400 mb-4">⚠️ Error loading data</div>
+          <p className="text-slate-400 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen space-y-8">
       <div className="flex justify-between items-center">
@@ -254,18 +257,18 @@ const UsersPage: React.FC = () => {
         <h3 className="text-xl font-semibold mb-4 text-sky-300">Team Overview</h3>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
           <div className="text-center">
-            <div className="text-3xl font-bold text-sky-400 mb-1">{mockUsers.length}</div>
+            <div className="text-3xl font-bold text-sky-400 mb-1">{users.length}</div>
             <div className="text-sm text-slate-400">Total Users</div>
           </div>
           <div className="text-center">
             <div className="text-3xl font-bold text-green-400 mb-1">
-              {mockUsers.filter(u => u.status === 'active').length}
+              {users.filter(u => u.status === 'active').length}
             </div>
             <div className="text-sm text-slate-400">Active</div>
           </div>
           <div className="text-center">
             <div className="text-3xl font-bold text-purple-400 mb-1">
-              {mockUsers.filter(u => u.role === 'manager' || u.role === 'admin').length}
+              {users.filter(u => u.role === 'manager' || u.role === 'admin').length}
             </div>
             <div className="text-sm text-slate-400">Managers</div>
           </div>
@@ -275,7 +278,7 @@ const UsersPage: React.FC = () => {
           </div>
           <div className="text-center">
             <div className="text-3xl font-bold text-yellow-400 mb-1">
-              {mockUsers.reduce((sum, u) => sum + u.objectives.total, 0)}
+              {users.reduce((sum, u) => sum + u.objectives.total, 0)}
             </div>
             <div className="text-sm text-slate-400">Total Objectives</div>
           </div>
@@ -302,7 +305,7 @@ const UsersPage: React.FC = () => {
             >
               <option value="all">All Departments</option>
               {departments.map(dept => (
-                <option key={dept} value={dept}>{dept}</option>
+                <option key={dept.id} value={dept.name}>{dept.name}</option>
               ))}
             </select>
           </div>
@@ -315,12 +318,12 @@ const UsersPage: React.FC = () => {
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-sky-500 to-blue-600 rounded-full flex items-center justify-center">
                       <span className="text-white font-semibold">
-                        {user.fullName.split(' ').map(n => n[0]).join('')}
+                        {(user.full_name || user.email).split(' ').map(n => n[0]).join('')}
                       </span>
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-white">{user.fullName}</h3>
-                      <p className="text-slate-400">{user.jobTitle} • {user.department}</p>
+                      <h3 className="text-lg font-semibold text-white">{user.full_name || user.email}</h3>
+                      <p className="text-slate-400">{user.job_title} • {user.department_info?.name || user.department}</p>
                       <p className="text-sm text-slate-500">{user.email}</p>
                     </div>
                   </div>
@@ -358,7 +361,7 @@ const UsersPage: React.FC = () => {
                     <div className="text-center">
                       <div className="text-sm text-slate-400">Last Active</div>
                       <div className="text-sm font-mono">
-                        {user.lastActive.toLocaleDateString()}
+                        {user.last_active_at ? new Date(user.last_active_at).toLocaleDateString() : 'Never'}
                       </div>
                     </div>
                     
