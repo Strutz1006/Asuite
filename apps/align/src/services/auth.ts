@@ -1,3 +1,4 @@
+import { supabase } from '../lib/supabase';
 import type { User, ApiResponse } from '../types/database'
 
 const API_BASE_URL = 'http://localhost:3001/api';

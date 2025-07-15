@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { GlassCard, Icon } from '../../shared/components';
-import type { ProcessMetrics, CycleTimeMetrics, ResourceMetrics, QualityMetrics, CostMetrics, Bottleneck } from '../../shared/types/advanced';
+import type { ProcessMetrics, Bottleneck } from '../../shared/types/advanced';
 
 const AnalyticsPage: React.FC = () => {
   const [processMetrics, setProcessMetrics] = useState<ProcessMetrics[]>([]);
@@ -190,12 +190,6 @@ const AnalyticsPage: React.FC = () => {
     if (utilization >= 80) return 'text-yellow-400';
     if (utilization >= 60) return 'text-green-400';
     return 'text-blue-400';
-  };
-
-  const getQualityColor = (value: number, benchmark: number) => {
-    if (value <= benchmark * 0.8) return 'text-green-400';
-    if (value <= benchmark) return 'text-yellow-400';
-    return 'text-red-400';
   };
 
   const getBottleneckImpactColor = (impact: Bottleneck['impact']) => {

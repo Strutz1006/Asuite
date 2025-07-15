@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { GlassCard, Icon } from '../../shared/components';
-import type { ComplianceFramework, ComplianceRequirement, RegulatoryChange, ProcessImpact } from '../../shared/types/advanced';
+import type { ComplianceFramework, RegulatoryChange, ProcessImpact } from '../../shared/types/advanced';
 
 const CompliancePage: React.FC = () => {
   const [frameworks, setFrameworks] = useState<ComplianceFramework[]>([]);
   const [selectedFramework, setSelectedFramework] = useState<ComplianceFramework | null>(null);
   const [regulatoryChanges, setRegulatoryChanges] = useState<RegulatoryChange[]>([]);
   const [activeTab, setActiveTab] = useState<'frameworks' | 'changes' | 'assessment'>('frameworks');
-  const [showRiskAssessment, setShowRiskAssessment] = useState(false);
 
   useEffect(() => {
     loadComplianceData();

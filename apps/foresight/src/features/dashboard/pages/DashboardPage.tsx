@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { GlassCard, Icon } from '../../shared/components';
+import { Icon } from '../../shared/components';
+import { DashboardLayout, DashboardCard } from '@aesyros/ui';
 import { mockBusinessLevers, mockSimulationMetrics, mockScenarios } from '../../shared/data/mockData';
 
 const DashboardPage: React.FC = () => {
@@ -14,37 +15,18 @@ const DashboardPage: React.FC = () => {
     return leverValues[leverName] ?? defaultValue;
   };
 
-  return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-3xl font-bold text-slate-100">Strategy Sandbox</h2>
-          <p className="text-slate-400 mt-2">Test potential decisions, model downstream effects, and build smarter roadmaps</p>
-        </div>
-        
-        <div className="grid grid-cols-4 gap-4 text-center">
-          <div>
-            <div className="text-2xl font-bold text-sky-400">{mockSimulationMetrics.activeSimulations}</div>
-            <div className="text-xs text-slate-400">Active Simulations</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-green-400">{mockSimulationMetrics.averageConfidence}%</div>
-            <div className="text-xs text-slate-400">Avg Confidence</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-yellow-400">{mockSimulationMetrics.predictedROI}%</div>
-            <div className="text-xs text-slate-400">Predicted ROI</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-blue-400">{mockSimulationMetrics.riskLevel}</div>
-            <div className="text-xs text-slate-400">Risk Level</div>
-          </div>
-        </div>
-      </div>
+  const dashboardStats = [
+    { label: 'Active Simulations', value: mockSimulationMetrics.activeSimulations, color: 'text-sky-400' },
+    { label: 'Avg Confidence', value: `${mockSimulationMetrics.averageConfidence}%`, color: 'text-green-400' },
+    { label: 'Predicted ROI', value: `${mockSimulationMetrics.predictedROI}%`, color: 'text-yellow-400' },
+    { label: 'Risk Level', value: mockSimulationMetrics.riskLevel, color: 'text-blue-400' },
+  ];
 
+  const mainContent = (
+    <>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Business Levers Control Panel */}
-        <GlassCard className="p-6">
+        <DashboardCard>
           <h3 className="text-xl font-semibold mb-4">Business Levers & Variables</h3>
           <p className="text-slate-400 mb-6">Adjust these inputs to model a new scenario. See the projected impact in real-time.</p>
           
@@ -78,10 +60,10 @@ const DashboardPage: React.FC = () => {
               Run Simulation
             </button>
           </div>
-        </GlassCard>
+        </DashboardCard>
 
         {/* Real-time Impact Preview */}
-        <GlassCard className="p-6">
+        <DashboardCard>
           <h3 className="text-xl font-semibold mb-4">Projected Impact Dashboard</h3>
           <div className="space-y-6">
             <div className="space-y-4">
@@ -128,11 +110,11 @@ const DashboardPage: React.FC = () => {
               </div>
             </div>
           </div>
-        </GlassCard>
+        </DashboardCard>
       </div>
 
       {/* Recent Scenarios */}
-      <GlassCard className="p-6">
+      <DashboardCard>
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-semibold text-slate-100">Recent Scenarios</h3>
           <Link 
@@ -164,10 +146,10 @@ const DashboardPage: React.FC = () => {
             </div>
           ))}
         </div>
-      </GlassCard>
+      </DashboardCard>
 
       {/* Quick Actions */}
-      <GlassCard className="p-6">
+      <DashboardCard>
         <h3 className="text-xl font-semibold text-slate-100 mb-4">Quick Actions</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Link 
@@ -206,10 +188,10 @@ const DashboardPage: React.FC = () => {
             </div>
           </button>
         </div>
-      </GlassCard>
+      </DashboardCard>
 
       {/* Advanced Features */}
-      <GlassCard className="p-6">
+      <DashboardCard>
         <h3 className="text-xl font-semibold text-slate-100 mb-4">Advanced Features</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Link 
@@ -310,8 +292,60 @@ const DashboardPage: React.FC = () => {
             </div>
           </button>
         </div>
-      </GlassCard>
-    </div>
+      </DashboardCard>
+    </>
+  );
+
+  const sideContent = (
+    <>
+      {/* Simulation Status */}
+      <DashboardCard>
+        <h3 className="text-lg font-semibold mb-4">Simulation Status</h3>
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+            <span className="text-sm">Active (3)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <span className="text-sm">Queued (1)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-slate-500 rounded-full"></div>
+            <span className="text-sm">Completed (12)</span>
+          </div>
+        </div>
+      </DashboardCard>
+
+      {/* Market Conditions */}
+      <DashboardCard>
+        <h3 className="text-lg font-semibold mb-4">Market Conditions</h3>
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <span className="text-sm">Market Volatility</span>
+            <span className="text-sm text-yellow-400">Medium</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-sm">Competition</span>
+            <span className="text-sm text-red-400">High</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-sm">Growth Potential</span>
+            <span className="text-sm text-green-400">High</span>
+          </div>
+        </div>
+      </DashboardCard>
+    </>
+  );
+
+  return (
+    <DashboardLayout
+      title="Strategy Sandbox"
+      description="Test potential decisions, model downstream effects, and build smarter roadmaps"
+      stats={dashboardStats}
+      mainContent={mainContent}
+      sideContent={sideContent}
+    />
   );
 };
 

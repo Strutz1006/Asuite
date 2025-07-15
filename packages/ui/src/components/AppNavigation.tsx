@@ -2,7 +2,7 @@
 import React from 'react';
 
 interface AppNavigationProps {
-  currentApp: 'align' | 'catalyst' | 'flow' | 'foresight' | 'pulse';
+  currentApp: 'align' | 'drive' | 'pulse' | 'catalyst' | 'flow' | 'foresight';
   baseUrl?: string;
 }
 
@@ -17,6 +17,14 @@ const AppNavigation: React.FC<AppNavigationProps> = ({
       description: 'Strategic Goals & OKRs',
       port: 5173,
       icon: 'M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2h10a2 2 0 002-2v-1a2 2 0 012-2h1.945',
+      color: 'sky'
+    },
+    { 
+      name: 'drive', 
+      title: 'Drive', 
+      description: 'Task & Project Management',
+      port: 5179,
+      icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
       color: 'sky'
     },
     { 
@@ -66,9 +74,9 @@ const AppNavigation: React.FC<AppNavigationProps> = ({
   };
 
   return (
-    <div className="lg:ml-64">
-      <div className="bg-slate-800/90 backdrop-blur-lg border-b border-slate-700 px-6 py-4 relative z-20" style={{ minHeight: '72px' }}>
-        <div className="flex items-center justify-between h-full">
+    <div className="lg:ml-64 relative z-50">
+      <div className="bg-slate-800/90 backdrop-blur-lg border-b border-slate-700 px-6 py-4 relative z-20 overflow-x-auto" style={{ minHeight: '72px' }}>
+        <div className="flex items-center justify-between h-full min-w-0">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
               <svg className="w-8 h-8 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -78,7 +86,7 @@ const AppNavigation: React.FC<AppNavigationProps> = ({
             </div>
           </div>
           
-          <div className="flex items-center gap-2 flex-shrink-0" style={{ minWidth: '700px' }}>
+          <div className="flex items-center gap-2 flex-shrink-0 overflow-x-auto">
             {apps.map((app) => {
               const isActive = app.name === currentApp;
               
@@ -87,13 +95,13 @@ const AppNavigation: React.FC<AppNavigationProps> = ({
                   key={app.name}
                   onClick={() => handleNavigation(app)}
                   className={`
-                    flex items-center gap-2 px-4 py-2 rounded-lg border transition-all min-w-[120px] max-w-[140px] justify-center flex-shrink-0
+                    flex items-center gap-2 px-3 py-2 rounded-lg border transition-all min-w-[100px] justify-center flex-shrink-0
                     ${isActive 
                       ? 'bg-sky-500/20 text-sky-300 border-sky-500/50'
                       : 'bg-slate-700/50 text-slate-400 border-slate-600/50 hover:bg-slate-600/50 hover:text-slate-300'
                     }
                   `}
-                  style={{ width: '130px', height: '40px' }}
+                  style={{ height: '40px' }}
                   title={app.description}
                 >
                   <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -108,12 +116,12 @@ const AppNavigation: React.FC<AppNavigationProps> = ({
       </div>
       
       {/* Standardized Header with Tagline */}
-      <header className="bg-slate-800/90 backdrop-blur-lg border-b border-slate-700 px-6 py-4">
+      <header className="bg-slate-800/90 backdrop-blur-lg border-t border-b border-slate-600 px-6 py-4 relative z-30" style={{ borderTop: '1px solid rgb(71 85 105)', borderBottom: '1px solid rgb(71 85 105)' }}>
         <div className="flex items-center justify-between">
           <div></div>
           
           <div className="flex-1 flex justify-center">
-            <div className="text-5xl font-bold text-sky-400 tracking-wide">
+            <div className="font-bold text-sky-400 tracking-wide" style={{ fontSize: '3rem' }}>
               Strategy to Impact, Simplified
             </div>
           </div>

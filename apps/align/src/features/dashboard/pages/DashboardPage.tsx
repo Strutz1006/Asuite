@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { GlassCard, Icon } from '../../shared/components';
+import { Icon } from '../../shared/components';
+import { DashboardLayout, DashboardCard } from '@aesyros/ui';
 import { useAuth } from '../../../hooks/useAuth';
 import { useObjectives, useObjectiveStats } from '../../../hooks/useObjectives';
 import { useOrganization } from '../../../hooks/useOrganization';
@@ -34,33 +35,63 @@ const DashboardPage: React.FC = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen space-y-8">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-3xl font-bold text-slate-100">Strategic Alignment Hub</h2>
-          {organization && (
-            <p className="text-slate-400 mt-1">{organization.name}</p>
-          )}
-        </div>
-        <div className="flex items-center gap-4 text-sm">
+  const dashboardStats = [
+    { label: 'Total Objectives', value: stats?.total || 0, color: 'text-sky-400' },
+    { label: 'Avg Progress', value: `${Math.round(stats?.average_progress || 0)}%`, color: 'text-green-400' },
+    { label: 'Completion Rate', value: `${Math.round(stats?.completion_rate || 0)}%`, color: 'text-green-400' },
+    { label: 'Org Objectives', value: (stats?.by_level.corporate || 0) + (stats?.by_level.department || 0) + (stats?.by_level.team || 0), color: 'text-slate-300' },
+  ];
+
+  const sideContent = (
+    <>
+      {/* Status Legend */}
+      <DashboardCard>
+        <h3 className="text-lg font-semibold mb-4">Status Overview</h3>
+        <div className="space-y-3">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-sky-500 rounded-full"></div>
-            <span>On Track ({onTrackCount})</span>
+            <span className="text-sm">On Track ({onTrackCount})</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-            <span>At Risk ({atRiskCount})</span>
+            <span className="text-sm">At Risk ({atRiskCount})</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span>Completed ({stats?.by_status.completed || 0})</span>
+            <span className="text-sm">Completed ({stats?.by_status.completed || 0})</span>
           </div>
         </div>
-      </div>
+      </DashboardCard>
+
+      {/* User Info */}
+      {profile && (
+        <DashboardCard>
+          <h3 className="text-lg font-semibold mb-4">Your Profile</h3>
+          <div className="space-y-2">
+            <p className="text-sm">
+              <span className="text-slate-400">Name:</span> <span className="text-slate-200">{profile.full_name}</span>
+            </p>
+            {profile.department_info && (
+              <p className="text-sm">
+                <span className="text-slate-400">Department:</span> <span className="text-slate-200">{profile.department_info.name}</span>
+              </p>
+            )}
+            {organization && (
+              <p className="text-sm">
+                <span className="text-slate-400">Organization:</span> <span className="text-slate-200">{organization.name}</span>
+              </p>
+            )}
+          </div>
+        </DashboardCard>
+      )}
+    </>
+  );
+
+  const mainContent = (
+    <>
 
       {/* Company Level Goal */}
-      <GlassCard className="p-6">
+      <DashboardCard>
         {corporateObjectives.length > 0 ? (
           <div>
             <div className="flex justify-between items-start mb-4">
@@ -200,49 +231,18 @@ const DashboardPage: React.FC = () => {
             </div>
           </div>
         )}
-      </GlassCard>
+      </DashboardCard>
+    </>
+  );
 
-      {/* Statistics Overview */}
-      <GlassCard className="p-6">
-        <h3 className="text-xl font-semibold mb-4">Organization Overview</h3>
-        
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-sky-400">{stats?.total || 0}</div>
-            <div className="text-sm text-slate-400">Total Objectives</div>
-          </div>
-          
-          <div className="text-center">
-            <div className="text-3xl font-bold text-green-400">{Math.round(stats?.average_progress || 0)}%</div>
-            <div className="text-sm text-slate-400">Avg Progress</div>
-          </div>
-          
-          <div className="text-center">
-            <div className="text-3xl font-bold text-green-400">{Math.round(stats?.completion_rate || 0)}%</div>
-            <div className="text-sm text-slate-400">Completion Rate</div>
-          </div>
-          
-          <div className="text-center">
-            <div className="text-3xl font-bold text-slate-300">
-              {(stats?.by_level.corporate || 0) + (stats?.by_level.department || 0) + (stats?.by_level.team || 0)}
-            </div>
-            <div className="text-sm text-slate-400">Org Objectives</div>
-          </div>
-        </div>
-
-        {profile && (
-          <div className="mt-6 pt-6 border-t border-slate-700">
-            <p className="text-sm text-slate-400">
-              Welcome back, <span className="text-slate-200">{profile.full_name}</span>
-              {profile.department_info && (
-                <span> from {profile.department_info.name}</span>
-              )}
-            </p>
-          </div>
-        )}
-      </GlassCard>
-
-    </div>
+  return (
+    <DashboardLayout
+      title="Strategic Alignment Hub"
+      description={organization ? `${organization.name} - Align strategy with execution through measurable objectives` : "Align strategy with execution through measurable objectives"}
+      stats={dashboardStats}
+      mainContent={mainContent}
+      sideContent={sideContent}
+    />
   );
 };
 

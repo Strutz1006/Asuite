@@ -3,7 +3,16 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss({
+      content: [
+        './index.html',
+        './src/**/*.{js,ts,jsx,tsx}',
+        '../../packages/ui/src/**/*.{js,ts,jsx,tsx}',
+      ],
+    }),
+  ],
   server: {
     port: 5177,
     host: true

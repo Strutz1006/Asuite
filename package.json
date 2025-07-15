@@ -7,12 +7,13 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently -n \"align,catalyst,foresight,pulse,flow\" -c \"blue,green,yellow,magenta,cyan\" \"npm run dev:align\" \"sleep 1 && npm run dev:catalyst\" \"sleep 2 && npm run dev:foresight\" \"sleep 3 && npm run dev:pulse\" \"sleep 4 && npm run dev:flow\"",
+    "dev": "concurrently -n \"align,drive,pulse,catalyst,flow,foresight\" -c \"blue,orange,green,yellow,magenta,cyan\" \"npm run dev:align\" \"sleep 1 && npm run dev:drive\" \"sleep 2 && npm run dev:pulse\" \"sleep 3 && npm run dev:catalyst\" \"sleep 4 && npm run dev:flow\" \"sleep 5 && npm run dev:foresight\"",
     "dev:align": "cd apps/align && npm run dev",
-    "dev:catalyst": "cd apps/catalyst && npm run dev",
-    "dev:foresight": "cd apps/foresight && npm run dev",
+    "dev:drive": "cd apps/drive && npm run dev",
     "dev:pulse": "cd apps/pulse && npm run dev",
+    "dev:catalyst": "cd apps/catalyst && npm run dev",
     "dev:flow": "cd apps/flow && npm run dev",
+    "dev:foresight": "cd apps/foresight && npm run dev",
     "services:dev": "concurrently -n \"gateway,align,pulse,catalyst,flow,foresight\" -c \"blue,green,yellow,magenta,cyan,red\" \"npm run services:gateway\" \"npm run services:align\" \"npm run services:pulse\" \"npm run services:catalyst\" \"npm run services:flow\" \"npm run services:foresight\"",
     "services:gateway": "cd services/gateway && npm install && npm run dev",
     "services:align": "cd services/python-analytics/align-service && python main.py",
@@ -36,12 +37,13 @@
     "clean": "rm -rf node_modules && rm -rf apps/*/node_modules && rm -rf packages/*/node_modules && rm -rf apps/*/dist && rm -rf packages/*/dist",
     "fresh": "npm run clean && npm install && npm run install:all",
     "install:all": "npm install && npm install --workspaces",
-    "preview": "concurrently -n \"align,catalyst,foresight,pulse,flow\" -c \"blue,green,yellow,magenta,cyan\" \"npm run preview:align\" \"npm run preview:catalyst\" \"npm run preview:foresight\" \"npm run preview:pulse\" \"npm run preview:flow\"",
+    "preview": "concurrently -n \"align,drive,pulse,catalyst,flow,foresight\" -c \"blue,orange,green,yellow,magenta,cyan\" \"npm run preview:align\" \"npm run preview:drive\" \"npm run preview:pulse\" \"npm run preview:catalyst\" \"npm run preview:flow\" \"npm run preview:foresight\"",
     "preview:align": "cd apps/align && npm run preview",
-    "preview:catalyst": "cd apps/catalyst && npm run preview",
-    "preview:foresight": "cd apps/foresight && npm run preview",
+    "preview:drive": "cd apps/drive && npm run preview",
     "preview:pulse": "cd apps/pulse && npm run preview",
-    "preview:flow": "cd apps/flow && npm run preview"
+    "preview:catalyst": "cd apps/catalyst && npm run preview",
+    "preview:flow": "cd apps/flow && npm run preview",
+    "preview:foresight": "cd apps/foresight && npm run preview"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

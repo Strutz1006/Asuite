@@ -11,7 +11,6 @@ interface QuickAction {
 }
 
 interface QuickActionsProps {
-  currentApp: 'align' | 'catalyst' | 'flow' | 'foresight' | 'pulse';
   appTitle: string;
   appDescription: string;
   appIcon: string;
@@ -19,7 +18,6 @@ interface QuickActionsProps {
 }
 
 const QuickActions: React.FC<QuickActionsProps> = ({ 
-  currentApp, 
   appTitle, 
   appDescription, 
   appIcon, 

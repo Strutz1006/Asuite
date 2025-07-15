@@ -186,7 +186,7 @@ export const mockChangePulseMetrics = [
   {
     journeyId: '1',
     overallSentiment: 0.45,
-    sentimentTrend: 'stable' as const,
+    sentimentTrend: 'improving' as const,
     velocityScore: 75,
     velocityTrend: 'accelerating' as const,
     riskScore: 35,

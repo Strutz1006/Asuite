@@ -117,7 +117,7 @@ const PulseSurveys: React.FC<PulseSurveysProps> = ({ journeyId }) => {
                           </div>
                           <div className="text-xs text-slate-400">
                             Type: {question.type}
-                            {question.options && ` • Options: ${question.options.join(', ')}`}
+                            {('options' in question) && question.options && ` • Options: ${question.options.join(', ')}`}
                           </div>
                         </div>
                       ))}

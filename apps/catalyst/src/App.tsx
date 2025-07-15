@@ -19,6 +19,7 @@ const App: React.FC = () => {
           <Route path="journeys/:id/edit" element={<JourneysPage />} />
           <Route path="journeys/new" element={<JourneysPage />} />
           <Route path="stakeholders" element={<StakeholdersPage />} />
+          <Route path="surveys" element={<DashboardPage />} />
           <Route path="insights" element={<InsightsPage />} />
           <Route path="pulse" element={<PulsePage />} />
           <Route path="*" element={<Navigate to="/" replace />} />

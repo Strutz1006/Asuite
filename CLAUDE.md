@@ -12,10 +12,11 @@ Aesyros Suite is a strategic operating system for modern organizations, consisti
 
 ## Applications (in navigation order)
 1. **Align** (port 5173) - Strategic Goals & OKRs
-2. **Pulse** (port 5177) - KPI Design and Tracking  
-3. **Catalyst** (port 5174) - Change Management
-4. **Flow** (port 5175) - Process Validation & Optimization
-5. **Foresight** (port 5176) - Strategy Simulation & Impact Modeling
+2. **Drive** (port 5179) - Task & Project Management
+3. **Pulse** (port 5177) - KPI Design and Tracking  
+4. **Catalyst** (port 5174) - Change Management
+5. **Flow** (port 5175) - Process Validation & Optimization
+6. **Foresight** (port 5176) - Strategy Simulation & Impact Modeling
 
 ## Development Commands
 ```bash
@@ -24,6 +25,7 @@ npm run dev
 
 # Run individual apps
 npm run dev:align
+npm run dev:drive
 npm run dev:pulse
 npm run dev:catalyst
 npm run dev:flow
@@ -60,6 +62,18 @@ src/
 - Glass morphism: `bg-slate-800/60 backdrop-blur-xl border border-slate-700/80`
 - Color scheme: Sky blue for active states, slate grays for backgrounds
 - Icons: Use Heroicons path strings in custom Icon components
+
+## Critical CSS Requirements
+**IMPORTANT**: All apps must have consistent #root styling in App.css:
+```css
+#root {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+```
+This is required for AppLayout component to work properly. Any deviation will cause layout inconsistencies.
 
 ## Testing & Quality
 - TypeScript strict mode enabled

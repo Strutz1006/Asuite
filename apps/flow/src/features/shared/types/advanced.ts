@@ -12,6 +12,23 @@ export interface ProcessMiningResult {
   lastAnalyzed: Date;
 }
 
+export interface ProcessStep {
+  id: string;
+  name: string;
+  type: 'start' | 'end' | 'task' | 'decision' | 'gateway';
+  duration: number;
+  resources: string[];
+  dependencies: string[];
+}
+
+export interface VariantPerformance {
+  throughput: number;
+  efficiency: number;
+  qualityScore: number;
+  costScore: number;
+  riskLevel: 'low' | 'medium' | 'high';
+}
+
 export interface ProcessVariant {
   id: string;
   frequency: number;

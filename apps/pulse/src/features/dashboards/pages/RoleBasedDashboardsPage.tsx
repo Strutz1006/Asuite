@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { GlassCard, Icon } from '../../shared/components';
+import { Icon } from '../../shared/components';
+import { DashboardCard } from '@aesyros/ui';
 
 interface DashboardTemplate {
   id: string;
@@ -207,7 +208,6 @@ const mockDashboardTemplates: DashboardTemplate[] = [
 const RoleBasedDashboardsPage: React.FC = () => {
   const [selectedRole, setSelectedRole] = useState<string>('executive');
   const [selectedTemplate, setSelectedTemplate] = useState<DashboardTemplate | null>(null);
-  const [isCustomizing, setIsCustomizing] = useState(false);
 
   const getRoleColor = (role: string) => {
     switch (role) {
@@ -274,7 +274,7 @@ const RoleBasedDashboardsPage: React.FC = () => {
       {/* Role Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {['executive', 'manager', 'analyst', 'contributor'].map(role => (
-          <GlassCard 
+          <DashboardCard 
             key={role} 
             className={`p-4 cursor-pointer transition-colors ${
               selectedRole === role ? 'border-sky-500 bg-sky-500/10' : 'hover:border-slate-600'
@@ -288,14 +288,14 @@ const RoleBasedDashboardsPage: React.FC = () => {
             <p className="text-sm text-slate-400">
               {mockDashboardTemplates.filter(t => t.role === role).length} templates available
             </p>
-          </GlassCard>
+          </DashboardCard>
         ))}
       </div>
 
       {/* Dashboard Templates */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {filteredTemplates.map((template, index) => (
-          <GlassCard key={index} className="p-6">
+          <DashboardCard key={index} className="p-6">
             <div className="flex justify-between items-start mb-4">
               <div className="flex items-center gap-3">
                 <Icon path={getRoleIcon(template.role)} className={`w-6 h-6 ${getRoleColor(template.role).split(' ')[0]}`} />
@@ -321,7 +321,7 @@ const RoleBasedDashboardsPage: React.FC = () => {
                   <Icon path="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" className="w-4 h-4" />
                 </button>
                 <button 
-                  onClick={() => setIsCustomizing(true)}
+                  onClick={() => setSelectedTemplate(template)}
                   className="p-2 text-slate-400 hover:text-purple-400 transition-colors"
                 >
                   <Icon path="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" className="w-4 h-4" />
@@ -366,7 +366,7 @@ const RoleBasedDashboardsPage: React.FC = () => {
                 </button>
               </div>
             </div>
-          </GlassCard>
+          </DashboardCard>
         ))}
       </div>
 
@@ -432,7 +432,7 @@ const RoleBasedDashboardsPage: React.FC = () => {
 
       {/* Quick Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <GlassCard className="p-6">
+        <DashboardCard className="p-6">
           <h3 className="text-lg font-semibold text-sky-300 mb-4">Dashboard Usage Analytics</h3>
           <div className="space-y-3">
             <div className="flex justify-between">
@@ -448,9 +448,9 @@ const RoleBasedDashboardsPage: React.FC = () => {
               <span className="text-sky-400 font-medium">47</span>
             </div>
           </div>
-        </GlassCard>
+        </DashboardCard>
 
-        <GlassCard className="p-6">
+        <DashboardCard className="p-6">
           <h3 className="text-lg font-semibold text-sky-300 mb-4">Popular Widgets</h3>
           <div className="space-y-3">
             {[
@@ -473,9 +473,9 @@ const RoleBasedDashboardsPage: React.FC = () => {
               </div>
             ))}
           </div>
-        </GlassCard>
+        </DashboardCard>
 
-        <GlassCard className="p-6">
+        <DashboardCard className="p-6">
           <h3 className="text-lg font-semibold text-sky-300 mb-4">AI Recommendations</h3>
           <div className="space-y-3">
             <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
@@ -487,7 +487,7 @@ const RoleBasedDashboardsPage: React.FC = () => {
               <p className="text-xs text-slate-400">Add competitive benchmarking widget based on your role</p>
             </div>
           </div>
-        </GlassCard>
+        </DashboardCard>
       </div>
     </div>
   );
