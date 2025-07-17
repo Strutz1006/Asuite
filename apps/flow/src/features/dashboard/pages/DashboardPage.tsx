@@ -1,246 +1,390 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Icon } from '../../shared/components';
-import { DashboardLayout, DashboardCard } from '@aesyros/ui';
-import { 
-  mockProcesses, 
-  mockDocuments, 
-  mockValidationIssues, 
-  mockProcessMetrics 
-} from '../../shared/data/mockData';
+import { Workflow, FileText, Shield, CheckCircle, Plus, ArrowRight, AlertTriangle, Clock, TrendingUp } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
-const DashboardPage: React.FC = () => {
-  const getComplianceColor = (compliance: string) => {
-    switch (compliance) {
-      case 'Pass': return 'text-green-400 bg-green-500/20';
-      case 'Review': return 'text-yellow-400 bg-yellow-500/20';
-      case 'Fail': return 'text-red-400 bg-red-500/20';
-      default: return 'text-slate-400 bg-slate-500/20';
-    }
-  };
+const stats = [
+  {
+    name: 'Active Documents',
+    value: '156',
+    change: '+12',
+    changeType: 'increase',
+    icon: FileText,
+  },
+  {
+    name: 'Compliance Score',
+    value: '94%',
+    change: '+8%',
+    changeType: 'increase',
+    icon: Shield,
+  },
+  {
+    name: 'Process Health',
+    value: '87%',
+    change: '+5%',
+    changeType: 'increase',
+    icon: CheckCircle,
+  },
+  {
+    name: 'Efficiency Gain',
+    value: '23%',
+    change: '+15%',
+    changeType: 'increase',
+    icon: TrendingUp,
+  },
+]
 
-  const getQualityColor = (quality: number) => {
-    if (quality >= 90) return 'text-green-400';
-    if (quality >= 75) return 'text-yellow-400';
-    return 'text-red-400';
-  };
+const recentDocuments = [
+  {
+    id: '1',
+    title: 'Customer Onboarding Process',
+    type: 'SOP',
+    status: 'validated',
+    lastReviewed: '2024-07-15',
+    complianceScore: 96,
+    issues: 0,
+    department: 'Sales',
+  },
+  {
+    id: '2',
+    title: 'Data Privacy Policy',
+    type: 'Policy',
+    status: 'needs-review',
+    lastReviewed: '2024-07-10',
+    complianceScore: 78,
+    issues: 3,
+    department: 'Legal',
+  },
+  {
+    id: '3',
+    title: 'Software Development Lifecycle',
+    type: 'Process',
+    status: 'validated',
+    lastReviewed: '2024-07-17',
+    complianceScore: 92,
+    issues: 1,
+    department: 'Engineering',
+  },
+]
 
-  const recentIssues = mockValidationIssues
-    .filter(issue => !issue.resolved)
-    .sort((a, _b) => a.severity === 'high' ? -1 : 1)
-    .slice(0, 3);
+const complianceAlerts = [
+  {
+    id: '1',
+    title: 'GDPR Compliance Gap Detected',
+    document: 'Data Privacy Policy',
+    severity: 'high',
+    description: 'Missing data retention clauses in privacy policy',
+    dueDate: '2024-07-20',
+    assigned: 'Legal Team',
+  },
+  {
+    id: '2',
+    title: 'Process Efficiency Below Threshold',
+    document: 'Invoice Processing Workflow',
+    severity: 'medium',
+    description: 'Current process taking 40% longer than benchmark',
+    dueDate: '2024-07-25',
+    assigned: 'Finance Team',
+  },
+  {
+    id: '3',
+    title: 'Documentation Update Required',
+    document: 'Employee Handbook',
+    severity: 'low',
+    description: 'Annual review cycle due for completion',
+    dueDate: '2024-08-01',
+    assigned: 'HR Team',
+  },
+]
 
-  const dashboardStats = [
-    { label: 'Total Processes', value: mockProcessMetrics.totalProcesses, color: 'text-sky-400' },
-    { label: 'Compliance', value: `${mockProcessMetrics.complianceRate}%`, color: 'text-green-400' },
-    { label: 'Pending Reviews', value: mockProcessMetrics.pendingReviews, color: 'text-yellow-400' },
-    { label: 'Avg Quality', value: `${mockProcessMetrics.averageQuality}%`, color: 'text-blue-400' },
-  ];
+const processMetrics = [
+  {
+    name: 'Customer Onboarding',
+    efficiency: 94,
+    compliance: 96,
+    lastUpdated: '2024-07-15',
+    trend: 'up',
+  },
+  {
+    name: 'Invoice Processing',
+    efficiency: 67,
+    compliance: 89,
+    lastUpdated: '2024-07-14',
+    trend: 'down',
+  },
+  {
+    name: 'Employee Onboarding',
+    efficiency: 88,
+    compliance: 94,
+    lastUpdated: '2024-07-16',
+    trend: 'up',
+  },
+]
 
-  const sideContent = (
-    <>
-      {/* AI Validation Assistant */}
-      <DashboardCard>
-        <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <Icon path="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.466V19a2 2 0 11-4 0v-.534a3.374 3.374 0 00-.547-1.962l-.548-.547z" className="w-6 h-6 text-sky-400"/>
-          AI Validation Assistant
-        </h3>
-        
-        <div className="space-y-4">
-          <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
-            <h4 className="font-semibold text-red-300 mb-2">Critical Issue</h4>
-            <p className="text-sm text-slate-300 mb-3">Data Handling Protocol has 7 compliance issues that need immediate attention.</p>
-            <Link to="/validator" className="text-sm font-semibold text-red-400 hover:text-red-300">
-              Review Issues
-            </Link>
-          </div>
-          
-          <div className="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-            <h4 className="font-semibold text-yellow-300 mb-2">Optimization Opportunity</h4>
-            <p className="text-sm text-slate-300 mb-3">Procurement Policy can be streamlined by removing 2 redundant approval steps.</p>
-            <button className="text-sm font-semibold text-yellow-400 hover:text-yellow-300">
-              Optimize
-            </button>
-          </div>
+export default function DashboardPage() {
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-100">Dashboard</h1>
+          <p className="text-slate-400 mt-1">
+            Validate processes, ensure compliance, and optimize workflows
+          </p>
         </div>
-      </DashboardCard>
+        <Link
+          to="/documents/new"
+          className="glass-button text-green-300 hover:text-green-200 px-4 py-2 flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          New Document
+        </Link>
+      </div>
 
-      {/* Recent Issues */}
-      <DashboardCard>
-        <h3 className="text-xl font-semibold text-slate-100 mb-4">Recent Validation Issues</h3>
+      {/* Company Message/Slogan */}
+      <div className="glass-card p-6 text-center">
+        <h2 className="text-xl font-semibold text-slate-100 mb-2">
+          Validate Processes, Ensure Compliance, Drive Excellence
+        </h2>
+        <p className="text-slate-400">
+          Transform your operational documentation into validated, compliant, and efficient workflows
+        </p>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {stats.map((stat) => {
+          const Icon = stat.icon
+          return (
+            <div key={stat.name} className="glass-card p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-400">{stat.name}</p>
+                  <p className="text-2xl font-semibold text-slate-100 mt-1">{stat.value}</p>
+                </div>
+                <div className="p-3 rounded-xl bg-green-500/20">
+                  <Icon className="w-6 h-6 text-green-400" />
+                </div>
+              </div>
+              <div className="mt-4 flex items-center">
+                <span className="text-sm text-green-400 font-medium">{stat.change}</span>
+                <span className="text-sm text-slate-400 ml-1">from last month</span>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Recent Documents */}
+      <div className="glass-card p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-slate-100">Recent Documents</h2>
+          <Link
+            to="/documents"
+            className="text-green-400 hover:text-green-300 flex items-center gap-1 text-sm"
+          >
+            View all
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
         <div className="space-y-4">
-          {recentIssues.map(issue => (
-            <div key={issue.id} className="p-3 bg-slate-700/50 rounded-lg">
-              <div className="flex items-start gap-3">
-                <Icon 
-                  path="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.34 16.5c-.77.833.192 2.5 1.732 2.5z" 
-                  className={`w-4 h-4 mt-0.5 ${
-                    issue.severity === 'high' ? 'text-red-400' :
-                    issue.severity === 'medium' ? 'text-yellow-400' : 'text-blue-400'
+          {recentDocuments.map((doc) => (
+            <div key={doc.id} className="glass-card p-4 bg-slate-800/40">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <Link
+                    to={`/documents/${doc.id}`}
+                    className="text-slate-100 hover:text-green-300 font-medium"
+                  >
+                    {doc.title}
+                  </Link>
+                  <span className="text-sm text-slate-400">({doc.type})</span>
+                  <span className="text-sm text-slate-400">• {doc.department}</span>
+                </div>
+                <span
+                  className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    doc.status === 'validated'
+                      ? 'bg-green-500/20 text-green-400'
+                      : doc.status === 'needs-review'
+                      ? 'bg-yellow-500/20 text-yellow-400'
+                      : 'bg-red-500/20 text-red-400'
                   }`}
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-200 truncate">{issue.title}</p>
-                  <p className="text-xs text-slate-400 mt-1">
-                    {mockDocuments.find(d => d.id === issue.documentId)?.name}
-                  </p>
+                >
+                  {doc.status === 'validated' ? 'Validated' : doc.status === 'needs-review' ? 'Needs Review' : 'Issues Found'}
+                </span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm text-slate-400">Compliance Score</span>
+                    <span className="text-sm text-slate-300">{doc.complianceScore}%</span>
+                  </div>
+                  <div className="w-full bg-slate-700/50 rounded-full h-2">
+                    <div
+                      className={`h-2 rounded-full transition-all duration-300 ${
+                        doc.complianceScore >= 90 ? 'bg-green-500' : 
+                        doc.complianceScore >= 70 ? 'bg-yellow-500' : 'bg-red-500'
+                      }`}
+                      style={{ width: `${doc.complianceScore}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-slate-400" />
+                  <div>
+                    <p className="text-sm text-slate-400">Issues</p>
+                    <p className="text-sm font-medium text-slate-100">{doc.issues}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-slate-400" />
+                  <div>
+                    <p className="text-sm text-slate-400">Last Reviewed</p>
+                    <p className="text-sm font-medium text-slate-100">{new Date(doc.lastReviewed).toLocaleDateString()}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <Link
+                    to={`/documents/${doc.id}`}
+                    className="text-green-400 hover:text-green-300 text-sm"
+                  >
+                    View Details →
+                  </Link>
                 </div>
               </div>
             </div>
           ))}
         </div>
-      </DashboardCard>
+      </div>
+
+      {/* Process Health Overview */}
+      <div className="glass-card p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-slate-100">Process Health Overview</h2>
+          <Link
+            to="/analytics"
+            className="text-green-400 hover:text-green-300 flex items-center gap-1 text-sm"
+          >
+            View Analytics
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+        <div className="space-y-4">
+          {processMetrics.map((process, index) => (
+            <div key={index} className="glass-card p-4 bg-slate-800/40">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <h3 className="text-slate-100 font-medium">{process.name}</h3>
+                  <TrendingUp className={`w-4 h-4 ${
+                    process.trend === 'up' ? 'text-green-400' : 'text-red-400'
+                  }`} />
+                </div>
+                <span className="text-sm text-slate-400">
+                  Updated {new Date(process.lastUpdated).toLocaleDateString()}
+                </span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-slate-400">Efficiency</span>
+                    <span className="text-sm text-slate-300">{process.efficiency}%</span>
+                  </div>
+                  <div className="w-full bg-slate-700/50 rounded-full h-2">
+                    <div
+                      className={`h-2 rounded-full transition-all duration-300 ${
+                        process.efficiency >= 80 ? 'bg-green-500' : 
+                        process.efficiency >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                      }`}
+                      style={{ width: `${process.efficiency}%` }}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-slate-400">Compliance</span>
+                    <span className="text-sm text-slate-300">{process.compliance}%</span>
+                  </div>
+                  <div className="w-full bg-slate-700/50 rounded-full h-2">
+                    <div
+                      className={`h-2 rounded-full transition-all duration-300 ${
+                        process.compliance >= 90 ? 'bg-green-500' : 
+                        process.compliance >= 70 ? 'bg-yellow-500' : 'bg-red-500'
+                      }`}
+                      style={{ width: `${process.compliance}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Compliance Alerts */}
+      <div className="glass-card p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-slate-100 flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-yellow-400" />
+            Compliance Alerts
+          </h2>
+          <Link
+            to="/compliance"
+            className="text-green-400 hover:text-green-300 flex items-center gap-1 text-sm"
+          >
+            View all
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+        <div className="space-y-3">
+          {complianceAlerts.map((alert) => (
+            <div key={alert.id} className="glass-card p-4 bg-slate-800/40">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="text-slate-100 font-medium">{alert.title}</h3>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        alert.severity === 'high'
+                          ? 'bg-red-500/20 text-red-400'
+                          : alert.severity === 'medium'
+                          ? 'bg-yellow-500/20 text-yellow-400'
+                          : 'bg-green-500/20 text-green-400'
+                      }`}
+                    >
+                      {alert.severity.charAt(0).toUpperCase() + alert.severity.slice(1)}
+                    </span>
+                  </div>
+                  <p className="text-slate-400 text-sm mb-2">{alert.description}</p>
+                  <div className="flex items-center gap-4 text-sm text-slate-500">
+                    <span>Document: <span className="text-green-400">{alert.document}</span></span>
+                    <span>Due: {new Date(alert.dueDate).toLocaleDateString()}</span>
+                    <span>Assigned: {alert.assigned}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* Quick Actions */}
-      <DashboardCard>
-        <h3 className="text-xl font-semibold text-slate-100 mb-4">Quick Actions</h3>
-        <div className="space-y-3">
-          <Link 
-            to="/validator"
-            className="w-full p-3 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors text-left block"
-          >
-            <div className="flex items-center gap-3">
-              <Icon path="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" className="w-5 h-5 text-sky-400" />
-              <div>
-                <div className="font-medium">Validate Document</div>
-                <div className="text-xs text-slate-400">AI-powered validation</div>
-              </div>
-            </div>
-          </Link>
-          
-          <Link 
-            to="/processes/new"
-            className="w-full p-3 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors text-left block"
-          >
-            <div className="flex items-center gap-3">
-              <Icon path="M12 4v16m8-8H4" className="w-5 h-5 text-sky-400" />
-              <div>
-                <div className="font-medium">New Process</div>
-                <div className="text-xs text-slate-400">Create workflow</div>
-              </div>
-            </div>
-          </Link>
-          
-          <button className="w-full p-3 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors text-left">
-            <div className="flex items-center gap-3">
-              <Icon path="M15 17h5l-5 5v-5z" className="w-5 h-5 text-sky-400" />
-              <div>
-                <div className="font-medium">Export Report</div>
-                <div className="text-xs text-slate-400">Compliance summary</div>
-              </div>
-            </div>
-          </button>
-        </div>
-      </DashboardCard>
-    </>
-  );
-
-  const mainContent = (
-    <>
-      {/* Recent Documents */}
-      <DashboardCard>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold text-slate-100">Recently Validated Documents</h3>
-              <Link 
-                to="/documents" 
-                className="text-sm text-sky-400 hover:text-sky-300 transition-colors"
-              >
-                View All Documents →
-              </Link>
-            </div>
-            
-            <div className="space-y-4">
-              {mockDocuments.map(doc => (
-                <div key={doc.id} className="p-4 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors">
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-slate-100 mb-1">{doc.name}</h4>
-                      <div className="flex items-center gap-4 text-sm text-slate-400">
-                        <span>Owner: {doc.owner}</span>
-                        <span>Version: {doc.version}</span>
-                        <span>{doc.wordCount} words</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${getComplianceColor(doc.compliance)}`}>
-                        {doc.compliance}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-1">
-                        <span className="text-sm text-slate-400">Quality:</span>
-                        <span className={`font-mono text-sm ${getQualityColor(doc.quality)}`}>
-                          {doc.quality}%
-                        </span>
-                      </div>
-                      {doc.issues > 0 && (
-                        <div className="flex items-center gap-1">
-                          <Icon path="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.34 16.5c-.77.833.192 2.5 1.732 2.5z" className="w-4 h-4 text-yellow-400" />
-                          <span className="text-sm text-yellow-400">{doc.issues} issues</span>
-                        </div>
-                      )}
-                    </div>
-                    <Link
-                      to={`/documents/${doc.id}`}
-                      className="text-sm bg-sky-500 hover:bg-sky-600 text-white px-3 py-1 rounded transition-colors"
-                    >
-                      Review
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
-      </DashboardCard>
-
-      {/* Process Overview */}
-      <DashboardCard>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold text-slate-100">Active Processes</h3>
-              <Link 
-                to="/processes" 
-                className="text-sm text-sky-400 hover:text-sky-300 transition-colors"
-              >
-                Manage Processes →
-              </Link>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {mockProcesses.slice(0, 4).map(process => (
-                <div key={process.id} className="p-4 bg-slate-700/50 rounded-lg">
-                  <h4 className="font-semibold text-slate-100 mb-2">{process.name}</h4>
-                  <div className="text-sm text-slate-400 mb-3">
-                    {process.steps.length} steps • Owner: {process.owner}
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-slate-500">
-                      Updated {process.lastUpdated.toLocaleDateString()}
-                    </span>
-                    <Link
-                      to={`/processes/${process.id}`}
-                      className="text-sm text-sky-400 hover:text-sky-300 transition-colors"
-                    >
-                      View
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
-      </DashboardCard>
-    </>
-  );
-
-  return (
-    <DashboardLayout
-      title="Process Command Center"
-      description="Validate, optimize, and maintain your organizational processes"
-      stats={dashboardStats}
-      mainContent={mainContent}
-      sideContent={sideContent}
-    />
-  );
-};
-
-export default DashboardPage;
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Link to="/documents/new" className="glass-card p-6 hover:bg-slate-800/40 transition-colors">
+          <FileText className="w-8 h-8 text-green-400 mb-3" />
+          <h3 className="text-lg font-semibold text-slate-100 mb-2">Upload Document</h3>
+          <p className="text-slate-400 text-sm">Upload and validate a new process document</p>
+        </Link>
+        
+        <Link to="/compliance" className="glass-card p-6 hover:bg-slate-800/40 transition-colors">
+          <Shield className="w-8 h-8 text-blue-400 mb-3" />
+          <h3 className="text-lg font-semibold text-slate-100 mb-2">Compliance Check</h3>
+          <p className="text-slate-400 text-sm">Run compliance validation on existing processes</p>
+        </Link>
+        
+        <Link to="/analytics" className="glass-card p-6 hover:bg-slate-800/40 transition-colors">
+          <TrendingUp className="w-8 h-8 text-purple-400 mb-3" />
+          <h3 className="text-lg font-semibold text-slate-100 mb-2">Process Analytics</h3>
+          <p className="text-slate-400 text-sm">Analyze process efficiency and optimization opportunities</p>
+        </Link>
+      </div>
+    </div>
+  )
+}

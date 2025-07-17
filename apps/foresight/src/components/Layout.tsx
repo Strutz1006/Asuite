@@ -1,46 +1,205 @@
-import React from 'react';
-import { Outlet } from 'react-router-dom';
-import { AppLayout } from '@aesyros/ui';
+import { ReactNode } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { Target, BarChart3, TrendingUp, Menu, X, Grid3X3, Zap, Activity, Eye, Workflow, CheckSquare, Lightbulb, Brain } from 'lucide-react'
+import { useState } from 'react'
 
-const Layout: React.FC = () => {
-  const sidebarActions = [
-    {
-      to: "/scenarios/new",
-      icon: "M12 4v16m8-8H4",
-      title: "New Scenario",
-      description: "Create simulation"
-    },
-    {
-      to: "/scenarios",
-      icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z",
-      title: "Active Scenarios",
-      description: "Manage simulations"
-    },
-    {
-      to: "/sandbox",
-      icon: "M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z",
-      title: "Strategy Sandbox",
-      description: "Experiment & model"
-    },
-    {
-      to: "/insights",
-      icon: "M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.466V19a2 2 0 11-4 0v-.534a3.374 3.374 0 00-.547-1.962l-.548-.547z",
-      title: "Strategic Insights",
-      description: "Impact analysis"
-    }
-  ];
+interface LayoutProps {
+  children: ReactNode
+}
+
+const suiteApps = [
+  { name: 'Align', href: '#', icon: Target },
+  { name: 'Drive', href: '#', icon: CheckSquare },
+  { name: 'Pulse', href: '#', icon: Activity },
+  { name: 'Catalyst', href: '#', icon: Zap },
+  { name: 'Flow', href: '#', icon: Workflow },
+  { name: 'Foresight', href: '/', icon: Eye, active: true },
+]
+
+const navItems = [
+  { name: 'Dashboard', href: '/', icon: BarChart3 },
+  { name: 'Scenarios', href: '/scenarios', icon: Brain },
+  { name: 'Insights', href: '/insights', icon: Lightbulb },
+  { name: 'Analytics', href: '/analytics', icon: TrendingUp },
+]
+
+export default function Layout({ children }: LayoutProps) {
+  const location = useLocation()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
-    <AppLayout
-      currentApp="foresight"
-      appTitle="Foresight"
-      appDescription="Strategy Simulation & Impact Modeling"
-      appIcon="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-      sidebarActions={sidebarActions}
-    >
-      <Outlet />
-    </AppLayout>
-  );
-};
+    <div className="min-h-screen bg-slate-950 flex flex-col">
+      {/* Top Navigation Bar - Suite Apps */}
+      <header className="glass-card border-b border-slate-700/80 sticky top-0 z-50">
+        <div className="px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-14">
+            {/* Suite Brand */}
+            <div className="flex items-center">
+              <Grid3X3 className="h-6 w-6 text-emerald-400" />
+              <span className="ml-2 text-lg font-bold text-slate-100">
+                Aesyros <span className="text-emerald-400">Suite</span>
+              </span>
+            </div>
 
-export default Layout;
+            {/* Suite Apps Navigation */}
+            <nav className="hidden md:flex space-x-6">
+              {suiteApps.map((app) => {
+                const Icon = app.icon
+                return (
+                  <Link
+                    key={app.name}
+                    to={app.href}
+                    className={`flex items-center px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      app.active
+                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50'
+                        : 'text-slate-300 hover:text-slate-100 hover:bg-slate-800/50'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4 mr-2" />
+                    {app.name}
+                  </Link>
+                )
+              })}
+            </nav>
+
+            {/* Mobile Apps Menu Button */}
+            <div className="md:hidden">
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="text-slate-300 hover:text-slate-100 p-2"
+              >
+                <Grid3X3 className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile Apps Navigation */}
+          {mobileMenuOpen && (
+            <div className="md:hidden border-t border-slate-700/80">
+              <div className="px-2 pt-2 pb-3 space-y-1">
+                {suiteApps.map((app) => {
+                  const Icon = app.icon
+                  return (
+                    <Link
+                      key={app.name}
+                      to={app.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        app.active
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50'
+                          : 'text-slate-300 hover:text-slate-100 hover:bg-slate-800/50'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4 mr-2" />
+                      {app.name}
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* Main Layout with Side Menu */}
+      <div className="flex flex-1">
+        {/* Side Menu */}
+        <aside className="hidden md:flex md:flex-shrink-0">
+          <div className="flex flex-col w-64">
+            <div className="flex flex-col h-0 flex-1 glass-card border-r border-slate-700/80">
+              {/* App Logo */}
+              <div className="flex items-center h-16 flex-shrink-0 px-4 border-b border-slate-700/80">
+                <div className="flex items-center">
+                  <Eye className="h-8 w-8 text-purple-400" />
+                  <span className="ml-2 text-xl font-bold text-slate-100">
+                    Aesyros <span className="text-purple-400">Foresight</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Navigation */}
+              <nav className="flex-1 px-4 py-6 space-y-2">
+                {navItems.map((item) => {
+                  const isActive = location.pathname === item.href
+                  const Icon = item.icon
+                  return (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        isActive
+                          ? 'bg-purple-500/20 text-purple-300 border border-purple-500/50'
+                          : 'text-slate-300 hover:text-slate-100 hover:bg-slate-800/50'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4 mr-3" />
+                      {item.name}
+                    </Link>
+                  )
+                })}
+              </nav>
+            </div>
+          </div>
+        </aside>
+
+        {/* Main Content Area */}
+        <div className="flex flex-col flex-1 overflow-hidden">
+          {/* Mobile Header for App Navigation */}
+          <header className="glass-card border-b border-slate-700/80 md:hidden">
+            <div className="flex justify-between items-center h-16 px-4">
+              {/* Logo */}
+              <div className="flex items-center">
+                <Eye className="h-8 w-8 text-purple-400" />
+                <span className="ml-2 text-xl font-bold text-slate-100">
+                  Aesyros <span className="text-purple-400">Foresight</span>
+                </span>
+              </div>
+
+              {/* Mobile menu button */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="text-slate-300 hover:text-slate-100 p-2"
+              >
+                {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </button>
+            </div>
+
+            {/* Mobile Navigation */}
+            {mobileMenuOpen && (
+              <div className="border-t border-slate-700/80">
+                <div className="px-2 pt-2 pb-3 space-y-1">
+                  {navItems.map((item) => {
+                    const isActive = location.pathname === item.href
+                    const Icon = item.icon
+                    return (
+                      <Link
+                        key={item.name}
+                        to={item.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                          isActive
+                            ? 'bg-purple-500/20 text-purple-300 border border-purple-500/50'
+                            : 'text-slate-300 hover:text-slate-100 hover:bg-slate-800/50'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4 mr-2" />
+                        {item.name}
+                      </Link>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </header>
+
+          {/* Main Content */}
+          <main className="flex-1 overflow-x-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-7xl mx-auto">
+              {children}
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  )
+}

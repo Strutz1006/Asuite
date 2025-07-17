@@ -1,214 +1,280 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Icon } from '../../shared/components';
-import { DashboardLayout, DashboardCard } from '@aesyros/ui';
+import { CheckSquare, Clock, Users, TrendingUp, Plus, ArrowRight, AlertTriangle, Calendar } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
-const DashboardPage: React.FC = () => {
-  const dashboardStats = [
-    { label: 'Active Projects', value: 12, color: 'text-sky-400' },
-    { label: 'Completed', value: 128, color: 'text-green-400' },
-    { label: 'In Progress', value: 47, color: 'text-yellow-400' },
-    { label: 'Alignment', value: '85%', color: 'text-purple-400' },
-  ];
+const stats = [
+  {
+    name: 'Active Projects',
+    value: '8',
+    change: '+2',
+    changeType: 'increase',
+    icon: CheckSquare,
+  },
+  {
+    name: 'Tasks Completed',
+    value: '124',
+    change: '+18%',
+    changeType: 'increase',
+    icon: TrendingUp,
+  },
+  {
+    name: 'Team Members',
+    value: '16',
+    change: '+3',
+    changeType: 'increase',
+    icon: Users,
+  },
+  {
+    name: 'On Schedule',
+    value: '87%',
+    change: '+5%',
+    changeType: 'increase',
+    icon: Clock,
+  },
+]
 
-  const sideContent = (
-    <>
-      {/* Task Progress */}
-      <DashboardCard>
-        <h3 className="text-xl font-semibold mb-4">Task Progress</h3>
-        <div className="space-y-4">
-          <div className="p-4 bg-slate-700/50 rounded-lg">
-            <div className="flex justify-between items-center mb-2">
-              <h4 className="font-semibold">Today</h4>
-              <span className="text-sm font-mono text-green-400">12/15</span>
-            </div>
-            <div className="w-full bg-slate-600 rounded-full h-2">
-              <div className="bg-green-500 h-2 rounded-full" style={{ width: '80%' }}></div>
-            </div>
-            <div className="text-xs text-slate-400 mt-1">80% complete</div>
-          </div>
-          
-          <div className="p-4 bg-slate-700/50 rounded-lg">
-            <div className="flex justify-between items-center mb-2">
-              <h4 className="font-semibold">This Week</h4>
-              <span className="text-sm font-mono text-yellow-400">47/82</span>
-            </div>
-            <div className="w-full bg-slate-600 rounded-full h-2">
-              <div className="bg-yellow-500 h-2 rounded-full" style={{ width: '57%' }}></div>
-            </div>
-            <div className="text-xs text-slate-400 mt-1">57% complete</div>
-          </div>
-          
-          <div className="p-4 bg-slate-700/50 rounded-lg">
-            <div className="flex justify-between items-center mb-2">
-              <h4 className="font-semibold">This Sprint</h4>
-              <span className="text-sm font-mono text-sky-400">128/150</span>
-            </div>
-            <div className="w-full bg-slate-600 rounded-full h-2">
-              <div className="bg-sky-500 h-2 rounded-full" style={{ width: '85%' }}></div>
-            </div>
-            <div className="text-xs text-slate-400 mt-1">85% complete</div>
-          </div>
+const recentProjects = [
+  {
+    id: '1',
+    title: 'Customer Portal Redesign',
+    progress: 68,
+    dueDate: '2024-08-20',
+    status: 'on-track',
+    tasksCompleted: 12,
+    totalTasks: 18,
+  },
+  {
+    id: '2',
+    title: 'Mobile App Launch',
+    progress: 35,
+    dueDate: '2024-09-15',
+    status: 'at-risk',
+    tasksCompleted: 8,
+    totalTasks: 23,
+  },
+  {
+    id: '3',
+    title: 'API Documentation Update',
+    progress: 95,
+    dueDate: '2024-07-30',
+    status: 'ahead',
+    tasksCompleted: 19,
+    totalTasks: 20,
+  },
+]
+
+const urgentTasks = [
+  {
+    id: '1',
+    title: 'Review final designs',
+    project: 'Customer Portal Redesign',
+    assignee: 'Sarah Chen',
+    dueDate: '2024-07-18',
+    priority: 'high',
+  },
+  {
+    id: '2',
+    title: 'Deploy staging environment',
+    project: 'Mobile App Launch',
+    assignee: 'Mike Johnson',
+    dueDate: '2024-07-19',
+    priority: 'medium',
+  },
+  {
+    id: '3',
+    title: 'Client feedback review',
+    project: 'API Documentation Update',
+    assignee: 'Lisa Wang',
+    dueDate: '2024-07-20',
+    priority: 'high',
+  },
+]
+
+export default function DashboardPage() {
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-100">Dashboard</h1>
+          <p className="text-slate-400 mt-1">
+            Manage your projects and tasks with strategic alignment
+          </p>
         </div>
-      </DashboardCard>
+        <Link
+          to="/projects/new"
+          className="glass-button text-orange-300 hover:text-orange-200 px-4 py-2 flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          New Project
+        </Link>
+      </div>
 
-      {/* Upcoming Deadlines */}
-      <DashboardCard>
-        <h3 className="text-xl font-semibold mb-4">Upcoming Deadlines</h3>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-slate-700/50 rounded-lg">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-red-500/20 rounded-lg">
-                <Icon path="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" className="w-4 h-4 text-red-400" />
-              </div>
-              <div>
-                <p className="font-medium text-white">UI Component Library</p>
-                <p className="text-sm text-slate-400">Due in 2 days</p>
-              </div>
-            </div>
-            <div className="text-sm text-red-400">High Priority</div>
-          </div>
+      {/* Company Message/Slogan */}
+      <div className="glass-card p-6 text-center">
+        <h2 className="text-xl font-semibold text-slate-100 mb-2">
+          From Strategy to Execution, Every Task Matters
+        </h2>
+        <p className="text-slate-400">
+          Transform strategic objectives into actionable projects and deliverable results
+        </p>
+      </div>
 
-          <div className="flex items-center justify-between p-4 bg-slate-700/50 rounded-lg">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-yellow-500/20 rounded-lg">
-                <Icon path="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" className="w-4 h-4 text-yellow-400" />
-              </div>
-              <div>
-                <p className="font-medium text-white">Database Migration</p>
-                <p className="text-sm text-slate-400">Due in 5 days</p>
-              </div>
-            </div>
-            <div className="text-sm text-yellow-400">Medium Priority</div>
-          </div>
-
-          <div className="flex items-center justify-between p-4 bg-slate-700/50 rounded-lg">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-500/20 rounded-lg">
-                <Icon path="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" className="w-4 h-4 text-green-400" />
-              </div>
-              <div>
-                <p className="font-medium text-white">Performance Testing</p>
-                <p className="text-sm text-slate-400">Due in 1 week</p>
-              </div>
-            </div>
-            <div className="text-sm text-green-400">Low Priority</div>
-          </div>
-        </div>
-      </DashboardCard>
-
-      {/* Quick Actions */}
-      <DashboardCard>
-        <h3 className="text-xl font-semibold mb-4">Quick Actions</h3>
-        <div className="space-y-3">
-          <button className="w-full inline-flex items-center justify-center gap-2 bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/50 px-4 py-3 rounded-lg transition-all">
-            <Icon path="M12 4v16m8-8H4" className="w-5 h-5" />
-            New Project
-          </button>
-          <button className="w-full inline-flex items-center justify-center gap-2 bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 border border-slate-600/50 px-4 py-3 rounded-lg transition-all">
-            <Icon path="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7l2 2 4-4" className="w-5 h-5" />
-            New Task
-          </button>
-          <Link to="/projects" className="w-full inline-flex items-center justify-center gap-2 bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 border border-slate-600/50 px-4 py-3 rounded-lg transition-all">
-            <Icon path="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" className="w-5 h-5" />
-            View Reports
-          </Link>
-        </div>
-      </DashboardCard>
-    </>
-  );
-
-  const mainContent = (
-    <>
-      {/* Project Health Overview */}
-      <DashboardCard>
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold">Project Portfolio Overview</h3>
-          <Link 
-            to="/projects" 
-            className="text-sm text-sky-400 hover:text-sky-300 transition-colors"
-          >
-            View All Projects →
-          </Link>
-        </div>
-            <div className="grid grid-cols-2 gap-6">
-              <div className="col-span-2">
-                <div className="grid grid-cols-4 gap-4 mb-6">
-                  <div className="p-4 bg-slate-700/50 rounded-lg text-center">
-                    <Icon path="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" className="w-8 h-8 text-green-400 mx-auto mb-2" />
-                    <p className="text-2xl font-bold text-green-400">8</p>
-                    <p className="text-sm text-slate-400">On Track</p>
-                  </div>
-                  <div className="p-4 bg-slate-700/50 rounded-lg text-center">
-                    <Icon path="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
-                    <p className="text-2xl font-bold text-yellow-400">3</p>
-                    <p className="text-sm text-slate-400">At Risk</p>
-                  </div>
-                  <div className="p-4 bg-slate-700/50 rounded-lg text-center">
-                    <Icon path="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" className="w-8 h-8 text-red-400 mx-auto mb-2" />
-                    <p className="text-2xl font-bold text-red-400">1</p>
-                    <p className="text-sm text-slate-400">Blocked</p>
-                  </div>
-                  <div className="p-4 bg-slate-700/50 rounded-lg text-center">
-                    <Icon path="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" className="w-8 h-8 text-purple-400 mx-auto mb-2" />
-                    <p className="text-2xl font-bold text-purple-400">92%</p>
-                    <p className="text-sm text-slate-400">Team Health</p>
-                  </div>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {stats.map((stat) => {
+          const Icon = stat.icon
+          return (
+            <div key={stat.name} className="glass-card p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-400">{stat.name}</p>
+                  <p className="text-2xl font-semibold text-slate-100 mt-1">{stat.value}</p>
+                </div>
+                <div className="p-3 rounded-xl bg-orange-500/20">
+                  <Icon className="w-6 h-6 text-orange-400" />
                 </div>
               </div>
-          </div>
-      </DashboardCard>
+              <div className="mt-4 flex items-center">
+                <span className="text-sm text-green-400 font-medium">{stat.change}</span>
+                <span className="text-sm text-slate-400 ml-1">from last month</span>
+              </div>
+            </div>
+          )
+        })}
+      </div>
 
       {/* Recent Projects */}
-      <DashboardCard>
-            <h3 className="text-xl font-semibold mb-4">Recent Projects</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-slate-700/50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                  <div>
-                    <p className="font-medium text-white">Mobile App Redesign</p>
-                    <p className="text-sm text-slate-400">8 tasks • 3 team members</p>
-                  </div>
-                </div>
-                <div className="text-sm text-slate-400">75% complete</div>
+      <div className="glass-card p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-slate-100">Recent Projects</h2>
+          <Link
+            to="/projects"
+            className="text-orange-400 hover:text-orange-300 flex items-center gap-1 text-sm"
+          >
+            View all
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+        <div className="space-y-4">
+          {recentProjects.map((project) => (
+            <div key={project.id} className="glass-card p-4 bg-slate-800/40">
+              <div className="flex items-center justify-between mb-3">
+                <Link
+                  to={`/projects/${project.id}`}
+                  className="text-slate-100 hover:text-orange-300 font-medium"
+                >
+                  {project.title}
+                </Link>
+                <span
+                  className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    project.status === 'on-track'
+                      ? 'bg-green-500/20 text-green-400'
+                      : project.status === 'at-risk'
+                      ? 'bg-yellow-500/20 text-yellow-400'
+                      : 'bg-orange-500/20 text-orange-400'
+                  }`}
+                >
+                  {project.status === 'on-track' ? 'On Track' : project.status === 'at-risk' ? 'At Risk' : 'Ahead'}
+                </span>
               </div>
-              
-              <div className="flex items-center justify-between p-4 bg-slate-700/50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                  <div>
-                    <p className="font-medium text-white">API Integration</p>
-                    <p className="text-sm text-slate-400">12 tasks • 5 team members</p>
+              <div className="flex items-center gap-4 mb-2">
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm text-slate-400">Progress</span>
+                    <span className="text-sm text-slate-300">{project.progress}%</span>
+                  </div>
+                  <div className="w-full bg-slate-700/50 rounded-full h-2">
+                    <div
+                      className="bg-orange-500 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${project.progress}%` }}
+                    />
                   </div>
                 </div>
-                <div className="text-sm text-slate-400">42% complete</div>
+                <div className="text-sm text-slate-400">
+                  {project.tasksCompleted}/{project.totalTasks} tasks
+                </div>
               </div>
-
-              <div className="flex items-center justify-between p-4 bg-slate-700/50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 bg-sky-400 rounded-full"></div>
-                  <div>
-                    <p className="font-medium text-white">Customer Portal</p>
-                    <p className="text-sm text-slate-400">15 tasks • 4 team members</p>
-                  </div>
+              <div className="flex items-center justify-between text-sm text-slate-400">
+                <div className="flex items-center gap-1">
+                  <Calendar className="w-4 h-4" />
+                  Due {new Date(project.dueDate).toLocaleDateString()}
                 </div>
-                <div className="text-sm text-slate-400">90% complete</div>
               </div>
             </div>
-      </DashboardCard>
-    </>
-  );
+          ))}
+        </div>
+      </div>
 
-  return (
-    <DashboardLayout
-      title="Project Command Center"
-      description="Drive execution with clarity. Transform strategy into action."
-      stats={dashboardStats}
-      mainContent={mainContent}
-      sideContent={sideContent}
-    />
-  );
-};
+      {/* Urgent Tasks */}
+      <div className="glass-card p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-slate-100 flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-yellow-400" />
+            Urgent Tasks
+          </h2>
+          <Link
+            to="/tasks"
+            className="text-orange-400 hover:text-orange-300 flex items-center gap-1 text-sm"
+          >
+            View all
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+        <div className="space-y-3">
+          {urgentTasks.map((task) => (
+            <div key={task.id} className="glass-card p-4 bg-slate-800/40">
+              <div className="flex items-center justify-between mb-2">
+                <Link
+                  to={`/tasks/${task.id}`}
+                  className="text-slate-100 hover:text-orange-300 font-medium"
+                >
+                  {task.title}
+                </Link>
+                <span
+                  className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    task.priority === 'high'
+                      ? 'bg-red-500/20 text-red-400'
+                      : 'bg-yellow-500/20 text-yellow-400'
+                  }`}
+                >
+                  {task.priority === 'high' ? 'High' : 'Medium'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-sm text-slate-400">
+                <div>{task.project}</div>
+                <div className="flex items-center gap-4">
+                  <span>Assigned to {task.assignee}</span>
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    {new Date(task.dueDate).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
-export default DashboardPage;
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Link to="/projects/new" className="glass-card p-6 hover:bg-slate-800/40 transition-colors">
+          <CheckSquare className="w-8 h-8 text-orange-400 mb-3" />
+          <h3 className="text-lg font-semibold text-slate-100 mb-2">Create Project</h3>
+          <p className="text-slate-400 text-sm">Start a new project and organize your tasks</p>
+        </Link>
+        
+        <Link to="/tasks/new" className="glass-card p-6 hover:bg-slate-800/40 transition-colors">
+          <Plus className="w-8 h-8 text-green-400 mb-3" />
+          <h3 className="text-lg font-semibold text-slate-100 mb-2">Add Task</h3>
+          <p className="text-slate-400 text-sm">Create a new task and assign it to team members</p>
+        </Link>
+        
+        <Link to="/analytics" className="glass-card p-6 hover:bg-slate-800/40 transition-colors">
+          <TrendingUp className="w-8 h-8 text-purple-400 mb-3" />
+          <h3 className="text-lg font-semibold text-slate-100 mb-2">Analytics</h3>
+          <p className="text-slate-400 text-sm">Track project performance and team productivity</p>
+        </Link>
+      </div>
+    </div>
+  )
+}

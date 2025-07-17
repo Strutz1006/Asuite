@@ -1,262 +1,268 @@
-import React, { useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { GlassCard, Icon } from '../../shared/components';
-import { mockCompanyObjective, mockDepartmentObjectives, mockUsers } from '../../shared/data/mockData';
+import { useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { Save, ArrowLeft, Plus, X } from 'lucide-react'
 
-const GoalFormPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const isEdit = id !== undefined && id !== 'new';
+interface KeyResult {
+  id: string
+  title: string
+  target: string
+  current: string
+  unit: string
+}
 
-  const allGoals = [mockCompanyObjective, ...mockDepartmentObjectives];
-  const existingGoal = isEdit ? allGoals.find(g => g.id === id) : null;
+export default function GoalFormPage() {
+  const navigate = useNavigate()
+  const { id } = useParams()
+  const isEdit = Boolean(id)
 
   const [formData, setFormData] = useState({
-    title: existingGoal?.title || '',
-    description: existingGoal?.description || '',
-    owner: existingGoal?.owner || '',
-    dueDate: existingGoal?.dueDate?.toISOString().split('T')[0] || '',
-    progress: existingGoal?.progress || 0,
-    status: existingGoal?.status || 'on-track',
-    parentGoal: existingGoal?.parentGoal || ''
-  });
+    title: '',
+    description: '',
+    dueDate: '',
+    owner: '',
+    category: 'strategic',
+    priority: 'medium',
+  })
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [keyResults, setKeyResults] = useState<KeyResult[]>([
+    { id: '1', title: '', target: '', current: '', unit: '' }
+  ])
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const newErrors: Record<string, string> = {};
-    
-    if (!formData.title.trim()) {
-      newErrors.title = 'Title is required';
-    }
-    if (!formData.owner.trim()) {
-      newErrors.owner = 'Owner is required';
-    }
-    if (formData.progress < 0 || formData.progress > 100) {
-      newErrors.progress = 'Progress must be between 0 and 100';
-    }
-    
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-    
-    setErrors({});
-    
-    // In a real app, this would make an API call
-    console.log('Saving goal:', formData);
-    
-    // Navigate back to goals list
-    navigate('/goals');
-  };
+    e.preventDefault()
+    // Here you would typically save to your backend
+    console.log('Saving goal:', { ...formData, keyResults })
+    navigate('/goals')
+  }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
-  };
+  const addKeyResult = () => {
+    setKeyResults([
+      ...keyResults,
+      { id: Date.now().toString(), title: '', target: '', current: '', unit: '' }
+    ])
+  }
 
-  const possibleParents = allGoals.filter(g => g.id !== id);
+  const removeKeyResult = (id: string) => {
+    setKeyResults(keyResults.filter(kr => kr.id !== id))
+  }
+
+  const updateKeyResult = (id: string, field: keyof KeyResult, value: string) => {
+    setKeyResults(keyResults.map(kr => 
+      kr.id === id ? { ...kr, [field]: value } : kr
+    ))
+  }
 
   return (
-    <div className="min-h-screen space-y-6">
+    <div className="max-w-4xl mx-auto space-y-8">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Link 
-          to="/goals"
-          className="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
+        <button
+          onClick={() => navigate('/goals')}
+          className="glass-button p-2 text-slate-300 hover:text-slate-100"
         >
-          <Icon path="M10 19l-7-7m0 0l7-7m-7 7h18" className="w-5 h-5 text-slate-400" />
-        </Link>
+          <ArrowLeft className="w-4 h-4" />
+        </button>
         <div>
           <h1 className="text-3xl font-bold text-slate-100">
             {isEdit ? 'Edit Goal' : 'Create New Goal'}
           </h1>
           <p className="text-slate-400 mt-1">
-            {isEdit ? 'Update your goal details' : 'Define a new strategic objective'}
+            {isEdit ? 'Update your strategic goal' : 'Define a new strategic goal with key results'}
           </p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Main Details */}
-          <GlassCard className="p-6">
-            <h3 className="text-xl font-semibold text-slate-100 mb-6">Goal Details</h3>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Title *
-                </label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  className={`w-full px-3 py-2 bg-slate-800 border rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 ${
-                    errors.title ? 'border-red-500' : 'border-slate-600'
-                  }`}
-                  placeholder="Enter goal title..."
-                />
-                {errors.title && (
-                  <p className="text-red-400 text-sm mt-1">{errors.title}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Description
-                </label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  rows={4}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                  placeholder="Describe the goal and its importance..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Owner *
-                </label>
-                <select
-                  name="owner"
-                  value={formData.owner}
-                  onChange={handleInputChange}
-                  className={`w-full px-3 py-2 bg-slate-800 border rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 ${
-                    errors.owner ? 'border-red-500' : 'border-slate-600'
-                  }`}
-                >
-                  <option value="">Select owner...</option>
-                  {mockUsers.map(user => (
-                    <option key={user.id} value={user.name}>{user.name}</option>
-                  ))}
-                </select>
-                {errors.owner && (
-                  <p className="text-red-400 text-sm mt-1">{errors.owner}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Parent Goal
-                </label>
-                <select
-                  name="parentGoal"
-                  value={formData.parentGoal}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                >
-                  <option value="">No parent goal</option>
-                  {possibleParents.map(goal => (
-                    <option key={goal.id} value={goal.id}>{goal.title}</option>
-                  ))}
-                </select>
-              </div>
+      <form onSubmit={handleSubmit} className="space-y-8">
+        {/* Goal Details */}
+        <div className="glass-card p-6">
+          <h2 className="text-xl font-semibold text-slate-100 mb-6">Goal Details</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Goal Title *
+              </label>
+              <input
+                type="text"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                placeholder="Enter goal title"
+                className="glass-input w-full px-4 py-2 text-slate-100 placeholder-slate-400"
+                required
+              />
             </div>
-          </GlassCard>
 
-          {/* Progress & Status */}
-          <GlassCard className="p-6">
-            <h3 className="text-xl font-semibold text-slate-100 mb-6">Progress & Timeline</h3>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Due Date
-                </label>
-                <input
-                  type="date"
-                  name="dueDate"
-                  value={formData.dueDate}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                />
-              </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Description
+              </label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Describe the goal and its objectives"
+                rows={4}
+                className="glass-input w-full px-4 py-2 text-slate-100 placeholder-slate-400"
+              />
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Progress (0-100) *
-                </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    name="progress"
-                    value={formData.progress}
-                    onChange={handleInputChange}
-                    min="0"
-                    max="100"
-                    className={`w-full px-3 py-2 bg-slate-800 border rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 ${
-                      errors.progress ? 'border-red-500' : 'border-slate-600'
-                    }`}
-                  />
-                  <span className="absolute right-3 top-2 text-slate-400">%</span>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Due Date *
+              </label>
+              <input
+                type="date"
+                value={formData.dueDate}
+                onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                className="glass-input w-full px-4 py-2 text-slate-100"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Owner
+              </label>
+              <input
+                type="text"
+                value={formData.owner}
+                onChange={(e) => setFormData({ ...formData, owner: e.target.value })}
+                placeholder="Goal owner"
+                className="glass-input w-full px-4 py-2 text-slate-100 placeholder-slate-400"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Category
+              </label>
+              <select
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                className="glass-input w-full px-4 py-2 text-slate-100"
+              >
+                <option value="strategic">Strategic</option>
+                <option value="operational">Operational</option>
+                <option value="financial">Financial</option>
+                <option value="customer">Customer</option>
+                <option value="learning">Learning & Growth</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Priority
+              </label>
+              <select
+                value={formData.priority}
+                onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+                className="glass-input w-full px-4 py-2 text-slate-100"
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Key Results */}
+        <div className="glass-card p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-slate-100">Key Results</h2>
+            <button
+              type="button"
+              onClick={addKeyResult}
+              className="glass-button text-sky-300 hover:text-sky-200 px-4 py-2 flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Add Key Result
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {keyResults.map((keyResult, index) => (
+              <div key={keyResult.id} className="glass-card p-4 bg-slate-800/40">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-medium text-slate-100">
+                    Key Result {index + 1}
+                  </h3>
+                  {keyResults.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeKeyResult(keyResult.id)}
+                      className="text-red-400 hover:text-red-300"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
-                {errors.progress && (
-                  <p className="text-red-400 text-sm mt-1">{errors.progress}</p>
-                )}
-                
-                {/* Progress Bar Preview */}
-                <div className="mt-2">
-                  <div className="w-full bg-slate-700 rounded-full h-2">
-                    <div 
-                      className="bg-sky-500 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${Math.min(100, Math.max(0, formData.progress))}%` }}
-                    ></div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-slate-300 mb-1">
+                      Title *
+                    </label>
+                    <input
+                      type="text"
+                      value={keyResult.title}
+                      onChange={(e) => updateKeyResult(keyResult.id, 'title', e.target.value)}
+                      placeholder="Key result title"
+                      className="glass-input w-full px-3 py-2 text-slate-100 placeholder-slate-400"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-1">
+                      Target Value *
+                    </label>
+                    <input
+                      type="text"
+                      value={keyResult.target}
+                      onChange={(e) => updateKeyResult(keyResult.id, 'target', e.target.value)}
+                      placeholder="Target"
+                      className="glass-input w-full px-3 py-2 text-slate-100 placeholder-slate-400"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-1">
+                      Current Value
+                    </label>
+                    <input
+                      type="text"
+                      value={keyResult.current}
+                      onChange={(e) => updateKeyResult(keyResult.id, 'current', e.target.value)}
+                      placeholder="Current"
+                      className="glass-input w-full px-3 py-2 text-slate-100 placeholder-slate-400"
+                    />
                   </div>
                 </div>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Status
-                </label>
-                <select
-                  name="status"
-                  value={formData.status}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                >
-                  <option value="on-track">On Track</option>
-                  <option value="at-risk">At Risk</option>
-                  <option value="completed">Completed</option>
-                  <option value="paused">Paused</option>
-                </select>
-              </div>
-            </div>
-          </GlassCard>
+            ))}
+          </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex justify-end gap-4">
-          <Link
-            to="/goals"
-            className="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
-          >
-            Cancel
-          </Link>
+        {/* Actions */}
+        <div className="flex items-center gap-4">
           <button
             type="submit"
-            className="px-6 py-2 bg-gradient-to-r from-sky-500 to-blue-500 text-white rounded-lg hover:from-sky-600 hover:to-blue-600 transition-all"
+            className="glass-button bg-sky-500/20 text-sky-300 hover:text-sky-200 px-6 py-2 flex items-center gap-2"
           >
+            <Save className="w-4 h-4" />
             {isEdit ? 'Update Goal' : 'Create Goal'}
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/goals')}
+            className="glass-button text-slate-300 hover:text-slate-100 px-6 py-2"
+          >
+            Cancel
           </button>
         </div>
       </form>
     </div>
-  );
-};
-
-export default GoalFormPage;
+  )
+}

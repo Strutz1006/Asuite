@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Target, BarChart3, TrendingUp, Menu, X, Grid3X3, Zap, Activity, Eye, Workflow } from 'lucide-react'
+import { Target, BarChart3, TrendingUp, Menu, X, Grid3X3, Zap, Activity, Eye, Workflow, CheckSquare } from 'lucide-react'
 import { useState } from 'react'
 
 interface LayoutProps {
@@ -9,9 +9,10 @@ interface LayoutProps {
 
 const suiteApps = [
   { name: 'Align', href: '/', icon: Target, active: true },
+  { name: 'Drive', href: '#', icon: CheckSquare },
   { name: 'Pulse', href: '#', icon: Activity },
-  { name: 'Flow', href: '#', icon: Workflow },
   { name: 'Catalyst', href: '#', icon: Zap },
+  { name: 'Flow', href: '#', icon: Workflow },
   { name: 'Foresight', href: '#', icon: Eye },
 ]
 

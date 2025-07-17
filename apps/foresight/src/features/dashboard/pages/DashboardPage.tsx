@@ -1,352 +1,451 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Icon } from '../../shared/components';
-import { DashboardLayout, DashboardCard } from '@aesyros/ui';
-import { mockBusinessLevers, mockSimulationMetrics, mockScenarios } from '../../shared/data/mockData';
+import { Eye, Brain, TrendingUp, AlertTriangle, Plus, ArrowRight, Clock, Target, BarChart3, Lightbulb, Activity, Users } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
-const DashboardPage: React.FC = () => {
-  const [leverValues, setLeverValues] = useState<Record<string, number>>({});
+const stats = [
+  {
+    name: 'Active Scenarios',
+    value: '24',
+    change: '+6',
+    changeType: 'increase',
+    icon: Brain,
+  },
+  {
+    name: 'Forecast Accuracy',
+    value: '92%',
+    change: '+8%',
+    changeType: 'increase',
+    icon: Target,
+  },
+  {
+    name: 'Insights Generated',
+    value: '156',
+    change: '+23',
+    changeType: 'increase',
+    icon: Lightbulb,
+  },
+  {
+    name: 'Risk Probability',
+    value: '23%',
+    change: '-5%',
+    changeType: 'decrease',
+    icon: AlertTriangle,
+  },
+]
 
-  const updateLever = (leverName: string, value: number) => {
-    setLeverValues(prev => ({ ...prev, [leverName]: value }));
-  };
+const recentScenarios = [
+  {
+    id: '1',
+    title: 'Economic Recession Impact',
+    category: 'Economic',
+    probability: 34,
+    impact: 'High',
+    lastUpdated: '2024-07-15',
+    status: 'active',
+    participants: 8,
+    insights: 12,
+  },
+  {
+    id: '2',
+    title: 'Market Expansion Strategy',
+    category: 'Strategic',
+    probability: 78,
+    impact: 'Medium',
+    lastUpdated: '2024-07-14',
+    status: 'planning',
+    participants: 15,
+    insights: 8,
+  },
+  {
+    id: '3',
+    title: 'Supply Chain Disruption',
+    category: 'Operational',
+    probability: 45,
+    impact: 'High',
+    lastUpdated: '2024-07-13',
+    status: 'active',
+    participants: 12,
+    insights: 18,
+  },
+]
 
-  const getCurrentLeverValue = (leverName: string, defaultValue: number) => {
-    return leverValues[leverName] ?? defaultValue;
-  };
+const keyInsights = [
+  {
+    id: '1',
+    title: 'Revenue Growth Accelerating',
+    description: 'Q3 projections show 23% increase in revenue based on current market trends',
+    confidence: 87,
+    impact: 'positive',
+    category: 'Financial',
+    timestamp: '2024-07-15T10:30:00Z',
+  },
+  {
+    id: '2',
+    title: 'Customer Churn Risk Elevated',
+    description: 'Model predicts 15% increase in churn rate within next 6 months',
+    confidence: 92,
+    impact: 'negative',
+    category: 'Customer',
+    timestamp: '2024-07-15T09:15:00Z',
+  },
+  {
+    id: '3',
+    title: 'New Market Opportunity Identified',
+    description: 'Analytics reveal untapped market segment with 40% growth potential',
+    confidence: 76,
+    impact: 'positive',
+    category: 'Market',
+    timestamp: '2024-07-15T08:45:00Z',
+  },
+]
 
-  const dashboardStats = [
-    { label: 'Active Simulations', value: mockSimulationMetrics.activeSimulations, color: 'text-sky-400' },
-    { label: 'Avg Confidence', value: `${mockSimulationMetrics.averageConfidence}%`, color: 'text-green-400' },
-    { label: 'Predicted ROI', value: `${mockSimulationMetrics.predictedROI}%`, color: 'text-yellow-400' },
-    { label: 'Risk Level', value: mockSimulationMetrics.riskLevel, color: 'text-blue-400' },
-  ];
+const riskAlerts = [
+  {
+    id: '1',
+    title: 'Supply Chain Vulnerability',
+    description: 'Single point of failure detected in logistics network',
+    severity: 'high',
+    probability: 67,
+    timeframe: '3 months',
+    scenario: 'Supply Chain Disruption',
+  },
+  {
+    id: '2',
+    title: 'Competitor Product Launch',
+    description: 'Intelligence suggests major competitor launching similar product',
+    severity: 'medium',
+    probability: 82,
+    timeframe: '6 months',
+    scenario: 'Market Competition',
+  },
+  {
+    id: '3',
+    title: 'Regulatory Changes',
+    description: 'Proposed legislation could impact operational compliance',
+    severity: 'medium',
+    probability: 54,
+    timeframe: '12 months',
+    scenario: 'Regulatory Shift',
+  },
+]
 
-  const mainContent = (
-    <>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Business Levers Control Panel */}
-        <DashboardCard>
-          <h3 className="text-xl font-semibold mb-4">Business Levers & Variables</h3>
-          <p className="text-slate-400 mb-6">Adjust these inputs to model a new scenario. See the projected impact in real-time.</p>
-          
-          <div className="space-y-6">
-            {mockBusinessLevers.map(lever => (
-              <div key={lever.name} className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <label className="text-sm font-semibold">{lever.name}</label>
-                  <span className="text-sm font-mono text-sky-400">
-                    {getCurrentLeverValue(lever.name, lever.current)}{lever.unit}
-                  </span>
+const forecastMetrics = [
+  {
+    metric: 'Revenue Growth',
+    current: 15.2,
+    forecast: 18.7,
+    confidence: 89,
+    trend: 'up',
+    timeframe: 'Q4 2024',
+  },
+  {
+    metric: 'Market Share',
+    current: 12.8,
+    forecast: 14.2,
+    confidence: 76,
+    trend: 'up',
+    timeframe: 'Q4 2024',
+  },
+  {
+    metric: 'Operating Costs',
+    current: 8.9,
+    forecast: 7.8,
+    confidence: 82,
+    trend: 'down',
+    timeframe: 'Q4 2024',
+  },
+]
+
+export default function DashboardPage() {
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-100">Dashboard</h1>
+          <p className="text-slate-400 mt-1">
+            Monitor scenarios, insights, and strategic forecasts
+          </p>
+        </div>
+        <Link
+          to="/scenarios/new"
+          className="glass-button text-purple-300 hover:text-purple-200 px-4 py-2 flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          New Scenario
+        </Link>
+      </div>
+
+      {/* Company Message/Slogan */}
+      <div className="glass-card p-6 text-center">
+        <h2 className="text-xl font-semibold text-slate-100 mb-2">
+          Envision Tomorrow, Navigate Today
+        </h2>
+        <p className="text-slate-400">
+          Transform uncertainty into strategic advantage with advanced scenario planning and predictive analytics
+        </p>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {stats.map((stat) => {
+          const Icon = stat.icon
+          return (
+            <div key={stat.name} className="glass-card p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-400">{stat.name}</p>
+                  <p className="text-2xl font-semibold text-slate-100 mt-1">{stat.value}</p>
                 </div>
-                <input 
-                  type="range" 
-                  min={lever.min} 
-                  max={lever.max} 
-                  value={getCurrentLeverValue(lever.name, lever.current)}
-                  onChange={(e) => updateLever(lever.name, Number(e.target.value))}
-                  className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer"
-                />
-                <div className="flex justify-between text-xs text-slate-500">
-                  <span>{lever.min}</span>
-                  <span>{lever.max}</span>
+                <div className="p-3 rounded-xl bg-purple-500/20">
+                  <Icon className="w-6 h-6 text-purple-400" />
                 </div>
               </div>
-            ))}
-          </div>
-          
-          <div className="mt-6 flex justify-center">
-            <button className="bg-sky-500 hover:bg-sky-600 text-white font-medium py-3 px-8 rounded-lg transition-colors">
-              Run Simulation
-            </button>
-          </div>
-        </DashboardCard>
-
-        {/* Real-time Impact Preview */}
-        <DashboardCard>
-          <h3 className="text-xl font-semibold mb-4">Projected Impact Dashboard</h3>
-          <div className="space-y-6">
-            <div className="space-y-4">
-              <h4 className="font-semibold text-sky-300">Financial Impact</h4>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">Revenue Growth</span>
-                  <span className="font-mono text-green-400">+14.2%</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">Profit Margin</span>
-                  <span className="font-mono text-yellow-400">-2.8%</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">Cash Flow</span>
-                  <span className="font-mono text-green-400">+8.5%</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">ROI Timeline</span>
-                  <span className="font-mono text-slate-300">18 months</span>
-                </div>
+              <div className="mt-4 flex items-center">
+                <span className={`text-sm font-medium ${
+                  stat.changeType === 'increase' ? 'text-green-400' : 'text-red-400'
+                }`}>
+                  {stat.change}
+                </span>
+                <span className="text-sm text-slate-400 ml-1">from last month</span>
               </div>
             </div>
-            
-            <div className="space-y-4">
-              <h4 className="font-semibold text-sky-300">Operational Impact</h4>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">Team Capacity</span>
-                  <span className="font-mono text-yellow-400">85%</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">Process Efficiency</span>
-                  <span className="font-mono text-green-400">+12%</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">Quality Score</span>
-                  <span className="font-mono text-green-400">94%</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">Change Readiness</span>
-                  <span className="font-mono text-yellow-400">72%</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </DashboardCard>
+          )
+        })}
       </div>
 
       {/* Recent Scenarios */}
-      <DashboardCard>
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold text-slate-100">Recent Scenarios</h3>
-          <Link 
-            to="/scenarios" 
-            className="text-sm text-sky-400 hover:text-sky-300 transition-colors"
+      <div className="glass-card p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-slate-100">Active Scenarios</h2>
+          <Link
+            to="/scenarios"
+            className="text-purple-400 hover:text-purple-300 flex items-center gap-1 text-sm"
           >
-            View All Scenarios →
+            View all
+            <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {mockScenarios.map(scenario => (
-            <div key={scenario.id} className="p-4 bg-slate-700/50 rounded-lg">
-              <h4 className="font-semibold text-slate-100 mb-2">{scenario.name}</h4>
-              <div className="text-sm text-slate-400 mb-3">
-                Confidence: {scenario.confidence}% • {scenario.impact.timeline}
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-slate-500">
-                  {scenario.impact.revenue} revenue
+        <div className="space-y-4">
+          {recentScenarios.map((scenario) => (
+            <div key={scenario.id} className="glass-card p-4 bg-slate-800/40">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <Link
+                    to={`/scenarios/${scenario.id}`}
+                    className="text-slate-100 hover:text-purple-300 font-medium"
+                  >
+                    {scenario.title}
+                  </Link>
+                  <span className="text-sm text-slate-400">({scenario.category})</span>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    scenario.status === 'active' ? 'bg-green-500/20 text-green-400' :
+                    scenario.status === 'planning' ? 'bg-blue-500/20 text-blue-400' :
+                    'bg-gray-500/20 text-gray-400'
+                  }`}>
+                    {scenario.status === 'active' ? 'Active' : 
+                     scenario.status === 'planning' ? 'Planning' : 'Archived'}
+                  </span>
+                </div>
+                <span className={`text-sm font-medium ${
+                  scenario.impact === 'High' ? 'text-red-400' :
+                  scenario.impact === 'Medium' ? 'text-yellow-400' : 'text-green-400'
+                }`}>
+                  {scenario.impact} Impact
                 </span>
-                <Link
-                  to={`/scenarios/${scenario.id}`}
-                  className="text-sm text-sky-400 hover:text-sky-300 transition-colors"
-                >
-                  View
-                </Link>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm text-slate-400">Probability</span>
+                    <span className="text-sm text-slate-300">{scenario.probability}%</span>
+                  </div>
+                  <div className="w-full bg-slate-700/50 rounded-full h-2">
+                    <div
+                      className={`h-2 rounded-full transition-all duration-300 ${
+                        scenario.probability >= 70 ? 'bg-red-500' : 
+                        scenario.probability >= 40 ? 'bg-yellow-500' : 'bg-green-500'
+                      }`}
+                      style={{ width: `${scenario.probability}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-slate-400" />
+                  <div>
+                    <p className="text-sm text-slate-400">Participants</p>
+                    <p className="text-sm font-medium text-slate-100">{scenario.participants}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Lightbulb className="w-4 h-4 text-slate-400" />
+                  <div>
+                    <p className="text-sm text-slate-400">Insights</p>
+                    <p className="text-sm font-medium text-slate-100">{scenario.insights}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-slate-400" />
+                  <div>
+                    <p className="text-sm text-slate-400">Updated</p>
+                    <p className="text-sm font-medium text-slate-100">{new Date(scenario.lastUpdated).toLocaleDateString()}</p>
+                  </div>
+                </div>
               </div>
             </div>
           ))}
         </div>
-      </DashboardCard>
+      </div>
+
+      {/* Key Insights */}
+      <div className="glass-card p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-slate-100 flex items-center gap-2">
+            <Lightbulb className="w-5 h-5 text-yellow-400" />
+            Key Insights
+          </h2>
+          <Link
+            to="/insights"
+            className="text-purple-400 hover:text-purple-300 flex items-center gap-1 text-sm"
+          >
+            View all
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+        <div className="space-y-4">
+          {keyInsights.map((insight) => (
+            <div key={insight.id} className="glass-card p-4 bg-slate-800/40">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="text-slate-100 font-medium">{insight.title}</h3>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      insight.impact === 'positive' ? 'bg-green-500/20 text-green-400' :
+                      insight.impact === 'negative' ? 'bg-red-500/20 text-red-400' :
+                      'bg-gray-500/20 text-gray-400'
+                    }`}>
+                      {insight.impact === 'positive' ? 'Positive' : 
+                       insight.impact === 'negative' ? 'Negative' : 'Neutral'}
+                    </span>
+                    <span className="px-2 py-1 bg-slate-700/50 text-slate-300 text-xs rounded">
+                      {insight.category}
+                    </span>
+                  </div>
+                  <p className="text-slate-400 text-sm mb-2">{insight.description}</p>
+                  <div className="flex items-center gap-4 text-sm text-slate-500">
+                    <div className="flex items-center gap-1">
+                      <Target className="w-4 h-4" />
+                      <span>Confidence: {insight.confidence}%</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      <span>{new Date(insight.timestamp).toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Risk Alerts and Forecast Metrics */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Risk Alerts */}
+        <div className="glass-card p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-slate-100 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-red-400" />
+              Risk Alerts
+            </h2>
+          </div>
+          <div className="space-y-4">
+            {riskAlerts.map((alert) => (
+              <div key={alert.id} className="glass-card p-4 bg-slate-800/40">
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-slate-100 font-medium">{alert.title}</h3>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        alert.severity === 'high' ? 'bg-red-500/20 text-red-400' :
+                        alert.severity === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                        'bg-green-500/20 text-green-400'
+                      }`}>
+                        {alert.severity.charAt(0).toUpperCase() + alert.severity.slice(1)}
+                      </span>
+                    </div>
+                    <p className="text-slate-400 text-sm mb-2">{alert.description}</p>
+                    <div className="flex items-center gap-4 text-sm text-slate-500">
+                      <span>Probability: {alert.probability}%</span>
+                      <span>Timeframe: {alert.timeframe}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Forecast Metrics */}
+        <div className="glass-card p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-slate-100 flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-blue-400" />
+              Forecast Metrics
+            </h2>
+          </div>
+          <div className="space-y-4">
+            {forecastMetrics.map((metric, index) => (
+              <div key={index} className="glass-card p-4 bg-slate-800/40">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-slate-100 font-medium">{metric.metric}</h3>
+                  <span className={`text-sm font-medium ${
+                    metric.trend === 'up' ? 'text-green-400' : 'text-red-400'
+                  }`}>
+                    {metric.trend === 'up' ? '↗' : '↘'} {metric.forecast}%
+                  </span>
+                </div>
+                <div className="flex items-center gap-4 text-sm text-slate-400 mb-2">
+                  <span>Current: {metric.current}%</span>
+                  <span>Forecast: {metric.forecast}%</span>
+                  <span>Confidence: {metric.confidence}%</span>
+                </div>
+                <div className="w-full bg-slate-700/50 rounded-full h-2">
+                  <div
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      metric.confidence >= 80 ? 'bg-green-500' : 
+                      metric.confidence >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                    }`}
+                    style={{ width: `${metric.confidence}%` }}
+                  />
+                </div>
+                <p className="text-xs text-slate-500 mt-2">Target: {metric.timeframe}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* Quick Actions */}
-      <DashboardCard>
-        <h3 className="text-xl font-semibold text-slate-100 mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Link 
-            to="/scenarios/new"
-            className="p-4 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors text-left block"
-          >
-            <div className="flex items-center gap-3">
-              <Icon path="M12 4v16m8-8H4" className="w-5 h-5 text-sky-400" />
-              <div>
-                <div className="font-medium">New Scenario</div>
-                <div className="text-xs text-slate-400">Create simulation</div>
-              </div>
-            </div>
-          </Link>
-          
-          <Link 
-            to="/insights"
-            className="p-4 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors text-left block"
-          >
-            <div className="flex items-center gap-3">
-              <Icon path="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" className="w-5 h-5 text-sky-400" />
-              <div>
-                <div className="font-medium">Market Insights</div>
-                <div className="text-xs text-slate-400">View analysis</div>
-              </div>
-            </div>
-          </Link>
-          
-          <button className="p-4 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors text-left">
-            <div className="flex items-center gap-3">
-              <Icon path="M15 17h5l-5 5v-5z" className="w-5 h-5 text-sky-400" />
-              <div>
-                <div className="font-medium">Export Report</div>
-                <div className="text-xs text-slate-400">Download insights</div>
-              </div>
-            </div>
-          </button>
-        </div>
-      </DashboardCard>
-
-      {/* Advanced Features */}
-      <DashboardCard>
-        <h3 className="text-xl font-semibold text-slate-100 mb-4">Advanced Features</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Link 
-            to="/natural-language"
-            className="p-4 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors text-left block"
-          >
-            <div className="flex items-center gap-3">
-              <Icon path="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" className="w-5 h-5 text-sky-400" />
-              <div>
-                <div className="font-medium">Natural Language</div>
-                <div className="text-xs text-slate-400">AI scenario builder</div>
-              </div>
-            </div>
-          </Link>
-          
-          <Link 
-            to="/recommendations"
-            className="p-4 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors text-left block"
-          >
-            <div className="flex items-center gap-3">
-              <Icon path="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" className="w-5 h-5 text-sky-400" />
-              <div>
-                <div className="font-medium">AI Recommendations</div>
-                <div className="text-xs text-slate-400">ML insights</div>
-              </div>
-            </div>
-          </Link>
-          
-          <Link 
-            to="/sensitivity-analysis"
-            className="p-4 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors text-left block"
-          >
-            <div className="flex items-center gap-3">
-              <Icon path="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" className="w-5 h-5 text-sky-400" />
-              <div>
-                <div className="font-medium">Sensitivity Analysis</div>
-                <div className="text-xs text-slate-400">Monte Carlo sims</div>
-              </div>
-            </div>
-          </Link>
-          
-          <Link 
-            to="/batch-runs"
-            className="p-4 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors text-left block"
-          >
-            <div className="flex items-center gap-3">
-              <Icon path="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5l-3.9 19.5m-2.1-19.5l-3.9 19.5" className="w-5 h-5 text-sky-400" />
-              <div>
-                <div className="font-medium">Batch Runs</div>
-                <div className="text-xs text-slate-400">Automated sweeps</div>
-              </div>
-            </div>
-          </Link>
-          
-          <Link 
-            to="/collaboration"
-            className="p-4 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors text-left block"
-          >
-            <div className="flex items-center gap-3">
-              <Icon path="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" className="w-5 h-5 text-sky-400" />
-              <div>
-                <div className="font-medium">Collaboration</div>
-                <div className="text-xs text-slate-400">Real-time editing</div>
-              </div>
-            </div>
-          </Link>
-          
-          <Link 
-            to="/versioning"
-            className="p-4 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors text-left block"
-          >
-            <div className="flex items-center gap-3">
-              <Icon path="M12 10.5v6m3-3l-3 3-3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z" className="w-5 h-5 text-sky-400" />
-              <div>
-                <div className="font-medium">Version Control</div>
-                <div className="text-xs text-slate-400">Audit trail</div>
-              </div>
-            </div>
-          </Link>
-          
-          <button className="p-4 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors text-left">
-            <div className="flex items-center gap-3">
-              <Icon path="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z M15 12a3 3 0 11-6 0 3 3 0 016 0z" className="w-5 h-5 text-sky-400" />
-              <div>
-                <div className="font-medium">Settings</div>
-                <div className="text-xs text-slate-400">Configure features</div>
-              </div>
-            </div>
-          </button>
-          
-          <button className="p-4 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors text-left">
-            <div className="flex items-center gap-3">
-              <Icon path="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" className="w-5 h-5 text-sky-400" />
-              <div>
-                <div className="font-medium">Documentation</div>
-                <div className="text-xs text-slate-400">Help & guides</div>
-              </div>
-            </div>
-          </button>
-        </div>
-      </DashboardCard>
-    </>
-  );
-
-  const sideContent = (
-    <>
-      {/* Simulation Status */}
-      <DashboardCard>
-        <h3 className="text-lg font-semibold mb-4">Simulation Status</h3>
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span className="text-sm">Active (3)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-            <span className="text-sm">Queued (1)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-slate-500 rounded-full"></div>
-            <span className="text-sm">Completed (12)</span>
-          </div>
-        </div>
-      </DashboardCard>
-
-      {/* Market Conditions */}
-      <DashboardCard>
-        <h3 className="text-lg font-semibold mb-4">Market Conditions</h3>
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <span className="text-sm">Market Volatility</span>
-            <span className="text-sm text-yellow-400">Medium</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm">Competition</span>
-            <span className="text-sm text-red-400">High</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm">Growth Potential</span>
-            <span className="text-sm text-green-400">High</span>
-          </div>
-        </div>
-      </DashboardCard>
-    </>
-  );
-
-  return (
-    <DashboardLayout
-      title="Strategy Sandbox"
-      description="Test potential decisions, model downstream effects, and build smarter roadmaps"
-      stats={dashboardStats}
-      mainContent={mainContent}
-      sideContent={sideContent}
-    />
-  );
-};
-
-export default DashboardPage;
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Link to="/scenarios/new" className="glass-card p-6 hover:bg-slate-800/40 transition-colors">
+          <Brain className="w-8 h-8 text-purple-400 mb-3" />
+          <h3 className="text-lg font-semibold text-slate-100 mb-2">Create Scenario</h3>
+          <p className="text-slate-400 text-sm">Design and model new strategic scenarios</p>
+        </Link>
+        
+        <Link to="/insights" className="glass-card p-6 hover:bg-slate-800/40 transition-colors">
+          <Lightbulb className="w-8 h-8 text-yellow-400 mb-3" />
+          <h3 className="text-lg font-semibold text-slate-100 mb-2">Generate Insights</h3>
+          <p className="text-slate-400 text-sm">Analyze data and generate strategic insights</p>
+        </Link>
+        
+        <Link to="/analytics" className="glass-card p-6 hover:bg-slate-800/40 transition-colors">
+          <TrendingUp className="w-8 h-8 text-blue-400 mb-3" />
+          <h3 className="text-lg font-semibold text-slate-100 mb-2">View Analytics</h3>
+          <p className="text-slate-400 text-sm">Explore predictive analytics and forecasts</p>
+        </Link>
+      </div>
+    </div>
+  )
+}

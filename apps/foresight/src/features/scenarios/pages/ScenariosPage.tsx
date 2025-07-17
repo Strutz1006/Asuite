@@ -1,234 +1,406 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { GlassCard, Icon } from '../../shared/components';
-import { mockScenarios } from '../../shared/data/mockData';
+import { Brain, Plus, Search, Filter, Users, Target, Clock, TrendingUp, AlertTriangle, Eye, Edit, Trash2, Play, Pause, BarChart3 } from 'lucide-react'
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
-const ScenariosPage: React.FC = () => {
-  const [selectedScenario, setSelectedScenario] = useState(0);
+const scenarios = [
+  {
+    id: '1',
+    title: 'Economic Recession Impact',
+    description: 'Analyze the potential impact of a global economic recession on revenue and operations',
+    category: 'Economic',
+    status: 'active',
+    probability: 34,
+    impact: 'High',
+    createdDate: '2024-06-15',
+    lastUpdated: '2024-07-15',
+    participants: 8,
+    insights: 12,
+    variables: 15,
+    outcomes: 6,
+    confidence: 87,
+    timeframe: '12 months',
+    owner: 'Sarah Johnson',
+    tags: ['recession', 'financial', 'risk'],
+  },
+  {
+    id: '2',
+    title: 'Market Expansion Strategy',
+    description: 'Model potential outcomes of expanding into European markets',
+    category: 'Strategic',
+    status: 'planning',
+    probability: 78,
+    impact: 'Medium',
+    createdDate: '2024-06-20',
+    lastUpdated: '2024-07-14',
+    participants: 15,
+    insights: 8,
+    variables: 12,
+    outcomes: 4,
+    confidence: 76,
+    timeframe: '18 months',
+    owner: 'Michael Chen',
+    tags: ['expansion', 'market', 'growth'],
+  },
+  {
+    id: '3',
+    title: 'Supply Chain Disruption',
+    description: 'Assess risks and mitigation strategies for supply chain disruptions',
+    category: 'Operational',
+    status: 'active',
+    probability: 45,
+    impact: 'High',
+    createdDate: '2024-06-25',
+    lastUpdated: '2024-07-13',
+    participants: 12,
+    insights: 18,
+    variables: 20,
+    outcomes: 8,
+    confidence: 92,
+    timeframe: '6 months',
+    owner: 'Alex Rodriguez',
+    tags: ['supply-chain', 'disruption', 'risk'],
+  },
+  {
+    id: '4',
+    title: 'Digital Transformation Initiative',
+    description: 'Model the impact of comprehensive digital transformation on efficiency',
+    category: 'Technology',
+    status: 'draft',
+    probability: 85,
+    impact: 'Medium',
+    createdDate: '2024-07-01',
+    lastUpdated: '2024-07-12',
+    participants: 10,
+    insights: 5,
+    variables: 8,
+    outcomes: 3,
+    confidence: 68,
+    timeframe: '24 months',
+    owner: 'Jennifer Williams',
+    tags: ['digital', 'transformation', 'efficiency'],
+  },
+  {
+    id: '5',
+    title: 'Competitive Threat Response',
+    description: 'Strategic response scenarios to major competitor product launches',
+    category: 'Competitive',
+    status: 'active',
+    probability: 67,
+    impact: 'High',
+    createdDate: '2024-07-05',
+    lastUpdated: '2024-07-11',
+    participants: 9,
+    insights: 14,
+    variables: 18,
+    outcomes: 7,
+    confidence: 81,
+    timeframe: '9 months',
+    owner: 'Robert Davis',
+    tags: ['competition', 'threat', 'response'],
+  },
+]
+
+const statusColors = {
+  active: 'bg-green-500/20 text-green-400',
+  planning: 'bg-blue-500/20 text-blue-400',
+  draft: 'bg-gray-500/20 text-gray-400',
+  archived: 'bg-slate-500/20 text-slate-400',
+}
+
+const categoryColors = {
+  Economic: 'bg-red-500/20 text-red-400',
+  Strategic: 'bg-purple-500/20 text-purple-400',
+  Operational: 'bg-orange-500/20 text-orange-400',
+  Technology: 'bg-blue-500/20 text-blue-400',
+  Competitive: 'bg-yellow-500/20 text-yellow-400',
+}
+
+const impactColors = {
+  High: 'text-red-400',
+  Medium: 'text-yellow-400',
+  Low: 'text-green-400',
+}
+
+export default function ScenariosPage() {
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedStatus, setSelectedStatus] = useState('all')
+  const [selectedCategory, setSelectedCategory] = useState('all')
+  const [selectedImpact, setSelectedImpact] = useState('all')
+
+  const filteredScenarios = scenarios.filter(scenario => {
+    const matchesSearch = scenario.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         scenario.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         scenario.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+    const matchesStatus = selectedStatus === 'all' || scenario.status === selectedStatus
+    const matchesCategory = selectedCategory === 'all' || scenario.category === selectedCategory
+    const matchesImpact = selectedImpact === 'all' || scenario.impact === selectedImpact
+    return matchesSearch && matchesStatus && matchesCategory && matchesImpact
+  })
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-100">Scenario Analysis</h1>
-          <p className="text-slate-400 mt-1">Compare strategic scenarios and their projected outcomes</p>
+          <h1 className="text-3xl font-bold text-slate-100">Scenarios</h1>
+          <p className="text-slate-400 mt-1">
+            Design, model, and analyze strategic scenarios
+          </p>
         </div>
-        <Link 
-          to="/scenarios/new"
-          className="bg-gradient-to-r from-sky-500 to-blue-500 text-white font-bold py-2 px-5 rounded-lg shadow-lg hover:from-sky-600 hover:to-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-400/50 transition-all"
-        >
-          + New Scenario
-        </Link>
-      </div>
-
-      {/* Scenario Comparison */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {mockScenarios.map((scenario, index) => (
-          <GlassCard 
-            key={scenario.id} 
-            className={`p-6 cursor-pointer transition-all ${
-              selectedScenario === index ? 'ring-2 ring-sky-500 border-sky-500/50' : 'hover:border-sky-500/30'
-            }`}
-            onClick={() => setSelectedScenario(index)}
+        <div className="flex items-center gap-3">
+          <Link
+            to="/scenarios/new"
+            className="glass-button text-purple-300 hover:text-purple-200 px-4 py-2 flex items-center gap-2"
           >
-            <div className="flex justify-between items-start mb-4">
-              <h3 className="text-lg font-bold">{scenario.name}</h3>
-              <div className="text-right">
-                <div className="text-sm text-slate-400">Confidence</div>
-                <div className="text-xl font-bold text-sky-400">{scenario.confidence}%</div>
-              </div>
-            </div>
-            
-            <p className="text-sm text-slate-400 mb-4">{scenario.description}</p>
-            
-            <div className="space-y-3 mb-4">
-              <div className="flex justify-between">
-                <span className="text-sm">Revenue Impact</span>
-                <span className="font-mono text-green-400">{scenario.impact.revenue}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm">Cost Impact</span>
-                <span className={`font-mono ${scenario.impact.cost.includes('+') ? 'text-red-400' : 'text-green-400'}`}>
-                  {scenario.impact.cost}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm">Risk Level</span>
-                <span className={`font-mono ${
-                  scenario.impact.risk === 'High' ? 'text-red-400' : 
-                  scenario.impact.risk === 'Medium' ? 'text-yellow-400' : 
-                  'text-green-400'
-                }`}>
-                  {scenario.impact.risk}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm">Timeline</span>
-                <span className="font-mono text-slate-300">{scenario.impact.timeline}</span>
-              </div>
-            </div>
-            
-            <div className="w-full bg-slate-700 rounded-full h-2.5 mb-2">
-              <div className="bg-sky-500 h-2.5 rounded-full" style={{ width: `${scenario.confidence}%` }}></div>
-            </div>
-          </GlassCard>
-        ))}
+            <Plus className="w-4 h-4" />
+            Create Scenario
+          </Link>
+        </div>
       </div>
 
-      {/* Detailed Scenario Analysis */}
-      <GlassCard className="p-6">
-        <h3 className="text-xl font-semibold mb-4">Detailed Analysis: {mockScenarios[selectedScenario].name}</h3>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div>
-            <h4 className="font-semibold text-sky-300 mb-4">Key Success Factors</h4>
-            <div className="space-y-3">
-              {mockScenarios[selectedScenario].factors.map((factor, index) => (
-                <div key={index} className="flex items-center gap-3 p-3 bg-slate-700/50 rounded-lg">
-                  <Icon path="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" className="w-5 h-5 text-green-400 flex-shrink-0" />
-                  <span className="text-sm">{factor}</span>
-                </div>
-              ))}
-            </div>
+      {/* Search and Filters */}
+      <div className="glass-card p-6">
+        <div className="flex flex-col md:flex-row gap-4">
+          {/* Search */}
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search scenarios..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+            />
           </div>
-          
-          <div>
-            <h4 className="font-semibold text-sky-300 mb-4">Outcome Projections</h4>
-            <div className="space-y-4">
-              <div>
-                <h5 className="text-sm font-medium mb-2">Financial Metrics</h5>
-                <div className="space-y-2">
-                  {Object.entries(mockScenarios[selectedScenario].outcomes.financial).map(([key, value]) => (
-                    <div key={key} className="flex justify-between items-center">
-                      <span className="text-sm capitalize">{key}</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-16 bg-slate-700 rounded-full h-1.5">
-                          <div 
-                            className={`h-1.5 rounded-full ${value >= 100 ? 'bg-green-500' : value >= 90 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                            style={{ width: `${Math.min(value, 100)}%` }}
-                          ></div>
-                        </div>
-                        <span className="text-xs font-mono w-8">{value}%</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              <div>
-                <h5 className="text-sm font-medium mb-2">Operational Metrics</h5>
-                <div className="space-y-2">
-                  {Object.entries(mockScenarios[selectedScenario].outcomes.operational).map(([key, value]) => (
-                    <div key={key} className="flex justify-between items-center">
-                      <span className="text-sm capitalize">{key}</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-16 bg-slate-700 rounded-full h-1.5">
-                          <div 
-                            className={`h-1.5 rounded-full ${value >= 100 ? 'bg-green-500' : value >= 90 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                            style={{ width: `${Math.min(value, 100)}%` }}
-                          ></div>
-                        </div>
-                        <span className="text-xs font-mono w-8">{value}%</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
 
-              <div>
-                <h5 className="text-sm font-medium mb-2">Strategic Metrics</h5>
-                <div className="space-y-2">
-                  {Object.entries(mockScenarios[selectedScenario].outcomes.strategic).map(([key, value]) => (
-                    <div key={key} className="flex justify-between items-center">
-                      <span className="text-sm capitalize">{key}</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-16 bg-slate-700 rounded-full h-1.5">
-                          <div 
-                            className={`h-1.5 rounded-full ${value >= 100 ? 'bg-green-500' : value >= 90 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                            style={{ width: `${Math.min(value, 100)}%` }}
-                          ></div>
-                        </div>
-                        <span className="text-xs font-mono w-8">{value}%</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+          {/* Status Filter */}
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-slate-400" />
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+            >
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="planning">Planning</option>
+              <option value="draft">Draft</option>
+              <option value="archived">Archived</option>
+            </select>
+          </div>
+
+          {/* Category Filter */}
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+          >
+            <option value="all">All Categories</option>
+            <option value="Economic">Economic</option>
+            <option value="Strategic">Strategic</option>
+            <option value="Operational">Operational</option>
+            <option value="Technology">Technology</option>
+            <option value="Competitive">Competitive</option>
+          </select>
+
+          {/* Impact Filter */}
+          <select
+            value={selectedImpact}
+            onChange={(e) => setSelectedImpact(e.target.value)}
+            className="px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+          >
+            <option value="all">All Impact</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Scenario Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="glass-card p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-400">Total Scenarios</p>
+              <p className="text-2xl font-bold text-slate-100">{scenarios.length}</p>
             </div>
+            <Brain className="w-8 h-8 text-purple-400" />
           </div>
         </div>
-      </GlassCard>
+        <div className="glass-card p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-400">Active</p>
+              <p className="text-2xl font-bold text-green-400">
+                {scenarios.filter(s => s.status === 'active').length}
+              </p>
+            </div>
+            <Play className="w-8 h-8 text-green-400" />
+          </div>
+        </div>
+        <div className="glass-card p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-400">High Impact</p>
+              <p className="text-2xl font-bold text-red-400">
+                {scenarios.filter(s => s.impact === 'High').length}
+              </p>
+            </div>
+            <AlertTriangle className="w-8 h-8 text-red-400" />
+          </div>
+        </div>
+        <div className="glass-card p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-400">Avg Confidence</p>
+              <p className="text-2xl font-bold text-blue-400">
+                {Math.round(scenarios.reduce((sum, s) => sum + s.confidence, 0) / scenarios.length)}%
+              </p>
+            </div>
+            <Target className="w-8 h-8 text-blue-400" />
+          </div>
+        </div>
+      </div>
 
-      {/* Scenario Comparison Table */}
-      <GlassCard className="p-6">
-        <h3 className="text-xl font-semibold mb-4">Scenario Comparison</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-slate-700">
-                <th className="p-3 font-semibold">Scenario</th>
-                <th className="p-3 font-semibold">Confidence</th>
-                <th className="p-3 font-semibold">Revenue</th>
-                <th className="p-3 font-semibold">Cost</th>
-                <th className="p-3 font-semibold">Risk</th>
-                <th className="p-3 font-semibold">Timeline</th>
-                <th className="p-3 font-semibold">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {mockScenarios.map((scenario, index) => (
-                <tr key={scenario.id} className="border-b border-slate-800 hover:bg-slate-800/50">
-                  <td className="p-3 font-medium">{scenario.name}</td>
-                  <td className="p-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-16 bg-slate-700 rounded-full h-2">
-                        <div 
-                          className="bg-sky-500 h-2 rounded-full"
-                          style={{ width: `${scenario.confidence}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm font-mono">{scenario.confidence}%</span>
-                    </div>
-                  </td>
-                  <td className="p-3 text-green-400 font-mono">{scenario.impact.revenue}</td>
-                  <td className={`p-3 font-mono ${scenario.impact.cost.includes('+') ? 'text-red-400' : 'text-green-400'}`}>
-                    {scenario.impact.cost}
-                  </td>
-                  <td className="p-3">
-                    <span className={`px-2 py-1 text-xs font-bold rounded-full ${
-                      scenario.impact.risk === 'High' ? 'bg-red-500/20 text-red-300' : 
-                      scenario.impact.risk === 'Medium' ? 'bg-yellow-500/20 text-yellow-300' : 
-                      'bg-green-500/20 text-green-300'
-                    }`}>
-                      {scenario.impact.risk}
+      {/* Scenarios List */}
+      <div className="glass-card p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-slate-100">
+            Scenarios ({filteredScenarios.length})
+          </h2>
+        </div>
+
+        <div className="space-y-4">
+          {filteredScenarios.map((scenario) => (
+            <div key={scenario.id} className="glass-card p-4 bg-slate-800/40 hover:bg-slate-800/60 transition-colors">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Link
+                      to={`/scenarios/${scenario.id}`}
+                      className="text-lg font-medium text-slate-100 hover:text-purple-300"
+                    >
+                      {scenario.title}
+                    </Link>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${categoryColors[scenario.category] || 'bg-gray-500/20 text-gray-400'}`}>
+                      {scenario.category}
                     </span>
-                  </td>
-                  <td className="p-3 text-slate-300">{scenario.impact.timeline}</td>
-                  <td className="p-3">
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={() => setSelectedScenario(index)}
-                        className="text-sky-400 hover:text-sky-300 text-sm font-medium"
-                      >
-                        View
-                      </button>
-                      <Link 
-                        to={`/scenarios/${scenario.id}/edit`}
-                        className="text-green-400 hover:text-green-300 text-sm font-medium"
-                      >
-                        Edit
-                      </Link>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[scenario.status] || 'bg-gray-500/20 text-gray-400'}`}>
+                      {scenario.status === 'active' ? 'Active' : 
+                       scenario.status === 'planning' ? 'Planning' : 
+                       scenario.status === 'draft' ? 'Draft' : 'Archived'}
+                    </span>
+                  </div>
+                  
+                  <p className="text-slate-400 text-sm mb-3">{scenario.description}</p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-3">
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm text-slate-400">Probability</span>
+                        <span className="text-sm text-slate-300">{scenario.probability}%</span>
+                      </div>
+                      <div className="w-full bg-slate-700/50 rounded-full h-2">
+                        <div
+                          className={`h-2 rounded-full transition-all duration-300 ${
+                            scenario.probability >= 70 ? 'bg-red-500' : 
+                            scenario.probability >= 40 ? 'bg-yellow-500' : 'bg-green-500'
+                          }`}
+                          style={{ width: `${scenario.probability}%` }}
+                        />
+                      </div>
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm text-slate-400">Confidence</span>
+                        <span className="text-sm text-slate-300">{scenario.confidence}%</span>
+                      </div>
+                      <div className="w-full bg-slate-700/50 rounded-full h-2">
+                        <div
+                          className={`h-2 rounded-full transition-all duration-300 ${
+                            scenario.confidence >= 80 ? 'bg-green-500' : 
+                            scenario.confidence >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                          }`}
+                          style={{ width: `${scenario.confidence}%` }}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4 text-slate-400" />
+                      <div>
+                        <p className="text-sm text-slate-400">Participants</p>
+                        <p className="text-sm font-medium text-slate-100">{scenario.participants}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <BarChart3 className="w-4 h-4 text-slate-400" />
+                      <div>
+                        <p className="text-sm text-slate-400">Variables</p>
+                        <p className="text-sm font-medium text-slate-100">{scenario.variables}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-slate-400" />
+                      <div>
+                        <p className="text-sm text-slate-400">Outcomes</p>
+                        <p className="text-sm font-medium text-slate-100">{scenario.outcomes}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 text-sm text-slate-500 mb-3">
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium">Owner:</span>
+                      <span>{scenario.owner}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      <span>Updated {new Date(scenario.lastUpdated).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium">Timeframe:</span>
+                      <span>{scenario.timeframe}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    {scenario.tags.map((tag) => (
+                      <span key={tag} className="px-2 py-1 bg-slate-700/50 text-slate-300 text-xs rounded">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="flex flex-col items-end gap-3">
+                  <div className="text-right">
+                    <div className="text-sm text-slate-400 mb-1">Impact Level</div>
+                    <div className={`text-sm font-medium ${impactColors[scenario.impact]}`}>
+                      {scenario.impact}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <button className="p-2 text-slate-400 hover:text-purple-300 transition-colors">
+                      <Eye className="w-4 h-4" />
+                    </button>
+                    <button className="p-2 text-slate-400 hover:text-blue-300 transition-colors">
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button className="p-2 text-slate-400 hover:text-green-300 transition-colors">
+                      {scenario.status === 'active' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                    </button>
+                    <button className="p-2 text-slate-400 hover:text-red-300 transition-colors">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
-      </GlassCard>
+      </div>
     </div>
-  );
-};
-
-export default ScenariosPage;
+  )
+}

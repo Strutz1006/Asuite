@@ -1,188 +1,409 @@
-import React from 'react';
-import { GlassCard, Icon } from '../../shared/components';
-import { mockMarketInsights, mockRiskFactors } from '../../shared/data/mockData';
+import { Lightbulb, Plus, Search, Filter, Target, Brain, TrendingUp, TrendingDown, AlertTriangle, Clock, Users, BarChart3, Download, Bookmark, Share2 } from 'lucide-react'
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
-const InsightsPage: React.FC = () => {
+const insights = [
+  {
+    id: '1',
+    title: 'Revenue Growth Accelerating',
+    description: 'Q3 projections show 23% increase in revenue based on current market trends and customer acquisition patterns. Growth is driven by strong performance in enterprise segment.',
+    category: 'Financial',
+    type: 'Predictive',
+    confidence: 87,
+    impact: 'positive',
+    priority: 'high',
+    dataPoints: 15674,
+    modelAccuracy: 92,
+    timeframe: '3 months',
+    generatedDate: '2024-07-15T10:30:00Z',
+    lastUpdated: '2024-07-15T14:22:00Z',
+    scenario: 'Market Expansion Strategy',
+    author: 'AI Analytics Engine',
+    tags: ['revenue', 'growth', 'prediction'],
+    keyMetrics: [
+      { name: 'Revenue Growth', value: '23%', trend: 'up' },
+      { name: 'Customer Acquisition', value: '156%', trend: 'up' },
+      { name: 'Market Share', value: '12.8%', trend: 'up' },
+    ],
+  },
+  {
+    id: '2',
+    title: 'Customer Churn Risk Elevated',
+    description: 'Machine learning model predicts 15% increase in customer churn rate within next 6 months. Primary risk factors include pricing pressure and competitive threats.',
+    category: 'Customer',
+    type: 'Risk Analysis',
+    confidence: 92,
+    impact: 'negative',
+    priority: 'high',
+    dataPoints: 23891,
+    modelAccuracy: 89,
+    timeframe: '6 months',
+    generatedDate: '2024-07-15T09:15:00Z',
+    lastUpdated: '2024-07-15T11:45:00Z',
+    scenario: 'Competitive Threat Response',
+    author: 'Customer Analytics Model',
+    tags: ['churn', 'risk', 'customer'],
+    keyMetrics: [
+      { name: 'Churn Rate', value: '15%', trend: 'up' },
+      { name: 'Customer Satisfaction', value: '78%', trend: 'down' },
+      { name: 'Retention Cost', value: '$2.3M', trend: 'up' },
+    ],
+  },
+  {
+    id: '3',
+    title: 'Supply Chain Optimization Opportunity',
+    description: 'Analysis reveals potential 18% cost reduction through supply chain optimization. Key opportunities in logistics routing and inventory management.',
+    category: 'Operations',
+    type: 'Optimization',
+    confidence: 76,
+    impact: 'positive',
+    priority: 'medium',
+    dataPoints: 8934,
+    modelAccuracy: 84,
+    timeframe: '9 months',
+    generatedDate: '2024-07-15T08:45:00Z',
+    lastUpdated: '2024-07-15T13:20:00Z',
+    scenario: 'Supply Chain Disruption',
+    author: 'Operations Analytics',
+    tags: ['supply-chain', 'optimization', 'cost'],
+    keyMetrics: [
+      { name: 'Cost Reduction', value: '18%', trend: 'down' },
+      { name: 'Efficiency Gain', value: '24%', trend: 'up' },
+      { name: 'Inventory Turnover', value: '5.2x', trend: 'up' },
+    ],
+  },
+  {
+    id: '4',
+    title: 'Market Volatility Patterns Detected',
+    description: 'Historical analysis identifies recurring market volatility patterns that correlate with seasonal trends. Proactive positioning recommended.',
+    category: 'Market',
+    type: 'Pattern Analysis',
+    confidence: 68,
+    impact: 'neutral',
+    priority: 'low',
+    dataPoints: 45621,
+    modelAccuracy: 71,
+    timeframe: '12 months',
+    generatedDate: '2024-07-14T16:30:00Z',
+    lastUpdated: '2024-07-15T09:10:00Z',
+    scenario: 'Economic Recession Impact',
+    author: 'Market Intelligence',
+    tags: ['market', 'volatility', 'patterns'],
+    keyMetrics: [
+      { name: 'Volatility Index', value: '34%', trend: 'up' },
+      { name: 'Correlation Score', value: '0.76', trend: 'up' },
+      { name: 'Confidence Level', value: '68%', trend: 'stable' },
+    ],
+  },
+  {
+    id: '5',
+    title: 'Technology Adoption Acceleration',
+    description: 'Digital transformation metrics show 45% faster adoption rates than industry average. Competitive advantage opportunity identified.',
+    category: 'Technology',
+    type: 'Trend Analysis',
+    confidence: 81,
+    impact: 'positive',
+    priority: 'medium',
+    dataPoints: 12456,
+    modelAccuracy: 87,
+    timeframe: '18 months',
+    generatedDate: '2024-07-14T11:20:00Z',
+    lastUpdated: '2024-07-15T10:30:00Z',
+    scenario: 'Digital Transformation Initiative',
+    author: 'Tech Analytics Platform',
+    tags: ['technology', 'adoption', 'competitive'],
+    keyMetrics: [
+      { name: 'Adoption Rate', value: '45%', trend: 'up' },
+      { name: 'User Engagement', value: '78%', trend: 'up' },
+      { name: 'ROI Improvement', value: '32%', trend: 'up' },
+    ],
+  },
+]
+
+const categories = ['Financial', 'Customer', 'Operations', 'Market', 'Technology']
+const types = ['Predictive', 'Risk Analysis', 'Optimization', 'Pattern Analysis', 'Trend Analysis']
+const impacts = ['positive', 'negative', 'neutral']
+const priorities = ['high', 'medium', 'low']
+
+const impactColors = {
+  positive: 'bg-green-500/20 text-green-400',
+  negative: 'bg-red-500/20 text-red-400',
+  neutral: 'bg-gray-500/20 text-gray-400',
+}
+
+const priorityColors = {
+  high: 'bg-red-500/20 text-red-400',
+  medium: 'bg-yellow-500/20 text-yellow-400',
+  low: 'bg-green-500/20 text-green-400',
+}
+
+export default function InsightsPage() {
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('all')
+  const [selectedType, setSelectedType] = useState('all')
+  const [selectedImpact, setSelectedImpact] = useState('all')
+  const [selectedPriority, setSelectedPriority] = useState('all')
+
+  const filteredInsights = insights.filter(insight => {
+    const matchesSearch = insight.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         insight.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         insight.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+    const matchesCategory = selectedCategory === 'all' || insight.category === selectedCategory
+    const matchesType = selectedType === 'all' || insight.type === selectedType
+    const matchesImpact = selectedImpact === 'all' || insight.impact === selectedImpact
+    const matchesPriority = selectedPriority === 'all' || insight.priority === selectedPriority
+    return matchesSearch && matchesCategory && matchesType && matchesImpact && matchesPriority
+  })
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-100">Market Insights</h1>
-          <p className="text-slate-400 mt-1">External market intelligence and strategic risk assessment</p>
+          <h1 className="text-3xl font-bold text-slate-100">Insights</h1>
+          <p className="text-slate-400 mt-1">
+            AI-generated insights and strategic recommendations
+          </p>
         </div>
-        <button className="bg-gradient-to-r from-sky-500 to-blue-500 text-white font-bold py-2 px-5 rounded-lg shadow-lg hover:from-sky-600 hover:to-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-400/50 transition-all">
-          Refresh Data
-        </button>
+        <div className="flex items-center gap-3">
+          <button className="glass-button text-blue-300 hover:text-blue-200 px-4 py-2 flex items-center gap-2">
+            <Download className="w-4 h-4" />
+            Export All
+          </button>
+          <Link
+            to="/insights/generate"
+            className="glass-button text-purple-300 hover:text-purple-200 px-4 py-2 flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Generate Insights
+          </Link>
+        </div>
       </div>
 
-      {/* Market Intelligence */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {mockMarketInsights.map((insight, index) => (
-          <GlassCard key={index} className="p-6">
-            <div className="flex justify-between items-start mb-3">
-              <h3 className="font-semibold">{insight.title}</h3>
-              <div className="flex items-center gap-2">
-                <Icon 
-                  path={insight.trend === 'up' ? 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6' : 
-                        insight.trend === 'down' ? 'M13 17h8m0 0V9m0 8l-8-8-4 4-6-6' : 
-                        'M5 12h14'} 
-                  className={`w-5 h-5 ${
-                    insight.trend === 'up' ? 'text-green-400' : 
-                    insight.trend === 'down' ? 'text-red-400' : 
-                    'text-slate-400'
-                  }`} 
-                />
-                <span className={`font-bold ${
-                  insight.trend === 'up' ? 'text-green-400' : 
-                  insight.trend === 'down' ? 'text-red-400' : 
-                  'text-slate-400'
-                }`}>
-                  {insight.value}
-                </span>
+      {/* Search and Filters */}
+      <div className="glass-card p-6">
+        <div className="flex flex-col md:flex-row gap-4">
+          {/* Search */}
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search insights..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+            />
+          </div>
+
+          {/* Filters */}
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-slate-400" />
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+            >
+              <option value="all">All Categories</option>
+              {categories.map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
+
+          <select
+            value={selectedType}
+            onChange={(e) => setSelectedType(e.target.value)}
+            className="px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+          >
+            <option value="all">All Types</option>
+            {types.map(type => (
+              <option key={type} value={type}>{type}</option>
+            ))}
+          </select>
+
+          <select
+            value={selectedImpact}
+            onChange={(e) => setSelectedImpact(e.target.value)}
+            className="px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+          >
+            <option value="all">All Impact</option>
+            {impacts.map(impact => (
+              <option key={impact} value={impact}>{impact.charAt(0).toUpperCase() + impact.slice(1)}</option>
+            ))}
+          </select>
+
+          <select
+            value={selectedPriority}
+            onChange={(e) => setSelectedPriority(e.target.value)}
+            className="px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+          >
+            <option value="all">All Priority</option>
+            {priorities.map(priority => (
+              <option key={priority} value={priority}>{priority.charAt(0).toUpperCase() + priority.slice(1)}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Insight Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="glass-card p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-400">Total Insights</p>
+              <p className="text-2xl font-bold text-slate-100">{insights.length}</p>
+            </div>
+            <Lightbulb className="w-8 h-8 text-yellow-400" />
+          </div>
+        </div>
+        <div className="glass-card p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-400">High Priority</p>
+              <p className="text-2xl font-bold text-red-400">
+                {insights.filter(i => i.priority === 'high').length}
+              </p>
+            </div>
+            <AlertTriangle className="w-8 h-8 text-red-400" />
+          </div>
+        </div>
+        <div className="glass-card p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-400">Avg Confidence</p>
+              <p className="text-2xl font-bold text-green-400">
+                {Math.round(insights.reduce((sum, i) => sum + i.confidence, 0) / insights.length)}%
+              </p>
+            </div>
+            <Target className="w-8 h-8 text-green-400" />
+          </div>
+        </div>
+        <div className="glass-card p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-400">Positive Impact</p>
+              <p className="text-2xl font-bold text-blue-400">
+                {insights.filter(i => i.impact === 'positive').length}
+              </p>
+            </div>
+            <TrendingUp className="w-8 h-8 text-blue-400" />
+          </div>
+        </div>
+      </div>
+
+      {/* Insights List */}
+      <div className="glass-card p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-slate-100">
+            Insights ({filteredInsights.length})
+          </h2>
+        </div>
+
+        <div className="space-y-6">
+          {filteredInsights.map((insight) => (
+            <div key={insight.id} className="glass-card p-6 bg-slate-800/40 hover:bg-slate-800/60 transition-colors">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="text-lg font-semibold text-slate-100">{insight.title}</h3>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${impactColors[insight.impact]}`}>
+                      {insight.impact.charAt(0).toUpperCase() + insight.impact.slice(1)}
+                    </span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${priorityColors[insight.priority]}`}>
+                      {insight.priority.charAt(0).toUpperCase() + insight.priority.slice(1)}
+                    </span>
+                    <span className="px-2 py-1 bg-slate-700/50 text-slate-300 text-xs rounded">
+                      {insight.category}
+                    </span>
+                    <span className="px-2 py-1 bg-slate-700/50 text-slate-300 text-xs rounded">
+                      {insight.type}
+                    </span>
+                  </div>
+                  
+                  <p className="text-slate-300 mb-4">{insight.description}</p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    {insight.keyMetrics.map((metric, index) => (
+                      <div key={index} className="glass-card p-3 bg-slate-800/40">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-slate-400">{metric.name}</span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-sm font-medium text-slate-100">{metric.value}</span>
+                            {metric.trend === 'up' && <TrendingUp className="w-3 h-3 text-green-400" />}
+                            {metric.trend === 'down' && <TrendingDown className="w-3 h-3 text-red-400" />}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="flex items-center gap-6 text-sm text-slate-500 mb-4">
+                    <div className="flex items-center gap-1">
+                      <Target className="w-4 h-4" />
+                      <span>Confidence: {insight.confidence}%</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <BarChart3 className="w-4 h-4" />
+                      <span>Data Points: {insight.dataPoints.toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      <span>Timeframe: {insight.timeframe}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Brain className="w-4 h-4" />
+                      <span>Model Accuracy: {insight.modelAccuracy}%</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 text-sm text-slate-500 mb-4">
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium">Scenario:</span>
+                      <Link to={`/scenarios/${insight.scenario}`} className="text-purple-400 hover:text-purple-300">
+                        {insight.scenario}
+                      </Link>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium">Author:</span>
+                      <span>{insight.author}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      <span>Generated: {new Date(insight.generatedDate).toLocaleString()}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    {insight.tags.map((tag) => (
+                      <span key={tag} className="px-2 py-1 bg-slate-700/50 text-slate-300 text-xs rounded">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="flex flex-col gap-2">
+                  <div className="text-right mb-2">
+                    <div className="text-sm text-slate-400">Confidence</div>
+                    <div className="text-lg font-bold text-slate-100">{insight.confidence}%</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button className="p-2 text-slate-400 hover:text-yellow-300 transition-colors">
+                      <Bookmark className="w-4 h-4" />
+                    </button>
+                    <button className="p-2 text-slate-400 hover:text-blue-300 transition-colors">
+                      <Share2 className="w-4 h-4" />
+                    </button>
+                    <button className="p-2 text-slate-400 hover:text-green-300 transition-colors">
+                      <Download className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
-            <p className="text-sm text-slate-400 mb-3">{insight.description}</p>
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-slate-500">Confidence: {insight.confidence}%</span>
-              <button className="text-sm text-sky-400 hover:text-sky-300">View Details</button>
-            </div>
-          </GlassCard>
-        ))}
+          ))}
+        </div>
       </div>
-
-      {/* Risk Assessment Matrix */}
-      <GlassCard className="p-6">
-        <h3 className="text-xl font-semibold mb-4">Strategic Risk Assessment</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-slate-700">
-                <th className="p-3 font-semibold">Risk Factor</th>
-                <th className="p-3 font-semibold">Probability</th>
-                <th className="p-3 font-semibold">Impact</th>
-                <th className="p-3 font-semibold">Mitigation Strategy</th>
-                <th className="p-3 font-semibold">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {mockRiskFactors.map((risk, index) => (
-                <tr key={index} className="border-b border-slate-800 hover:bg-slate-800/50">
-                  <td className="p-3 font-medium">{risk.name}</td>
-                  <td className="p-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-16 bg-slate-700 rounded-full h-2">
-                        <div 
-                          className={`h-2 rounded-full ${
-                            risk.probability >= 60 ? 'bg-red-500' : 
-                            risk.probability >= 40 ? 'bg-yellow-500' : 
-                            'bg-green-500'
-                          }`}
-                          style={{ width: `${risk.probability}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm font-mono">{risk.probability}%</span>
-                    </div>
-                  </td>
-                  <td className="p-3">
-                    <span className={`px-2 py-1 text-xs font-bold rounded-full ${
-                      risk.impact === 'High' ? 'bg-red-500/20 text-red-300' : 
-                      risk.impact === 'Medium' ? 'bg-yellow-500/20 text-yellow-300' : 
-                      'bg-green-500/20 text-green-300'
-                    }`}>
-                      {risk.impact}
-                    </span>
-                  </td>
-                  <td className="p-3 text-sm text-slate-400">{risk.mitigation}</td>
-                  <td className="p-3">
-                    <button className="text-sky-400 hover:text-sky-300 text-sm font-medium">
-                      Monitor
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </GlassCard>
-
-      {/* Industry Trends */}
-      <GlassCard className="p-6">
-        <h3 className="text-xl font-semibold mb-4">Industry Trend Analysis</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-green-400 mb-2">+23%</div>
-            <div className="text-sm text-slate-400">Market Growth</div>
-            <div className="text-xs text-slate-500">vs last year</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-yellow-400 mb-2">78%</div>
-            <div className="text-sm text-slate-400">Digital Adoption</div>
-            <div className="text-xs text-slate-500">industry average</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-blue-400 mb-2">5.2x</div>
-            <div className="text-sm text-slate-400">ROI Potential</div>
-            <div className="text-xs text-slate-500">on AI investment</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-purple-400 mb-2">42%</div>
-            <div className="text-sm text-slate-400">ESG Focus</div>
-            <div className="text-xs text-slate-500">consumer preference</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-red-400 mb-2">15%</div>
-            <div className="text-sm text-slate-400">Supply Chain Risk</div>
-            <div className="text-xs text-slate-500">disruption probability</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-sky-400 mb-2">8.5</div>
-            <div className="text-sm text-slate-400">Innovation Index</div>
-            <div className="text-xs text-slate-500">out of 10</div>
-          </div>
-        </div>
-      </GlassCard>
-
-      {/* Scenario Timeline */}
-      <GlassCard className="p-6">
-        <h3 className="text-xl font-semibold mb-4">Strategic Timeline Projections</h3>
-        <div className="space-y-4">
-          <div className="flex items-center gap-4 p-3 bg-slate-700/30 rounded-lg">
-            <div className="w-3 h-3 bg-sky-500 rounded-full"></div>
-            <div className="flex-1">
-              <div className="font-medium">Q1 2024: Market Analysis Complete</div>
-              <div className="text-sm text-slate-400">Strategic foundation established</div>
-            </div>
-            <div className="text-sm text-slate-400">3 months</div>
-          </div>
-          <div className="flex items-center gap-4 p-3 bg-slate-700/30 rounded-lg">
-            <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-            <div className="flex-1">
-              <div className="font-medium">Q2 2024: Technology Investment</div>
-              <div className="text-sm text-slate-400">AI and automation rollout</div>
-            </div>
-            <div className="text-sm text-slate-400">6 months</div>
-          </div>
-          <div className="flex items-center gap-4 p-3 bg-slate-700/30 rounded-lg">
-            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <div className="flex-1">
-              <div className="font-medium">Q3-Q4 2024: Market Expansion</div>
-              <div className="text-sm text-slate-400">New market entry and scaling</div>
-            </div>
-            <div className="text-sm text-slate-400">9-12 months</div>
-          </div>
-          <div className="flex items-center gap-4 p-3 bg-slate-700/30 rounded-lg">
-            <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-            <div className="flex-1">
-              <div className="font-medium">2025: ESG Transformation</div>
-              <div className="text-sm text-slate-400">Sustainability and governance focus</div>
-            </div>
-            <div className="text-sm text-slate-400">18+ months</div>
-          </div>
-        </div>
-      </GlassCard>
     </div>
-  );
-};
-
-export default InsightsPage;
+  )
+}

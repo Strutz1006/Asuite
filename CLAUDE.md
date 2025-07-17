@@ -1,109 +1,37 @@
-# Claude Context File for Aesyros Suite
+# Claude Configuration
 
-## Project Overview
-Aesyros Suite is a strategic operating system for modern organizations, consisting of 5 integrated applications that help businesses align strategy with execution.
+## Model Selection
+CLAUDE_MODEL: claude-3-5-sonnet-latest
 
-## Architecture
-- **Monorepo**: Uses npm workspaces with apps/* and packages/*
-- **Framework**: React 19 + TypeScript + Vite
-- **Styling**: TailwindCSS with glass morphism design
-- **Navigation**: Shared navigation component with inter-app routing
-- **Data**: Currently using mock data, planned migration to Supabase
+Always use Sonnet model to preserve usage costs while maintaining excellent performance for development tasks.
 
-## Applications (in navigation order)
-1. **Align** (port 5173) - Strategic Goals & OKRs
-2. **Drive** (port 5179) - Task & Project Management
-3. **Pulse** (port 5177) - KPI Design and Tracking  
-4. **Catalyst** (port 5174) - Change Management
-5. **Flow** (port 5175) - Process Validation & Optimization
-6. **Foresight** (port 5176) - Strategy Simulation & Impact Modeling
+## Project Context
+This is the Aesyros Suite monorepo containing 6 enterprise applications:
+- Align - Strategic goals and OKRs
+- Drive - Task and project management  
+- Pulse - KPI tracking and analytics
+- Catalyst - Change management
+- Flow - Process validation and compliance
+- Foresight - Scenario planning and predictive analytics
 
-## Development Commands
-```bash
-# Run all apps simultaneously
-npm run dev
+## Development Guidelines
+- Use dual navigation system (suite-level + app-level)
+- Maintain glass morphism design pattern
+- Follow app-specific color themes
+- Ensure responsive design for all components
+- Use TypeScript for type safety
+- Implement proper error handling
 
-# Run individual apps
-npm run dev:align
-npm run dev:drive
-npm run dev:pulse
-npm run dev:catalyst
-npm run dev:flow
-npm run dev:foresight
+## Testing Commands
+Run these commands after making changes:
+- `npm run lint` - Check code style
+- `npm run typecheck` - Verify TypeScript types
+- `npm test` - Run test suite (if available)
 
-# Build all apps
-npm run build
-
-# Lint and type check
-npm run lint
-npm run type-check
-```
-
-## Key Packages
-- `@aesyros/ui` - Shared UI components (AppNavigation, GlassCard, Icon)
-- `@aesyros/types` - Shared TypeScript types
-- `@aesyros/hooks` - Shared React hooks
-
-## Feature Structure (per app)
-```
-src/
-├── components/          # App-specific components (Layout)
-├── features/            # Feature-based organization
-│   ├── dashboard/pages/
-│   ├── [feature]/pages/
-│   ├── shared/
-│   │   ├── components/  # Feature-scoped components
-│   │   └── data/        # Mock data files
-└── App.tsx             # React Router setup
-```
-
-## Styling Guidelines
-- Use TailwindCSS utility classes
-- Glass morphism: `bg-slate-800/60 backdrop-blur-xl border border-slate-700/80`
-- Color scheme: Sky blue for active states, slate grays for backgrounds
-- Icons: Use Heroicons path strings in custom Icon components
-
-## Critical CSS Requirements
-**IMPORTANT**: All apps must have consistent #root styling in App.css:
-```css
-#root {
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  text-align: left;
-}
-```
-This is required for AppLayout component to work properly. Any deviation will cause layout inconsistencies.
-
-## Testing & Quality
-- TypeScript strict mode enabled
-- ESLint configuration shared across workspace
-- All apps must build successfully before commits
-
-## Database Schema
-- **Production Schema**: Uses app-prefixed table names (align_*, pulse_*, catalyst_*, flow_*, foresight_*)
-- **Advanced Features**: Cross-app linking, AI coach interactions, notifications system
-- **Compliance**: Dedicated compliance frameworks and checking system
-- **Analytics**: Anomaly detection, value impact tracking, activity logging
-- **Survey System**: Built-in survey creation and response collection
-
-## Key Database Tables by App
-- **Align**: align_objectives, align_key_results, align_progress_updates
-- **Pulse**: pulse_kpis, pulse_kpi_values, pulse_anomalies  
-- **Catalyst**: catalyst_journeys, catalyst_stakeholders, catalyst_activities, catalyst_surveys
-- **Flow**: flow_documents, flow_issues, flow_compliance_frameworks, flow_compliance_checks
-- **Foresight**: foresight_scenarios, foresight_business_levers, foresight_outcomes, foresight_risk_factors
-
-## Cross-App Features
-- **cross_app_links**: Link entities between different applications
-- **value_impacts**: Track real-world impact metrics across apps
-- **coach_interactions**: AI assistant conversations and context
-- **notifications**: System-wide notification management
-- **activity_logs**: Comprehensive audit trail
-
-## Future Roadmap
-- [ ] Real-time collaboration features enhancement
-- [ ] Advanced AI Coach capabilities
-- [ ] Mobile responsive design improvements
-- [ ] Enhanced cross-app analytics
-- [ ] API integrations for external data sources
+## Key Technologies
+- React 18 with TypeScript
+- Vite for build tooling
+- Tailwind CSS for styling
+- React Router for navigation
+- Lucide React for icons
+- Supabase for backend services

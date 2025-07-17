@@ -1,581 +1,396 @@
-import React, { useState, useEffect } from 'react';
-import { GlassCard, Icon } from '../../shared/components';
-import type { ProcessMetrics, Bottleneck } from '../../shared/types/advanced';
+import { TrendingUp, BarChart3, PieChart, Activity, Clock, Users, FileText, CheckCircle, AlertTriangle, Download, Calendar } from 'lucide-react'
+import { useState } from 'react'
 
-const AnalyticsPage: React.FC = () => {
-  const [processMetrics, setProcessMetrics] = useState<ProcessMetrics[]>([]);
-  const [selectedProcess, setSelectedProcess] = useState<ProcessMetrics | null>(null);
-  const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
-  const [activeMetric, setActiveMetric] = useState<'cycle' | 'resource' | 'quality' | 'cost'>('cycle');
+const performanceMetrics = [
+  {
+    name: 'Process Efficiency',
+    value: 87,
+    change: '+12%',
+    changeType: 'increase',
+    target: 95,
+    description: 'Average efficiency across all processes',
+  },
+  {
+    name: 'Compliance Rate',
+    value: 94,
+    change: '+8%',
+    changeType: 'increase',
+    target: 98,
+    description: 'Overall compliance across frameworks',
+  },
+  {
+    name: 'Document Quality',
+    value: 91,
+    change: '+3%',
+    changeType: 'increase',
+    target: 95,
+    description: 'Average document validation score',
+  },
+  {
+    name: 'Time to Resolution',
+    value: 2.4,
+    change: '-0.6 days',
+    changeType: 'decrease',
+    target: 1.5,
+    description: 'Average time to resolve issues',
+    unit: 'days',
+  },
+]
 
-  useEffect(() => {
-    loadAnalytics();
-  }, [timeRange]);
+const processAnalytics = [
+  {
+    name: 'Customer Onboarding',
+    efficiency: 94,
+    compliance: 96,
+    documents: 8,
+    avgTime: '3.2 days',
+    completionRate: 98,
+    issues: 2,
+    trend: 'up',
+  },
+  {
+    name: 'Invoice Processing',
+    efficiency: 67,
+    compliance: 89,
+    documents: 12,
+    avgTime: '5.8 days',
+    completionRate: 87,
+    issues: 8,
+    trend: 'down',
+  },
+  {
+    name: 'Employee Onboarding',
+    efficiency: 88,
+    compliance: 94,
+    documents: 15,
+    avgTime: '7.2 days',
+    completionRate: 92,
+    issues: 4,
+    trend: 'up',
+  },
+  {
+    name: 'Data Privacy Review',
+    efficiency: 79,
+    compliance: 98,
+    documents: 6,
+    avgTime: '2.1 days',
+    completionRate: 95,
+    issues: 1,
+    trend: 'stable',
+  },
+]
 
-  const loadAnalytics = () => {
-    // Mock analytics data
-    const mockMetrics: ProcessMetrics[] = [
-      {
-        processId: 'proc-1',
-        cycleTime: {
-          average: 4.2,
-          median: 3.8,
-          standardDeviation: 1.2,
-          percentiles: {
-            '50': 3.8,
-            '75': 4.9,
-            '90': 6.1,
-            '95': 7.2
-          },
-          bottlenecks: [
-            {
-              stepId: 'step-2',
-              stepName: 'Manager Approval',
-              avgWaitTime: 2.1,
-              frequency: 85,
-              impact: 'high',
-              suggestions: [
-                'Implement delegation rules',
-                'Add backup approvers',
-                'Automate routine approvals'
-              ]
-            },
-            {
-              stepId: 'step-4',
-              stepName: 'Document Review',
-              avgWaitTime: 1.3,
-              frequency: 60,
-              impact: 'medium',
-              suggestions: [
-                'Pre-validate documents',
-                'Provide review templates',
-                'Add automated checks'
-              ]
-            }
-          ]
-        },
-        resourceUtilization: {
-          totalUtilization: 73.5,
-          byRole: {
-            'Manager': 89.2,
-            'Analyst': 65.8,
-            'Admin': 71.3,
-            'Reviewer': 78.6
-          },
-          overAllocated: ['Manager'],
-          underUtilized: ['Analyst'],
-          skillGaps: [
-            {
-              skill: 'Risk Assessment',
-              currentLevel: 6.2,
-              requiredLevel: 8.0,
-              affectedSteps: ['step-3', 'step-5'],
-              trainingRequired: true
-            }
-          ]
-        },
-        qualityMetrics: {
-          defectRate: 3.2,
-          reworkRate: 8.5,
-          firstPassYield: 91.5,
-          customerSatisfaction: 8.3,
-          qualityTrends: [
-            { date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), metric: 'defectRate', value: 3.5, benchmark: 3.0 },
-            { date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000), metric: 'defectRate', value: 3.8, benchmark: 3.0 },
-            { date: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000), metric: 'defectRate', value: 3.1, benchmark: 3.0 }
-          ]
-        },
-        costMetrics: {
-          totalCost: 1250,
-          costPerExecution: 62.5,
-          laborCost: 980,
-          systemCost: 270,
-          optimizationPotential: 18.5,
-          benchmarkComparison: 12.3
-        },
-        performanceTrend: {
-          period: 'weekly',
-          data: [
-            { date: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000), value: 4.5 },
-            { date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000), value: 4.3 },
-            { date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), value: 4.2 },
-            { date: new Date(), value: 4.0 }
-          ],
-          forecast: [
-            { date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), value: 3.9, confidence: 0.85 },
-            { date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), value: 3.8, confidence: 0.78 }
-          ],
-          seasonality: false
-        }
-      },
-      {
-        processId: 'proc-2',
-        cycleTime: {
-          average: 2.8,
-          median: 2.5,
-          standardDeviation: 0.8,
-          percentiles: {
-            '50': 2.5,
-            '75': 3.2,
-            '90': 3.9,
-            '95': 4.5
-          },
-          bottlenecks: [
-            {
-              stepId: 'step-1',
-              stepName: 'Initial Assessment',
-              avgWaitTime: 0.9,
-              frequency: 45,
-              impact: 'medium',
-              suggestions: [
-                'Standardize assessment criteria',
-                'Provide assessment tools'
-              ]
-            }
-          ]
-        },
-        resourceUtilization: {
-          totalUtilization: 68.2,
-          byRole: {
-            'Specialist': 82.1,
-            'Coordinator': 59.8,
-            'Analyst': 63.7
-          },
-          overAllocated: [],
-          underUtilized: ['Coordinator'],
-          skillGaps: []
-        },
-        qualityMetrics: {
-          defectRate: 1.8,
-          reworkRate: 4.2,
-          firstPassYield: 95.8,
-          customerSatisfaction: 8.7,
-          qualityTrends: [
-            { date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), metric: 'defectRate', value: 1.9, benchmark: 2.0 },
-            { date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000), metric: 'defectRate', value: 1.7, benchmark: 2.0 }
-          ]
-        },
-        costMetrics: {
-          totalCost: 850,
-          costPerExecution: 28.3,
-          laborCost: 650,
-          systemCost: 200,
-          optimizationPotential: 12.8,
-          benchmarkComparison: 8.9
-        },
-        performanceTrend: {
-          period: 'weekly',
-          data: [
-            { date: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000), value: 3.1 },
-            { date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000), value: 2.9 },
-            { date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), value: 2.8 },
-            { date: new Date(), value: 2.7 }
-          ],
-          forecast: [
-            { date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), value: 2.6, confidence: 0.92 }
-          ],
-          seasonality: false
-        }
-      }
-    ];
+const complianceBreakdown = [
+  { framework: 'GDPR', score: 94, requirements: 47, completed: 44, overdue: 1 },
+  { framework: 'SOX', score: 78, requirements: 32, completed: 25, overdue: 3 },
+  { framework: 'ISO 27001', score: 96, requirements: 114, completed: 109, overdue: 0 },
+  { framework: 'HIPAA', score: 82, requirements: 18, completed: 15, overdue: 1 },
+]
 
-    setProcessMetrics(mockMetrics);
-    if (!selectedProcess && mockMetrics.length > 0) {
-      setSelectedProcess(mockMetrics[0]);
-    }
-  };
+const timeSeriesData = [
+  { month: 'Jan', efficiency: 78, compliance: 87, documents: 45 },
+  { month: 'Feb', efficiency: 81, compliance: 89, documents: 52 },
+  { month: 'Mar', efficiency: 79, compliance: 91, documents: 48 },
+  { month: 'Apr', efficiency: 84, compliance: 92, documents: 58 },
+  { month: 'May', efficiency: 86, compliance: 93, documents: 62 },
+  { month: 'Jun', efficiency: 87, compliance: 94, documents: 65 },
+]
 
-  const getUtilizationColor = (utilization: number) => {
-    if (utilization >= 90) return 'text-red-400';
-    if (utilization >= 80) return 'text-yellow-400';
-    if (utilization >= 60) return 'text-green-400';
-    return 'text-blue-400';
-  };
+const issueCategories = [
+  { category: 'Documentation', count: 12, percentage: 35, color: 'bg-blue-500' },
+  { category: 'Compliance', count: 8, percentage: 24, color: 'bg-red-500' },
+  { category: 'Process Flow', count: 7, percentage: 21, color: 'bg-yellow-500' },
+  { category: 'Quality', count: 4, percentage: 12, color: 'bg-green-500' },
+  { category: 'Other', count: 3, percentage: 8, color: 'bg-gray-500' },
+]
 
-  const getBottleneckImpactColor = (impact: Bottleneck['impact']) => {
-    switch (impact) {
-      case 'high': return 'text-red-400 bg-red-500/20';
-      case 'medium': return 'text-yellow-400 bg-yellow-500/20';
-      case 'low': return 'text-green-400 bg-green-500/20';
-      default: return 'text-slate-400 bg-slate-500/20';
-    }
-  };
+export default function AnalyticsPage() {
+  const [selectedTimeRange, setSelectedTimeRange] = useState('6m')
+  const [selectedMetric, setSelectedMetric] = useState('efficiency')
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-200">Process Analytics</h1>
+          <h1 className="text-3xl font-bold text-slate-100">Analytics</h1>
           <p className="text-slate-400 mt-1">
-            Comprehensive performance analysis with cycle time, resource utilization, and quality metrics
+            Analyze process performance and compliance metrics
           </p>
         </div>
-        
         <div className="flex items-center gap-3">
           <select
-            value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value as any)}
-            className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
+            value={selectedTimeRange}
+            onChange={(e) => setSelectedTimeRange(e.target.value)}
+            className="px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-green-500/50"
           >
-            <option value="7d">Last 7 days</option>
-            <option value="30d">Last 30 days</option>
-            <option value="90d">Last 90 days</option>
-            <option value="1y">Last year</option>
+            <option value="1m">Last Month</option>
+            <option value="3m">Last 3 Months</option>
+            <option value="6m">Last 6 Months</option>
+            <option value="1y">Last Year</option>
           </select>
-          
-          <button className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg transition-colors flex items-center gap-2">
-            <Icon path="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+          <button className="glass-button text-green-300 hover:text-green-200 px-4 py-2 flex items-center gap-2">
+            <Download className="w-4 h-4" />
             Export Report
           </button>
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <GlassCard className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-400">Avg Cycle Time</p>
-              <p className="text-2xl font-bold text-slate-200">
-                {processMetrics.length > 0 ? 
-                  (processMetrics.reduce((acc, p) => acc + p.cycleTime.average, 0) / processMetrics.length).toFixed(1) + 'd'
-                  : '0d'
-                }
-              </p>
+      {/* Key Performance Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {performanceMetrics.map((metric, index) => (
+          <div key={index} className="glass-card p-6">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-medium text-slate-400">{metric.name}</h3>
+              <TrendingUp className="w-5 h-5 text-green-400" />
             </div>
-            <Icon path="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" className="w-8 h-8 text-sky-400" />
-          </div>
-        </GlassCard>
-        
-        <GlassCard className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-400">Resource Utilization</p>
-              <p className="text-2xl font-bold text-slate-200">
-                {processMetrics.length > 0 ? 
-                  Math.round(processMetrics.reduce((acc, p) => acc + p.resourceUtilization.totalUtilization, 0) / processMetrics.length) + '%'
-                  : '0%'
-                }
-              </p>
+            <div className="flex items-baseline gap-2 mb-1">
+              <span className="text-2xl font-bold text-slate-100">
+                {metric.value}{metric.unit || '%'}
+              </span>
+              <span className={`text-sm font-medium ${
+                metric.changeType === 'increase' ? 'text-green-400' : 
+                metric.changeType === 'decrease' ? 'text-red-400' : 'text-slate-400'
+              }`}>
+                {metric.change}
+              </span>
             </div>
-            <Icon path="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" className="w-8 h-8 text-green-400" />
-          </div>
-        </GlassCard>
-        
-        <GlassCard className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-400">First Pass Yield</p>
-              <p className="text-2xl font-bold text-slate-200">
-                {processMetrics.length > 0 ? 
-                  (processMetrics.reduce((acc, p) => acc + p.qualityMetrics.firstPassYield, 0) / processMetrics.length).toFixed(1) + '%'
-                  : '0%'
-                }
-              </p>
+            <p className="text-xs text-slate-500 mb-3">{metric.description}</p>
+            <div className="w-full bg-slate-700/50 rounded-full h-2">
+              <div
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  metric.value >= metric.target ? 'bg-green-500' : 
+                  metric.value >= metric.target * 0.8 ? 'bg-yellow-500' : 'bg-red-500'
+                }`}
+                style={{ 
+                  width: `${Math.min((metric.value / metric.target) * 100, 100)}%` 
+                }}
+              />
             </div>
-            <Icon path="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" className="w-8 h-8 text-blue-400" />
+            <p className="text-xs text-slate-500 mt-1">Target: {metric.target}{metric.unit || '%'}</p>
           </div>
-        </GlassCard>
-        
-        <GlassCard className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-400">Optimization Potential</p>
-              <p className="text-2xl font-bold text-slate-200">
-                {processMetrics.length > 0 ? 
-                  (processMetrics.reduce((acc, p) => acc + p.costMetrics.optimizationPotential, 0) / processMetrics.length).toFixed(1) + '%'
-                  : '0%'
-                }
-              </p>
-            </div>
-            <Icon path="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" className="w-8 h-8 text-yellow-400" />
-          </div>
-        </GlassCard>
+        ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Process List */}
-        <div>
-          <GlassCard className="p-6">
-            <h3 className="text-lg font-semibold text-slate-200 mb-4">Processes</h3>
+      {/* Performance Chart */}
+      <div className="glass-card p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-slate-100">Performance Trends</h2>
+          <div className="flex items-center gap-3">
+            <select
+              value={selectedMetric}
+              onChange={(e) => setSelectedMetric(e.target.value)}
+              className="px-3 py-1 bg-slate-800/50 border border-slate-700 rounded text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-green-500/50"
+            >
+              <option value="efficiency">Efficiency</option>
+              <option value="compliance">Compliance</option>
+              <option value="documents">Documents</option>
+            </select>
+          </div>
+        </div>
+        
+        <div className="h-64 flex items-end justify-between gap-4">
+          {timeSeriesData.map((data, index) => {
+            const value = data[selectedMetric as keyof typeof data] as number
+            const maxValue = Math.max(...timeSeriesData.map(d => d[selectedMetric as keyof typeof d] as number))
+            const height = (value / maxValue) * 100
             
-            <div className="space-y-3">
-              {processMetrics.map((metrics) => (
-                <div
-                  key={metrics.processId}
-                  onClick={() => setSelectedProcess(metrics)}
-                  className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                    selectedProcess?.processId === metrics.processId
-                      ? 'bg-sky-600/20 border border-sky-600/50'
-                      : 'bg-slate-800/50 hover:bg-slate-800/70'
-                  }`}
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <h4 className="font-medium text-slate-200">Process {metrics.processId}</h4>
-                    <span className="text-sm text-slate-400">
-                      {metrics.cycleTime.average.toFixed(1)}d
-                    </span>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Utilization:</span>
-                      <span className={getUtilizationColor(metrics.resourceUtilization.totalUtilization)}>
-                        {metrics.resourceUtilization.totalUtilization.toFixed(0)}%
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Quality:</span>
-                      <span className="text-green-400">
-                        {metrics.qualityMetrics.firstPassYield.toFixed(0)}%
-                      </span>
-                    </div>
-                  </div>
+            return (
+              <div key={index} className="flex flex-col items-center flex-1">
+                <div className="w-full flex items-end h-48">
+                  <div
+                    className={`w-full rounded-t transition-all duration-300 ${
+                      selectedMetric === 'efficiency' ? 'bg-green-500' :
+                      selectedMetric === 'compliance' ? 'bg-blue-500' : 'bg-purple-500'
+                    }`}
+                    style={{ height: `${height}%` }}
+                  />
                 </div>
-              ))}
-            </div>
-          </GlassCard>
+                <div className="mt-2 text-center">
+                  <div className="text-sm font-medium text-slate-100">{value}{selectedMetric === 'documents' ? '' : '%'}</div>
+                  <div className="text-xs text-slate-400">{data.month}</div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Process Analytics */}
+      <div className="glass-card p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-slate-100">Process Performance</h2>
+          <div className="flex items-center gap-2">
+            <BarChart3 className="w-5 h-5 text-green-400" />
+            <span className="text-sm text-slate-400">By Process</span>
+          </div>
         </div>
 
-        {/* Detailed Analytics */}
-        <div className="lg:col-span-2">
-          {selectedProcess ? (
-            <div className="space-y-6">
-              {/* Metric Tabs */}
-              <GlassCard className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-slate-200">
-                    Process {selectedProcess.processId} Analytics
-                  </h3>
-                  
-                  <div className="flex bg-slate-800 rounded-lg p-1">
-                    {(['cycle', 'resource', 'quality', 'cost'] as const).map((metric) => (
-                      <button
-                        key={metric}
-                        onClick={() => setActiveMetric(metric)}
-                        className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                          activeMetric === metric
-                            ? 'bg-sky-600 text-white'
-                            : 'text-slate-400 hover:text-slate-200'
-                        }`}
-                      >
-                        {metric.charAt(0).toUpperCase() + metric.slice(1)}
-                      </button>
-                    ))}
+        <div className="space-y-4">
+          {processAnalytics.map((process, index) => (
+            <div key={index} className="glass-card p-4 bg-slate-800/40">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h3 className="text-lg font-medium text-slate-100">{process.name}</h3>
+                  <div className="flex items-center gap-4 text-sm text-slate-400 mt-1">
+                    <span className="flex items-center gap-1">
+                      <FileText className="w-4 h-4" />
+                      {process.documents} docs
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      {process.avgTime}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <AlertTriangle className="w-4 h-4" />
+                      {process.issues} issues
+                    </span>
                   </div>
                 </div>
-
-                {/* Cycle Time Metrics */}
-                {activeMetric === 'cycle' && (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-sky-400">
-                          {selectedProcess.cycleTime.average.toFixed(1)}d
-                        </div>
-                        <div className="text-sm text-slate-400">Average</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-400">
-                          {selectedProcess.cycleTime.median.toFixed(1)}d
-                        </div>
-                        <div className="text-sm text-slate-400">Median</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-yellow-400">
-                          {selectedProcess.cycleTime.percentiles['90'].toFixed(1)}d
-                        </div>
-                        <div className="text-sm text-slate-400">90th Percentile</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-slate-400">
-                          {selectedProcess.cycleTime.standardDeviation.toFixed(1)}d
-                        </div>
-                        <div className="text-sm text-slate-400">Std Dev</div>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <h4 className="text-sm font-medium text-slate-300 mb-3">Bottlenecks</h4>
-                      <div className="space-y-2">
-                        {selectedProcess.cycleTime.bottlenecks.map((bottleneck, index) => (
-                          <div key={index} className="p-3 bg-slate-800/50 rounded-lg">
-                            <div className="flex justify-between items-start mb-2">
-                              <h5 className="font-medium text-slate-200">{bottleneck.stepName}</h5>
-                              <span className={`px-2 py-1 rounded text-xs font-medium ${getBottleneckImpactColor(bottleneck.impact)}`}>
-                                {bottleneck.impact}
-                              </span>
-                            </div>
-                            <div className="flex justify-between text-sm text-slate-400 mb-2">
-                              <span>Avg Wait: {bottleneck.avgWaitTime.toFixed(1)}d</span>
-                              <span>Frequency: {bottleneck.frequency}%</span>
-                            </div>
-                            <div className="text-xs text-slate-500">
-                              <strong>Suggestions:</strong> {bottleneck.suggestions.join(', ')}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                <div className="text-right">
+                  <div className={`text-sm font-medium ${
+                    process.trend === 'up' ? 'text-green-400' : 
+                    process.trend === 'down' ? 'text-red-400' : 'text-slate-400'
+                  }`}>
+                    {process.trend === 'up' ? '↗' : process.trend === 'down' ? '↘' : '→'} {process.completionRate}%
                   </div>
-                )}
+                  <div className="text-xs text-slate-500">completion rate</div>
+                </div>
+              </div>
 
-                {/* Resource Metrics */}
-                {activeMetric === 'resource' && (
-                  <div className="space-y-4">
-                    <div className="text-center mb-4">
-                      <div className="text-3xl font-bold text-slate-200 mb-1">
-                        {selectedProcess.resourceUtilization.totalUtilization.toFixed(1)}%
-                      </div>
-                      <div className="text-sm text-slate-400">Overall Utilization</div>
-                    </div>
-                    
-                    <div>
-                      <h4 className="text-sm font-medium text-slate-300 mb-3">By Role</h4>
-                      <div className="space-y-2">
-                        {Object.entries(selectedProcess.resourceUtilization.byRole).map(([role, utilization]) => (
-                          <div key={role} className="flex justify-between items-center">
-                            <span className="text-slate-400">{role}</span>
-                            <div className="flex items-center gap-2">
-                              <div className="w-20 bg-slate-700 rounded-full h-2">
-                                <div
-                                  className={`h-2 rounded-full ${getUtilizationColor(utilization).includes('red') ? 'bg-red-400' : 
-                                    getUtilizationColor(utilization).includes('yellow') ? 'bg-yellow-400' : 
-                                    getUtilizationColor(utilization).includes('green') ? 'bg-green-400' : 'bg-blue-400'}`}
-                                  style={{ width: `${Math.min(utilization, 100)}%` }}
-                                />
-                              </div>
-                              <span className={`text-sm font-medium ${getUtilizationColor(utilization)}`}>
-                                {utilization.toFixed(1)}%
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    {selectedProcess.resourceUtilization.skillGaps.length > 0 && (
-                      <div>
-                        <h4 className="text-sm font-medium text-slate-300 mb-3">Skill Gaps</h4>
-                        <div className="space-y-2">
-                          {selectedProcess.resourceUtilization.skillGaps.map((gap, index) => (
-                            <div key={index} className="p-3 bg-slate-800/50 rounded-lg">
-                              <div className="flex justify-between items-center mb-2">
-                                <span className="font-medium text-slate-200">{gap.skill}</span>
-                                <span className="text-sm text-red-400">
-                                  Gap: {(gap.requiredLevel - gap.currentLevel).toFixed(1)}
-                                </span>
-                              </div>
-                              <div className="text-sm text-slate-400">
-                                Current: {gap.currentLevel}/10 • Required: {gap.requiredLevel}/10
-                              </div>
-                              {gap.trainingRequired && (
-                                <div className="text-xs text-yellow-400 mt-1">Training recommended</div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-slate-400">Efficiency</span>
+                    <span className="text-sm font-medium text-slate-100">{process.efficiency}%</span>
                   </div>
-                )}
-
-                {/* Quality Metrics */}
-                {activeMetric === 'quality' && (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-red-400">
-                          {selectedProcess.qualityMetrics.defectRate.toFixed(1)}%
-                        </div>
-                        <div className="text-sm text-slate-400">Defect Rate</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-yellow-400">
-                          {selectedProcess.qualityMetrics.reworkRate.toFixed(1)}%
-                        </div>
-                        <div className="text-sm text-slate-400">Rework Rate</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-400">
-                          {selectedProcess.qualityMetrics.firstPassYield.toFixed(1)}%
-                        </div>
-                        <div className="text-sm text-slate-400">First Pass Yield</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-blue-400">
-                          {selectedProcess.qualityMetrics.customerSatisfaction.toFixed(1)}
-                        </div>
-                        <div className="text-sm text-slate-400">CSAT Score</div>
-                      </div>
-                    </div>
+                  <div className="w-full bg-slate-700/50 rounded-full h-2">
+                    <div
+                      className={`h-2 rounded-full transition-all duration-300 ${
+                        process.efficiency >= 90 ? 'bg-green-500' : 
+                        process.efficiency >= 70 ? 'bg-yellow-500' : 'bg-red-500'
+                      }`}
+                      style={{ width: `${process.efficiency}%` }}
+                    />
                   </div>
-                )}
-
-                {/* Cost Metrics */}
-                {activeMetric === 'cost' && (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-sky-400">
-                          ${selectedProcess.costMetrics.totalCost}
-                        </div>
-                        <div className="text-sm text-slate-400">Total Cost</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-400">
-                          ${selectedProcess.costMetrics.costPerExecution.toFixed(0)}
-                        </div>
-                        <div className="text-sm text-slate-400">Cost per Execution</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-yellow-400">
-                          {selectedProcess.costMetrics.optimizationPotential.toFixed(1)}%
-                        </div>
-                        <div className="text-sm text-slate-400">Optimization Potential</div>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <div className="text-lg font-semibold text-slate-200 mb-2">Cost Breakdown</div>
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span className="text-slate-400">Labor</span>
-                            <span className="text-slate-200">${selectedProcess.costMetrics.laborCost}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-slate-400">Systems</span>
-                            <span className="text-slate-200">${selectedProcess.costMetrics.systemCost}</span>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <div className="text-lg font-semibold text-slate-200 mb-2">vs Benchmark</div>
-                        <div className="text-2xl font-bold text-green-400">
-                          {selectedProcess.costMetrics.benchmarkComparison > 0 ? '+' : ''}{selectedProcess.costMetrics.benchmarkComparison.toFixed(1)}%
-                        </div>
-                        <div className="text-sm text-slate-400">
-                          {selectedProcess.costMetrics.benchmarkComparison > 0 ? 'Above' : 'Below'} industry average
-                        </div>
-                      </div>
-                    </div>
+                </div>
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-slate-400">Compliance</span>
+                    <span className="text-sm font-medium text-slate-100">{process.compliance}%</span>
                   </div>
-                )}
-              </GlassCard>
+                  <div className="w-full bg-slate-700/50 rounded-full h-2">
+                    <div
+                      className={`h-2 rounded-full transition-all duration-300 ${
+                        process.compliance >= 95 ? 'bg-green-500' : 
+                        process.compliance >= 85 ? 'bg-yellow-500' : 'bg-red-500'
+                      }`}
+                      style={{ width: `${process.compliance}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
-          ) : (
-            <GlassCard className="p-6 text-center">
-              <Icon path="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" className="w-12 h-12 text-slate-500 mx-auto mb-3" />
-              <h3 className="text-lg font-semibold text-slate-200 mb-2">Select Process</h3>
-              <p className="text-slate-400">Choose a process to view detailed performance analytics</p>
-            </GlassCard>
-          )}
+          ))}
+        </div>
+      </div>
+
+      {/* Compliance Breakdown and Issue Categories */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Compliance Breakdown */}
+        <div className="glass-card p-6">
+          <h2 className="text-xl font-semibold text-slate-100 mb-6">Compliance Breakdown</h2>
+          <div className="space-y-4">
+            {complianceBreakdown.map((framework, index) => (
+              <div key={index} className="glass-card p-4 bg-slate-800/40">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-medium text-slate-100">{framework.framework}</h3>
+                  <span className="text-sm font-medium text-slate-100">{framework.score}%</span>
+                </div>
+                <div className="w-full bg-slate-700/50 rounded-full h-2 mb-3">
+                  <div
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      framework.score >= 90 ? 'bg-green-500' : 
+                      framework.score >= 70 ? 'bg-yellow-500' : 'bg-red-500'
+                    }`}
+                    style={{ width: `${framework.score}%` }}
+                  />
+                </div>
+                <div className="grid grid-cols-3 gap-3 text-sm">
+                  <div className="text-center">
+                    <div className="text-slate-400">Total</div>
+                    <div className="font-medium text-slate-100">{framework.requirements}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-slate-400">Completed</div>
+                    <div className="font-medium text-green-400">{framework.completed}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-slate-400">Overdue</div>
+                    <div className="font-medium text-red-400">{framework.overdue}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Issue Categories */}
+        <div className="glass-card p-6">
+          <h2 className="text-xl font-semibold text-slate-100 mb-6">Issue Categories</h2>
+          <div className="space-y-4">
+            {issueCategories.map((category, index) => (
+              <div key={index} className="flex items-center gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-slate-100">{category.category}</span>
+                    <span className="text-sm text-slate-400">{category.count} issues</span>
+                  </div>
+                  <div className="w-full bg-slate-700/50 rounded-full h-2">
+                    <div
+                      className={`h-2 rounded-full transition-all duration-300 ${category.color}`}
+                      style={{ width: `${category.percentage}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm font-medium text-slate-100">{category.percentage}%</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="mt-6 pt-4 border-t border-slate-700/50">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-slate-400">Total Issues</span>
+              <span className="text-lg font-bold text-slate-100">
+                {issueCategories.reduce((sum, cat) => sum + cat.count, 0)}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="glass-card p-6 hover:bg-slate-800/40 transition-colors cursor-pointer">
+          <BarChart3 className="w-8 h-8 text-blue-400 mb-3" />
+          <h3 className="text-lg font-semibold text-slate-100 mb-2">Process Report</h3>
+          <p className="text-slate-400 text-sm">Generate detailed process performance report</p>
+        </div>
+        
+        <div className="glass-card p-6 hover:bg-slate-800/40 transition-colors cursor-pointer">
+          <PieChart className="w-8 h-8 text-green-400 mb-3" />
+          <h3 className="text-lg font-semibold text-slate-100 mb-2">Compliance Dashboard</h3>
+          <p className="text-slate-400 text-sm">View comprehensive compliance analytics</p>
+        </div>
+        
+        <div className="glass-card p-6 hover:bg-slate-800/40 transition-colors cursor-pointer">
+          <Activity className="w-8 h-8 text-purple-400 mb-3" />
+          <h3 className="text-lg font-semibold text-slate-100 mb-2">Real-time Monitoring</h3>
+          <p className="text-slate-400 text-sm">Monitor process performance in real-time</p>
         </div>
       </div>
     </div>
-  );
-};
-
-export default AnalyticsPage;
+  )
+}

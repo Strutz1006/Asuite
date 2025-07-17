@@ -1,255 +1,288 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Icon } from '../../shared/components';
-import { DashboardLayout, DashboardCard } from '@aesyros/ui';
-import { 
-  mockKPIs, 
-  mockKPICategories, 
-  mockAnomalyFeed, 
-  mockDashboardStats,
-  mockHistoricalData 
-} from '../../shared/data/mockData';
+import { Activity, TrendingUp, Target, AlertTriangle, Plus, ArrowRight, BarChart3, Clock } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
-const DashboardPage: React.FC = () => {
-  const [selectedKPI, setSelectedKPI] = useState(0);
+const stats = [
+  {
+    name: 'Active KPIs',
+    value: '24',
+    change: '+6',
+    changeType: 'increase',
+    icon: TrendingUp,
+  },
+  {
+    name: 'Performance Score',
+    value: '89%',
+    change: '+12%',
+    changeType: 'increase',
+    icon: Target,
+  },
+  {
+    name: 'Data Sources',
+    value: '8',
+    change: '+2',
+    changeType: 'increase',
+    icon: BarChart3,
+  },
+  {
+    name: 'Avg Response Time',
+    value: '2.3s',
+    change: '-0.5s',
+    changeType: 'decrease',
+    icon: Clock,
+  },
+]
 
-  const getKPIStatus = (kpi: typeof mockKPIs[0]) => {
-    const current = typeof kpi.value === 'string' ? parseFloat(kpi.value) : kpi.value;
-    const target = typeof kpi.target === 'string' ? parseFloat(kpi.target) : kpi.target;
-    return current >= target;
-  };
+const recentKPIs = [
+  {
+    id: '1',
+    title: 'Customer Satisfaction Score',
+    value: '4.8/5.0',
+    target: '4.5',
+    trend: 'up',
+    category: 'Customer Experience',
+    lastUpdated: '2024-07-17',
+    status: 'healthy',
+  },
+  {
+    id: '2',
+    title: 'Monthly Recurring Revenue',
+    value: '$124,500',
+    target: '$120,000',
+    trend: 'up',
+    category: 'Financial',
+    lastUpdated: '2024-07-17',
+    status: 'healthy',
+  },
+  {
+    id: '3',
+    title: 'Lead Conversion Rate',
+    value: '18.3%',
+    target: '20%',
+    trend: 'down',
+    category: 'Sales',
+    lastUpdated: '2024-07-16',
+    status: 'warning',
+  },
+]
 
-  const getVariance = (kpi: typeof mockKPIs[0]) => {
-    const current = typeof kpi.value === 'string' ? parseFloat(kpi.value) : kpi.value;
-    const target = typeof kpi.target === 'string' ? parseFloat(kpi.target) : kpi.target;
-    const variance = ((current - target) / target) * 100;
-    return variance > 0 ? `+${variance.toFixed(1)}%` : `${variance.toFixed(1)}%`;
-  };
+const alerts = [
+  {
+    id: '1',
+    title: 'Website Traffic Below Threshold',
+    metric: 'Organic Traffic',
+    severity: 'medium',
+    description: 'Traffic has dropped 15% below target for 3 consecutive days',
+    time: '2 hours ago',
+  },
+  {
+    id: '2',
+    title: 'Support Response Time Exceeded',
+    metric: 'Average Response Time',
+    severity: 'high',
+    description: 'Response time is 2.3x higher than target SLA',
+    time: '4 hours ago',
+  },
+  {
+    id: '3',
+    title: 'Sales Pipeline Opportunity',
+    metric: 'Pipeline Value',
+    severity: 'low',
+    description: 'Q3 pipeline is 20% ahead of target',
+    time: '1 day ago',
+  },
+]
 
-  const dashboardStats = [
-    { label: 'Total KPIs', value: mockDashboardStats.totalKPIs, color: 'text-sky-400' },
-    { label: 'On Track', value: mockDashboardStats.onTrack, color: 'text-green-400' },
-    { label: 'At Risk', value: mockDashboardStats.atRisk, color: 'text-yellow-400' },
-    { label: 'Critical', value: mockDashboardStats.critical, color: 'text-red-400' },
-  ];
-
-  const mainContent = (
-    <>
-      {/* KPI Health Overview */}
-      <DashboardCard>
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold">KPI Health Overview</h3>
-          <Link 
-            to="/kpis" 
-            className="text-sm text-sky-400 hover:text-sky-300 transition-colors"
-          >
-            View All KPIs →
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {mockKPIs.map((kpi, index) => {
-            const isOnTrack = getKPIStatus(kpi);
-            return (
-              <div 
-                key={kpi.id} 
-                className={`p-4 rounded-lg cursor-pointer transition-all ${
-                  isOnTrack ? 'bg-green-500/10 hover:bg-green-500/20' : 'bg-red-500/10 hover:bg-red-500/20'
-                } ${selectedKPI === index ? 'ring-2 ring-sky-500' : ''}`}
-                onClick={() => setSelectedKPI(index)}
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <p className="text-sm text-slate-400 font-medium">{kpi.category}</p>
-                  <Icon 
-                    path={kpi.trend === 'up' ? 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6' : 'M13 17h8m0 0V9m0 8l-8-8-4 4-6-6'} 
-                    className={`w-4 h-4 ${kpi.trend === 'up' ? 'text-green-400' : 'text-red-400'}`}
-                  />
-                </div>
-                <p className="text-sm font-semibold mb-1 line-clamp-2">{kpi.name}</p>
-                <p className="text-xl font-bold mb-2">{kpi.value}{kpi.unit}</p>
-                <div className={`flex items-center text-xs ${isOnTrack ? 'text-green-400' : 'text-red-400'}`}>
-                  <span className="font-medium">{isOnTrack ? 'On Track' : 'At Risk'}</span>
-                  <span className="ml-2 text-slate-500">({getVariance(kpi)})</span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </DashboardCard>
-
-      {/* KPI Deep Dive */}
-      <DashboardCard>
-        <h3 className="text-xl font-semibold mb-4">KPI Deep Dive: {mockKPIs[selectedKPI].name}</h3>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm text-slate-400">Current Value</label>
-                <div className="text-2xl font-bold text-sky-400">
-                  {mockKPIs[selectedKPI].value}{mockKPIs[selectedKPI].unit}
-                </div>
-              </div>
-              <div>
-                <label className="text-sm text-slate-400">Target</label>
-                <div className="text-2xl font-bold text-slate-300">
-                  {mockKPIs[selectedKPI].target}{mockKPIs[selectedKPI].unit}
-                </div>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-slate-400">Owner:</span>
-                <span className="ml-2 font-medium">{mockKPIs[selectedKPI].owner}</span>
-              </div>
-              <div>
-                <span className="text-slate-400">Category:</span>
-                <span className="ml-2 font-medium">{mockKPIs[selectedKPI].category}</span>
-              </div>
-              <div>
-                <span className="text-slate-400">Last Updated:</span>
-                <span className="ml-2 font-medium">
-                  {mockKPIs[selectedKPI].lastUpdated.toLocaleDateString()}
-                </span>
-              </div>
-              <div>
-                <span className="text-slate-400">Trend:</span>
-                <span className={`ml-2 font-medium ${
-                  mockKPIs[selectedKPI].trend === 'up' ? 'text-green-400' : 'text-red-400'
-                }`}>
-                  {mockKPIs[selectedKPI].trend === 'up' ? '↗ Improving' : '↘ Declining'}
-                </span>
-              </div>
-            </div>
-          </div>
-          
-          <div>
-            <label className="text-sm text-slate-400 mb-2 block">5-Period Trend</label>
-            <div className="h-32 bg-slate-800/50 rounded-lg flex items-end justify-between p-4">
-              {mockHistoricalData[mockKPIs[selectedKPI].id as keyof typeof mockHistoricalData]?.map((point, index) => {
-                const maxValue = Math.max(...(mockHistoricalData[mockKPIs[selectedKPI].id as keyof typeof mockHistoricalData] || []));
-                return (
-                  <div key={index} className="flex flex-col items-center">
-                    <div 
-                      className="w-8 bg-sky-500 rounded-t"
-                      style={{ height: `${(point / maxValue) * 80}px` }}
-                    ></div>
-                    <div className="text-xs text-slate-500 mt-1">{point}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-        
-        <div className="mt-6 flex gap-3">
-          <Link
-            to={`/kpis/${mockKPIs[selectedKPI].id}`}
-            className="bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-lg transition-colors"
-          >
-            View Details
-          </Link>
-          <Link
-            to={`/kpis/${mockKPIs[selectedKPI].id}/edit`}
-            className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg transition-colors"
-          >
-            Edit KPI
-          </Link>
-        </div>
-      </DashboardCard>
-
-      {/* AI Coach */}
-      <DashboardCard>
-        <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <Icon path="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.466V19a2 2 0 11-4 0v-.534a3.374 3.374 0 00-.547-1.962l-.548-.547z" className="w-6 h-6 text-sky-400"/>
-          AI Coach
-        </h3>
-        <div className="space-y-4">
-          <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
-            <h4 className="font-semibold text-red-300 mb-2">Critical Alert</h4>
-            <p className="text-sm text-slate-300 mb-3">"Team Morale Index is trending down and below target. Consider launching an engagement survey to identify root causes."</p>
-            <button className="text-sm font-semibold text-red-400 hover:text-red-300">Take Action</button>
-          </div>
-          
-          <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
-            <h4 className="font-semibold text-green-300 mb-2">Opportunity</h4>
-            <p className="text-sm text-slate-300 mb-3">"Customer satisfaction is exceeding targets. Consider leveraging this for case studies and referrals."</p>
-            <button className="text-sm font-semibold text-green-400 hover:text-green-300">Explore</button>
-          </div>
-        </div>
-      </DashboardCard>
-    </>
-  );
-
-  const sideContent = (
-    <>
-      {/* Category Performance */}
-      <DashboardCard>
-        <h3 className="text-xl font-semibold mb-4">Performance by Category</h3>
-        <div className="grid grid-cols-1 gap-4">
-          {mockKPICategories.map(category => (
-            <div key={category.name} className="p-4 bg-slate-700/50 rounded-lg">
-              <div className="flex justify-between items-center mb-2">
-                <h4 className="font-semibold">{category.name}</h4>
-                <span className={`text-sm font-mono ${category.color}`}>
-                  {category.onTrack}/{category.count}
-                </span>
-              </div>
-              <div className="w-full bg-slate-600 rounded-full h-2">
-                <div 
-                  className="bg-sky-500 h-2 rounded-full"
-                  style={{ width: `${(category.onTrack / category.count) * 100}%` }}
-                ></div>
-              </div>
-              <div className="text-xs text-slate-400 mt-1">
-                {Math.round((category.onTrack / category.count) * 100)}% on track
-              </div>
-            </div>
-          ))}
-        </div>
-      </DashboardCard>
-      
-      {/* Anomaly Feed */}
-      <DashboardCard>
-        <h3 className="text-xl font-semibold mb-4">Live Anomaly Feed</h3>
-        <div className="space-y-4">
-          {mockAnomalyFeed.map((item) => (
-            <div key={item.id} className="flex items-start gap-3">
-              <Icon 
-                path={item.icon} 
-                className={`w-5 h-5 mt-1 flex-shrink-0 ${
-                  item.severity === 'high' ? 'text-red-400' : 
-                  item.severity === 'positive' ? 'text-green-400' : 'text-blue-400'
-                }`}
-              />
-              <div className="flex-1">
-                <p className="text-sm">{item.text}</p>
-                <div className="flex justify-between items-center mt-1">
-                  <p className="text-xs text-slate-500">{item.time}</p>
-                  <span className={`px-2 py-1 text-xs font-bold rounded-full ${
-                    item.severity === 'high' ? 'bg-red-500/20 text-red-300' :
-                    item.severity === 'positive' ? 'bg-green-500/20 text-green-300' :
-                    'bg-blue-500/20 text-blue-300'
-                  }`}>
-                    {item.category}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </DashboardCard>
-    </>
-  );
-
+export default function DashboardPage() {
   return (
-    <DashboardLayout
-      title="Performance Command Center"
-      description="Monitor what matters. Track performance with precision and purpose."
-      stats={dashboardStats}
-      mainContent={mainContent}
-      sideContent={sideContent}
-    />
-  );
-};
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-100">Dashboard</h1>
+          <p className="text-slate-400 mt-1">
+            Monitor your key performance indicators and business metrics
+          </p>
+        </div>
+        <Link
+          to="/builder"
+          className="glass-button text-blue-300 hover:text-blue-200 px-4 py-2 flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          Create KPI
+        </Link>
+      </div>
 
-export default DashboardPage;
+      {/* Company Message/Slogan */}
+      <div className="glass-card p-6 text-center">
+        <h2 className="text-xl font-semibold text-slate-100 mb-2">
+          Measure What Matters, Track What Drives Success
+        </h2>
+        <p className="text-slate-400">
+          Design meaningful KPIs that align with your mission and drive strategic performance
+        </p>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {stats.map((stat) => {
+          const Icon = stat.icon
+          return (
+            <div key={stat.name} className="glass-card p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-400">{stat.name}</p>
+                  <p className="text-2xl font-semibold text-slate-100 mt-1">{stat.value}</p>
+                </div>
+                <div className="p-3 rounded-xl bg-blue-500/20">
+                  <Icon className="w-6 h-6 text-blue-400" />
+                </div>
+              </div>
+              <div className="mt-4 flex items-center">
+                <span className={`text-sm font-medium ${
+                  stat.changeType === 'increase' ? 'text-green-400' : 'text-red-400'
+                }`}>
+                  {stat.change}
+                </span>
+                <span className="text-sm text-slate-400 ml-1">from last month</span>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Recent KPIs */}
+      <div className="glass-card p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-slate-100">Key Performance Indicators</h2>
+          <Link
+            to="/kpis"
+            className="text-blue-400 hover:text-blue-300 flex items-center gap-1 text-sm"
+          >
+            View all
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+        <div className="space-y-4">
+          {recentKPIs.map((kpi) => (
+            <div key={kpi.id} className="glass-card p-4 bg-slate-800/40">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <Link
+                    to={`/kpis/${kpi.id}`}
+                    className="text-slate-100 hover:text-blue-300 font-medium"
+                  >
+                    {kpi.title}
+                  </Link>
+                  <span className="text-sm text-slate-400">({kpi.category})</span>
+                </div>
+                <span
+                  className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    kpi.status === 'healthy'
+                      ? 'bg-green-500/20 text-green-400'
+                      : kpi.status === 'warning'
+                      ? 'bg-yellow-500/20 text-yellow-400'
+                      : 'bg-red-500/20 text-red-400'
+                  }`}
+                >
+                  {kpi.status === 'healthy' ? 'On Target' : kpi.status === 'warning' ? 'Below Target' : 'Critical'}
+                </span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <p className="text-slate-400">Current Value</p>
+                  <p className="text-lg font-semibold text-slate-100">{kpi.value}</p>
+                </div>
+                <div>
+                  <p className="text-slate-400">Target</p>
+                  <p className="text-lg font-semibold text-slate-100">{kpi.target}</p>
+                </div>
+                <div>
+                  <p className="text-slate-400">Trend</p>
+                  <div className="flex items-center gap-1">
+                    <TrendingUp className={`w-4 h-4 ${
+                      kpi.trend === 'up' ? 'text-green-400' : 'text-red-400'
+                    }`} />
+                    <span className={kpi.trend === 'up' ? 'text-green-400' : 'text-red-400'}>
+                      {kpi.trend === 'up' ? 'Improving' : 'Declining'}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-slate-400">Last Updated</p>
+                  <p className="text-slate-300">{new Date(kpi.lastUpdated).toLocaleDateString()}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Alerts */}
+      <div className="glass-card p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-slate-100 flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-yellow-400" />
+            Performance Alerts
+          </h2>
+          <Link
+            to="/alerts"
+            className="text-blue-400 hover:text-blue-300 flex items-center gap-1 text-sm"
+          >
+            View all
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+        <div className="space-y-3">
+          {alerts.map((alert) => (
+            <div key={alert.id} className="glass-card p-4 bg-slate-800/40">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="text-slate-100 font-medium">{alert.title}</h3>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        alert.severity === 'high'
+                          ? 'bg-red-500/20 text-red-400'
+                          : alert.severity === 'medium'
+                          ? 'bg-yellow-500/20 text-yellow-400'
+                          : 'bg-green-500/20 text-green-400'
+                      }`}
+                    >
+                      {alert.severity.charAt(0).toUpperCase() + alert.severity.slice(1)}
+                    </span>
+                  </div>
+                  <p className="text-slate-400 text-sm mb-2">{alert.description}</p>
+                  <div className="flex items-center gap-4 text-sm text-slate-500">
+                    <span>Metric: <span className="text-blue-400">{alert.metric}</span></span>
+                    <span>{alert.time}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Link to="/builder" className="glass-card p-6 hover:bg-slate-800/40 transition-colors">
+          <Plus className="w-8 h-8 text-blue-400 mb-3" />
+          <h3 className="text-lg font-semibold text-slate-100 mb-2">Create KPI</h3>
+          <p className="text-slate-400 text-sm">Design a new KPI with our guided builder</p>
+        </Link>
+        
+        <Link to="/kpis" className="glass-card p-6 hover:bg-slate-800/40 transition-colors">
+          <Activity className="w-8 h-8 text-green-400 mb-3" />
+          <h3 className="text-lg font-semibold text-slate-100 mb-2">View KPIs</h3>
+          <p className="text-slate-400 text-sm">Monitor all your key performance indicators</p>
+        </Link>
+        
+        <Link to="/analytics" className="glass-card p-6 hover:bg-slate-800/40 transition-colors">
+          <BarChart3 className="w-8 h-8 text-purple-400 mb-3" />
+          <h3 className="text-lg font-semibold text-slate-100 mb-2">Analytics</h3>
+          <p className="text-slate-400 text-sm">Analyze performance trends and insights</p>
+        </Link>
+      </div>
+    </div>
+  )
+}

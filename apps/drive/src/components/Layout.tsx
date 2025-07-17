@@ -1,40 +1,205 @@
-import React from 'react';
-import { Outlet } from 'react-router-dom';
-import { AppLayout } from '@aesyros/ui';
+import { ReactNode } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { Target, BarChart3, TrendingUp, Menu, X, Grid3X3, Zap, Activity, Eye, Workflow, CheckSquare, FolderOpen, ListTodo, Calendar } from 'lucide-react'
+import { useState } from 'react'
 
-const Layout: React.FC = () => {
-  const sidebarActions = [
-    {
-      to: "/dashboard",
-      icon: "M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z",
-      title: "Dashboard",
-      description: "Project overview & metrics"
-    },
-    {
-      to: "/projects",
-      icon: "M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10",
-      title: "Projects",
-      description: "Manage project portfolios"
-    },
-    {
-      to: "/tasks",
-      icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7l2 2 4-4",
-      title: "Tasks",
-      description: "Task management & tracking"
-    }
-  ];
+interface LayoutProps {
+  children: ReactNode
+}
+
+const suiteApps = [
+  { name: 'Align', href: '#', icon: Target },
+  { name: 'Drive', href: '/', icon: CheckSquare, active: true },
+  { name: 'Pulse', href: '#', icon: Activity },
+  { name: 'Catalyst', href: '#', icon: Zap },
+  { name: 'Flow', href: '#', icon: Workflow },
+  { name: 'Foresight', href: '#', icon: Eye },
+]
+
+const navItems = [
+  { name: 'Dashboard', href: '/', icon: BarChart3 },
+  { name: 'Projects', href: '/projects', icon: FolderOpen },
+  { name: 'Tasks', href: '/tasks', icon: ListTodo },
+  { name: 'Analytics', href: '/analytics', icon: TrendingUp },
+]
+
+export default function Layout({ children }: LayoutProps) {
+  const location = useLocation()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
-    <AppLayout
-      currentApp="drive"
-      appTitle="Drive"
-      appDescription="Task & Project Management"
-      appIcon="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-      sidebarActions={sidebarActions}
-    >
-      <Outlet />
-    </AppLayout>
-  );
-};
+    <div className="min-h-screen bg-slate-950 flex flex-col">
+      {/* Top Navigation Bar - Suite Apps */}
+      <header className="glass-card border-b border-slate-700/80 sticky top-0 z-50">
+        <div className="px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-14">
+            {/* Suite Brand */}
+            <div className="flex items-center">
+              <Grid3X3 className="h-6 w-6 text-emerald-400" />
+              <span className="ml-2 text-lg font-bold text-slate-100">
+                Aesyros <span className="text-emerald-400">Suite</span>
+              </span>
+            </div>
 
-export default Layout;
+            {/* Suite Apps Navigation */}
+            <nav className="hidden md:flex space-x-6">
+              {suiteApps.map((app) => {
+                const Icon = app.icon
+                return (
+                  <Link
+                    key={app.name}
+                    to={app.href}
+                    className={`flex items-center px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      app.active
+                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50'
+                        : 'text-slate-300 hover:text-slate-100 hover:bg-slate-800/50'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4 mr-2" />
+                    {app.name}
+                  </Link>
+                )
+              })}
+            </nav>
+
+            {/* Mobile Apps Menu Button */}
+            <div className="md:hidden">
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="text-slate-300 hover:text-slate-100 p-2"
+              >
+                <Grid3X3 className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile Apps Navigation */}
+          {mobileMenuOpen && (
+            <div className="md:hidden border-t border-slate-700/80">
+              <div className="px-2 pt-2 pb-3 space-y-1">
+                {suiteApps.map((app) => {
+                  const Icon = app.icon
+                  return (
+                    <Link
+                      key={app.name}
+                      to={app.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        app.active
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50'
+                          : 'text-slate-300 hover:text-slate-100 hover:bg-slate-800/50'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4 mr-2" />
+                      {app.name}
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* Main Layout with Side Menu */}
+      <div className="flex flex-1">
+        {/* Side Menu */}
+        <aside className="hidden md:flex md:flex-shrink-0">
+          <div className="flex flex-col w-64">
+            <div className="flex flex-col h-0 flex-1 glass-card border-r border-slate-700/80">
+              {/* App Logo */}
+              <div className="flex items-center h-16 flex-shrink-0 px-4 border-b border-slate-700/80">
+                <div className="flex items-center">
+                  <CheckSquare className="h-8 w-8 text-orange-400" />
+                  <span className="ml-2 text-xl font-bold text-slate-100">
+                    Aesyros <span className="text-orange-400">Drive</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Navigation */}
+              <nav className="flex-1 px-4 py-6 space-y-2">
+                {navItems.map((item) => {
+                  const isActive = location.pathname === item.href
+                  const Icon = item.icon
+                  return (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        isActive
+                          ? 'bg-orange-500/20 text-orange-300 border border-orange-500/50'
+                          : 'text-slate-300 hover:text-slate-100 hover:bg-slate-800/50'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4 mr-3" />
+                      {item.name}
+                    </Link>
+                  )
+                })}
+              </nav>
+            </div>
+          </div>
+        </aside>
+
+        {/* Main Content Area */}
+        <div className="flex flex-col flex-1 overflow-hidden">
+          {/* Mobile Header for App Navigation */}
+          <header className="glass-card border-b border-slate-700/80 md:hidden">
+            <div className="flex justify-between items-center h-16 px-4">
+              {/* Logo */}
+              <div className="flex items-center">
+                <CheckSquare className="h-8 w-8 text-orange-400" />
+                <span className="ml-2 text-xl font-bold text-slate-100">
+                  Aesyros <span className="text-orange-400">Drive</span>
+                </span>
+              </div>
+
+              {/* Mobile menu button */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="text-slate-300 hover:text-slate-100 p-2"
+              >
+                {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </button>
+            </div>
+
+            {/* Mobile Navigation */}
+            {mobileMenuOpen && (
+              <div className="border-t border-slate-700/80">
+                <div className="px-2 pt-2 pb-3 space-y-1">
+                  {navItems.map((item) => {
+                    const isActive = location.pathname === item.href
+                    const Icon = item.icon
+                    return (
+                      <Link
+                        key={item.name}
+                        to={item.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                          isActive
+                            ? 'bg-orange-500/20 text-orange-300 border border-orange-500/50'
+                            : 'text-slate-300 hover:text-slate-100 hover:bg-slate-800/50'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4 mr-2" />
+                        {item.name}
+                      </Link>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </header>
+
+          {/* Main Content */}
+          <main className="flex-1 overflow-x-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-7xl mx-auto">
+              {children}
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  )
+}

@@ -2,72 +2,49 @@
   "name": "aesyros-suite",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
+  "description": "Aesyros Suite - Strategic Operating System for Modern Organizations",
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently -n \"align,drive,pulse,catalyst,flow,foresight\" -c \"blue,orange,green,yellow,magenta,cyan\" \"npm run dev:align\" \"sleep 1 && npm run dev:drive\" \"sleep 2 && npm run dev:pulse\" \"sleep 3 && npm run dev:catalyst\" \"sleep 4 && npm run dev:flow\" \"sleep 5 && npm run dev:foresight\"",
+    "dev": "concurrently \"npm run dev:align\" \"npm run dev:drive\" \"npm run dev:pulse\" \"npm run dev:catalyst\" \"npm run dev:flow\" \"npm run dev:foresight\"",
     "dev:align": "cd apps/align && npm run dev",
     "dev:drive": "cd apps/drive && npm run dev",
     "dev:pulse": "cd apps/pulse && npm run dev",
     "dev:catalyst": "cd apps/catalyst && npm run dev",
     "dev:flow": "cd apps/flow && npm run dev",
     "dev:foresight": "cd apps/foresight && npm run dev",
-    "services:dev": "concurrently -n \"gateway,align,pulse,catalyst,flow,foresight\" -c \"blue,green,yellow,magenta,cyan,red\" \"npm run services:gateway\" \"npm run services:align\" \"npm run services:pulse\" \"npm run services:catalyst\" \"npm run services:flow\" \"npm run services:foresight\"",
-    "services:gateway": "cd services/gateway && npm install && npm run dev",
-    "services:align": "cd services/python-analytics/align-service && python main.py",
-    "services:pulse": "cd services/python-analytics/pulse-service && python main.py",
-    "services:catalyst": "cd services/python-analytics/catalyst-service && python main.py",
-    "services:flow": "cd services/python-analytics/flow-service && python main.py",
-    "services:foresight": "cd services/python-analytics/foresight-service && python main.py",
-    "services:install": "cd services/gateway && npm install",
-    "services:install:python": "cd services/python-analytics/align-service && pip install -r requirements.txt && cd ../pulse-service && pip install -r requirements.txt && cd ../catalyst-service && pip install -r requirements.txt && cd ../flow-service && pip install -r requirements.txt && cd ../foresight-service && pip install -r requirements.txt",
-    "docker:build": "docker-compose build",
-    "docker:up": "docker-compose up -d",
-    "docker:down": "docker-compose down",
-    "docker:logs": "docker-compose logs -f",
-    "full-stack": "concurrently -n \"services,frontend\" -c \"blue,green\" \"npm run services:dev\" \"sleep 5 && npm run dev\"",
     "build": "npm run build:packages && npm run build:apps",
-    "build:packages": "npm run build --workspaces --if-present --workspace=packages/*",
-    "build:apps": "npm run build --workspaces --if-present --workspace=apps/*",
-    "lint": "npm run lint --workspaces --if-present",
-    "lint:fix": "npm run lint --workspaces --if-present -- --fix",
-    "type-check": "npm run type-check --workspaces --if-present",
-    "clean": "rm -rf node_modules && rm -rf apps/*/node_modules && rm -rf packages/*/node_modules && rm -rf apps/*/dist && rm -rf packages/*/dist",
-    "fresh": "npm run clean && npm install && npm run install:all",
-    "install:all": "npm install && npm install --workspaces",
-    "preview": "concurrently -n \"align,drive,pulse,catalyst,flow,foresight\" -c \"blue,orange,green,yellow,magenta,cyan\" \"npm run preview:align\" \"npm run preview:drive\" \"npm run preview:pulse\" \"npm run preview:catalyst\" \"npm run preview:flow\" \"npm run preview:foresight\"",
-    "preview:align": "cd apps/align && npm run preview",
-    "preview:drive": "cd apps/drive && npm run preview",
-    "preview:pulse": "cd apps/pulse && npm run preview",
-    "preview:catalyst": "cd apps/catalyst && npm run preview",
-    "preview:flow": "cd apps/flow && npm run preview",
-    "preview:foresight": "cd apps/foresight && npm run preview"
+    "build:packages": "npm run build --workspace=packages/*",
+    "build:apps": "npm run build --workspace=apps/*",
+    "build:align": "cd apps/align && npm run build",
+    "build:drive": "cd apps/drive && npm run build",
+    "build:pulse": "cd apps/pulse && npm run build",
+    "build:catalyst": "cd apps/catalyst && npm run build",
+    "build:flow": "cd apps/flow && npm run build",
+    "build:foresight": "cd apps/foresight && npm run build",
+    "lint": "npm run lint --workspace=apps/* --workspace=packages/*",
+    "type-check": "npm run type-check --workspace=apps/* --workspace=packages/*",
+    "test": "npm run test --workspace=apps/* --workspace=packages/*",
+    "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules apps/*/dist packages/*/dist",
+    "install:all": "npm install"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
-  },
-  "keywords": [
-    "aesyros",
-    "suite",
-    "monorepo",
-    "strategic",
-    "operating",
-    "system"
-  ],
-  "author": "",
-  "license": "ISC",
-  "description": "Aesyros Suite - Strategic Operating System for modern organizations",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/your-org/aesyros-suite"
+    "@types/node": "^20.14.10",
+    "concurrently": "^8.2.2",
+    "typescript": "^5.4.5",
+    "vite": "^7.0.5"
   },
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=8.0.0"
   },
-  "dependencies": {
-    "clean": "^4.0.2"
-  }
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aesyros/aesyros-suite.git"
+  },
+  "author": "Aesyros Team",
+  "license": "MIT"
 }
