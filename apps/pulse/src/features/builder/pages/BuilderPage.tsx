@@ -1,250 +1,255 @@
-import { Plus, Target, TrendingUp, BarChart3, Settings, CheckCircle } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Plus, Target, BarChart3, Layout, TrendingUp, Gauge, Sparkles, ArrowRight } from 'lucide-react'
 
-const kpiTemplates = [
+const builderOptions = [
+  {
+    type: 'kpi',
+    title: 'KPI Builder',
+    description: 'Create SMART KPIs with guided wizard',
+    icon: Target,
+    color: 'text-blue-400',
+    bgColor: 'bg-blue-500/20',
+    borderColor: 'border-blue-500/50',
+    path: '/builder/kpi',
+    features: ['SMART validation', 'Data source integration', 'Threshold alerts', 'Strategic alignment'],
+  },
+  {
+    type: 'dashboard',
+    title: 'Dashboard Builder',
+    description: 'Design interactive dashboards with drag & drop',
+    icon: Layout,
+    color: 'text-green-400',
+    bgColor: 'bg-green-500/20',
+    borderColor: 'border-green-500/50',
+    path: '/builder/dashboard',
+    features: ['Drag & drop widgets', 'Real-time data', 'Custom layouts', 'Responsive design'],
+  },
+]
+
+const quickTemplates = [
   {
     id: '1',
-    name: 'Customer Satisfaction',
-    category: 'Customer Experience',
-    description: 'Track customer satisfaction through surveys and feedback',
+    name: 'Executive Dashboard',
+    description: 'High-level KPIs for leadership',
+    type: 'dashboard',
+    icon: TrendingUp,
+    color: 'text-purple-400',
+  },
+  {
+    id: '2',
+    name: 'Customer Satisfaction KPI',
+    description: 'Track NPS and CSAT scores',
+    type: 'kpi',
     icon: Target,
     color: 'text-blue-400',
   },
   {
-    id: '2',
-    name: 'Revenue Growth',
-    category: 'Financial',
-    description: 'Monitor monthly and quarterly revenue growth rates',
-    icon: TrendingUp,
+    id: '3',
+    name: 'Sales Performance Dashboard',
+    description: 'Revenue and conversion tracking',
+    type: 'dashboard',
+    icon: BarChart3,
     color: 'text-green-400',
   },
   {
-    id: '3',
-    name: 'Lead Conversion',
-    category: 'Sales',
-    description: 'Track the percentage of leads that convert to customers',
-    icon: BarChart3,
-    color: 'text-orange-400',
-  },
-  {
     id: '4',
-    name: 'Employee Engagement',
-    category: 'HR',
-    description: 'Measure employee satisfaction and engagement levels',
-    icon: CheckCircle,
-    color: 'text-purple-400',
-  },
-  {
-    id: '5',
-    name: 'Website Performance',
-    category: 'Marketing',
-    description: 'Monitor website traffic, conversion rates, and user behavior',
-    icon: BarChart3,
-    color: 'text-pink-400',
-  },
-  {
-    id: '6',
-    name: 'Support Response Time',
-    category: 'Support',
-    description: 'Track average response time for customer support tickets',
-    icon: Settings,
+    name: 'Financial Health KPI',
+    description: 'Revenue growth and profitability',
+    type: 'kpi',
+    icon: TrendingUp,
     color: 'text-yellow-400',
   },
 ]
 
-const buildSteps = [
-  {
-    step: 1,
-    title: 'Choose Template',
-    description: 'Select a KPI template or start from scratch',
-    status: 'current',
-  },
-  {
-    step: 2,
-    title: 'Define Metrics',
-    description: 'Set up measurement criteria and targets',
-    status: 'upcoming',
-  },
-  {
-    step: 3,
-    title: 'Configure Data',
-    description: 'Connect data sources and set update frequency',
-    status: 'upcoming',
-  },
-  {
-    step: 4,
-    title: 'Set Alerts',
-    description: 'Configure notifications and thresholds',
-    status: 'upcoming',
-  },
-  {
-    step: 5,
-    title: 'Review & Launch',
-    description: 'Preview and activate your KPI',
-    status: 'upcoming',
-  },
+const recentActivity = [
+  { name: 'Customer Satisfaction KPI', type: 'KPI', status: 'Active', lastUpdated: '2 hours ago' },
+  { name: 'Executive Dashboard', type: 'Dashboard', status: 'Draft', lastUpdated: '1 day ago' },
+  { name: 'Revenue Growth KPI', type: 'KPI', status: 'Active', lastUpdated: '3 days ago' },
 ]
 
 export default function BuilderPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-100">KPI Builder</h1>
-          <p className="text-slate-400 mt-1">
-            Create and configure key performance indicators with our guided builder
-          </p>
-        </div>
-        <button className="glass-button text-blue-300 hover:text-blue-200 px-4 py-2 flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Start from Scratch
-        </button>
+      <div className="text-center">
+        <h1 className="text-3xl font-bold text-slate-100 mb-2">Pulse Builder</h1>
+        <p className="text-slate-400 text-lg">
+          Create KPIs and dashboards that drive performance insights
+        </p>
       </div>
 
-      {/* Build Steps */}
-      <div className="glass-card p-6">
-        <h2 className="text-xl font-semibold text-slate-100 mb-6">Build Process</h2>
-        <div className="flex items-center justify-between">
-          {buildSteps.map((step, index) => (
-            <div key={step.step} className="flex items-center">
-              <div className="flex flex-col items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  step.status === 'current' 
-                    ? 'bg-blue-500 text-white' 
-                    : step.status === 'completed'
-                    ? 'bg-green-500 text-white'
-                    : 'bg-slate-700 text-slate-400'
-                }`}>
-                  {step.status === 'completed' ? (
-                    <CheckCircle className="w-5 h-5" />
-                  ) : (
-                    step.step
-                  )}
+      {/* Main Builder Options */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {builderOptions.map((option) => {
+          const Icon = option.icon
+          return (
+            <Link
+              key={option.type}
+              to={option.path}
+              className={`
+                glass-card p-8 hover:bg-slate-800/40 transition-all duration-200 group
+                ${option.bgColor} ${option.borderColor}
+              `}
+            >
+              <div className="flex items-start gap-6">
+                <div className={`p-4 rounded-2xl ${option.bgColor}`}>
+                  <Icon className={`w-8 h-8 ${option.color}`} />
                 </div>
-                <div className="text-center mt-2">
-                  <p className="text-sm font-medium text-slate-100">{step.title}</p>
-                  <p className="text-xs text-slate-400 mt-1">{step.description}</p>
-                </div>
-              </div>
-              {index < buildSteps.length - 1 && (
-                <div className="w-16 h-0.5 bg-slate-700 mx-4 mt-[-60px]" />
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* KPI Templates */}
-      <div className="glass-card p-6">
-        <h2 className="text-xl font-semibold text-slate-100 mb-6">Choose a Template</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {kpiTemplates.map((template) => {
-            const Icon = template.icon
-            return (
-              <div key={template.id} className="glass-card p-6 bg-slate-800/40 hover:bg-slate-800/60 transition-colors cursor-pointer">
-                <div className="flex items-center gap-3 mb-4">
-                  <Icon className={`w-8 h-8 ${template.color}`} />
-                  <div>
-                    <h3 className="text-lg font-semibold text-slate-100">{template.name}</h3>
-                    <p className="text-sm text-slate-400">{template.category}</p>
+                
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-2xl font-bold text-slate-100">{option.title}</h2>
+                    <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-slate-300 group-hover:translate-x-1 transition-all" />
+                  </div>
+                  
+                  <p className="text-slate-400 mb-4">{option.description}</p>
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    {option.features.map((feature) => (
+                      <div key={feature} className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${option.color.replace('text-', 'bg-')}`} />
+                        <span className="text-sm text-slate-300">{feature}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <p className="text-slate-400 text-sm mb-4">{template.description}</p>
-                <button className="w-full glass-button text-blue-300 hover:text-blue-200 py-2 text-sm">
-                  Use Template
-                </button>
               </div>
+            </Link>
+          )
+        })}
+      </div>
+
+      {/* Quick Templates */}
+      <div className="glass-card p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-slate-100">Quick Start Templates</h2>
+          <button className="text-blue-400 hover:text-blue-300 text-sm flex items-center gap-1">
+            View All Templates
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {quickTemplates.map((template) => {
+            const Icon = template.icon
+            return (
+              <button
+                key={template.id}
+                className="glass-card p-4 text-left hover:bg-slate-800/40 transition-colors group"
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <Icon className={`w-6 h-6 ${template.color}`} />
+                  <span className={`text-xs px-2 py-1 rounded-full bg-slate-700/50 text-slate-400`}>
+                    {template.type.toUpperCase()}
+                  </span>
+                </div>
+                <h3 className="font-medium text-slate-100 mb-1 group-hover:text-blue-300 transition-colors">
+                  {template.name}
+                </h3>
+                <p className="text-xs text-slate-400">{template.description}</p>
+              </button>
             )
           })}
         </div>
       </div>
 
-      {/* Custom Builder */}
-      <div className="glass-card p-6">
-        <h2 className="text-xl font-semibold text-slate-100 mb-6">Custom KPI Builder</h2>
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-slate-400 mb-2">
-                KPI Name
-              </label>
-              <input
-                type="text"
-                className="glass-input w-full px-4 py-2 text-slate-100 placeholder-slate-400"
-                placeholder="Enter KPI name..."
-              />
+      {/* Recent Activity & AI Assistant */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Activity */}
+        <div className="glass-card p-6">
+          <h2 className="text-xl font-semibold text-slate-100 mb-4">Recent Activity</h2>
+          <div className="space-y-3">
+            {recentActivity.map((item, index) => (
+              <div key={index} className="flex items-center justify-between p-3 glass-card bg-slate-800/40">
+                <div>
+                  <p className="font-medium text-slate-200">{item.name}</p>
+                  <p className="text-xs text-slate-400">{item.type} • {item.lastUpdated}</p>
+                </div>
+                <span className={`text-xs px-2 py-1 rounded-full
+                  ${item.status === 'Active' 
+                    ? 'bg-green-500/20 text-green-400' 
+                    : 'bg-yellow-500/20 text-yellow-400'
+                  }
+                `}>
+                  {item.status}
+                </span>
+              </div>
+            ))}
+          </div>
+          <button className="w-full mt-4 glass-button text-blue-400 hover:text-blue-300 py-2 text-sm">
+            View All Activity
+          </button>
+        </div>
+
+        {/* AI Assistant */}
+        <div className="glass-card p-6 bg-purple-500/10 border-purple-500/30">
+          <div className="flex items-start gap-3">
+            <Sparkles className="w-6 h-6 text-purple-400 mt-1" />
+            <div className="flex-1">
+              <h2 className="text-xl font-semibold text-purple-300 mb-3">AI Assistant</h2>
+              <p className="text-sm text-slate-300 mb-4">
+                Get intelligent suggestions for KPIs and dashboard designs based on your industry and goals.
+              </p>
+              
+              <div className="space-y-3">
+                <button className="w-full glass-button text-purple-300 hover:text-purple-200 p-3 text-left">
+                  <div className="flex items-center gap-2">
+                    <Gauge className="w-4 h-4" />
+                    <span className="text-sm">Suggest KPIs for my department</span>
+                  </div>
+                </button>
+                
+                <button className="w-full glass-button text-purple-300 hover:text-purple-200 p-3 text-left">
+                  <div className="flex items-center gap-2">
+                    <Layout className="w-4 h-4" />
+                    <span className="text-sm">Design dashboard layout</span>
+                  </div>
+                </button>
+                
+                <button className="w-full glass-button text-purple-300 hover:text-purple-200 p-3 text-left">
+                  <div className="flex items-center gap-2">
+                    <Target className="w-4 h-4" />
+                    <span className="text-sm">Validate KPI effectiveness</span>
+                  </div>
+                </button>
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-400 mb-2">
-                Category
-              </label>
-              <select className="glass-input w-full px-4 py-2 text-slate-100 bg-slate-800/60">
-                <option>Select category...</option>
-                <option>Customer Experience</option>
-                <option>Financial</option>
-                <option>Sales</option>
-                <option>Marketing</option>
-                <option>HR</option>
-                <option>Support</option>
-              </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Getting Started Guide */}
+      <div className="glass-card p-6 bg-blue-500/10 border-blue-500/30">
+        <h2 className="text-lg font-semibold text-blue-300 mb-4">Getting Started</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+              <span className="text-blue-400 font-semibold">1</span>
             </div>
+            <h3 className="font-medium text-slate-200 mb-2">Define Your KPIs</h3>
+            <p className="text-xs text-slate-400">
+              Use our guided wizard to create SMART KPIs aligned with your strategic goals
+            </p>
           </div>
           
-          <div>
-            <label className="block text-sm font-medium text-slate-400 mb-2">
-              Description
-            </label>
-            <textarea
-              className="glass-input w-full px-4 py-2 text-slate-100 placeholder-slate-400 h-24"
-              placeholder="Describe what this KPI measures..."
-            />
+          <div className="text-center">
+            <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+              <span className="text-blue-400 font-semibold">2</span>
+            </div>
+            <h3 className="font-medium text-slate-200 mb-2">Build Dashboards</h3>
+            <p className="text-xs text-slate-400">
+              Create interactive dashboards with drag-and-drop widgets to visualize your data
+            </p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-slate-400 mb-2">
-                Unit of Measurement
-              </label>
-              <select className="glass-input w-full px-4 py-2 text-slate-100 bg-slate-800/60">
-                <option>Select unit...</option>
-                <option>Percentage (%)</option>
-                <option>Currency ($)</option>
-                <option>Number</option>
-                <option>Time</option>
-                <option>Rating</option>
-              </select>
+          
+          <div className="text-center">
+            <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+              <span className="text-blue-400 font-semibold">3</span>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-400 mb-2">
-                Target Value
-              </label>
-              <input
-                type="number"
-                className="glass-input w-full px-4 py-2 text-slate-100 placeholder-slate-400"
-                placeholder="Enter target..."
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-400 mb-2">
-                Update Frequency
-              </label>
-              <select className="glass-input w-full px-4 py-2 text-slate-100 bg-slate-800/60">
-                <option>Select frequency...</option>
-                <option>Daily</option>
-                <option>Weekly</option>
-                <option>Monthly</option>
-                <option>Quarterly</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between pt-6 border-t border-slate-700/50">
-            <button className="glass-button text-slate-400 hover:text-slate-300 px-6 py-2">
-              Save as Draft
-            </button>
-            <button className="glass-button text-blue-300 hover:text-blue-200 px-6 py-2">
-              Continue to Data Sources
-            </button>
+            <h3 className="font-medium text-slate-200 mb-2">Monitor & Optimize</h3>
+            <p className="text-xs text-slate-400">
+              Track performance, set alerts, and continuously improve your metrics
+            </p>
           </div>
         </div>
       </div>

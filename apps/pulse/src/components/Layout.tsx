@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Target, BarChart3, TrendingUp, Menu, X, Grid3X3, Zap, Activity, Eye, Workflow, CheckSquare, Settings, Plus } from 'lucide-react'
+import { Target, BarChart3, TrendingUp, Menu, X, Grid3X3, Zap, Activity, Eye, Workflow, CheckSquare, Settings, Plus, Database } from 'lucide-react'
 import { useState } from 'react'
 
 interface LayoutProps {
@@ -20,6 +20,7 @@ const navItems = [
   { name: 'Dashboard', href: '/', icon: BarChart3 },
   { name: 'KPIs', href: '/kpis', icon: TrendingUp },
   { name: 'Builder', href: '/builder', icon: Plus },
+  { name: 'Data Sources', href: '/data-sources', icon: Database },
   { name: 'Analytics', href: '/analytics', icon: Settings },
 ]
 

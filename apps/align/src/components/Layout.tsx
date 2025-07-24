@@ -1,7 +1,8 @@
 import { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Target, BarChart3, TrendingUp, Menu, X, Grid3X3, Zap, Activity, Eye, Workflow, CheckSquare } from 'lucide-react'
+import { Target, BarChart3, TrendingUp, Menu, X, Grid3X3, Zap, Activity, Eye, Workflow, CheckSquare, User, LogOut } from 'lucide-react'
 import { useState } from 'react'
+import { useDevAuth } from '@aesyros/auth'
 
 interface LayoutProps {
   children: ReactNode
@@ -26,6 +27,7 @@ const navItems = [
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const { user, logout, isDevelopment } = useDevAuth()
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col">
@@ -62,14 +64,44 @@ export default function Layout({ children }: LayoutProps) {
               })}
             </nav>
 
-            {/* Mobile Apps Menu Button */}
-            <div className="md:hidden">
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="text-slate-300 hover:text-slate-100 p-2"
-              >
-                <Grid3X3 className="h-5 w-5" />
-              </button>
+            {/* User Menu & Mobile Apps Menu Button */}
+            <div className="flex items-center space-x-4">
+              {/* User Info */}
+              {user && (
+                <div className="hidden md:flex items-center space-x-3">
+                  {isDevelopment && (
+                    <span className="text-xs text-yellow-400 font-medium px-2 py-1 bg-yellow-500/20 rounded">
+                      DEV MODE
+                    </span>
+                  )}
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center">
+                      <User className="w-4 h-4 text-slate-300" />
+                    </div>
+                    <div className="hidden lg:block text-right">
+                      <p className="text-sm font-medium text-slate-200">{user.full_name}</p>
+                      <p className="text-xs text-slate-400">{user.role}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={logout}
+                    className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
+                    title="Logout"
+                  >
+                    <LogOut className="w-4 h-4 text-slate-400" />
+                  </button>
+                </div>
+              )}
+              
+              {/* Mobile Apps Menu Button */}
+              <div className="md:hidden">
+                <button
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="text-slate-300 hover:text-slate-100 p-2"
+                >
+                  <Grid3X3 className="h-5 w-5" />
+                </button>
+              </div>
             </div>
           </div>
 

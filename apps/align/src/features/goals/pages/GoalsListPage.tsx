@@ -1,5 +1,8 @@
-import { Plus, Filter, Search, Target, TrendingUp, Users, Calendar, MoreVertical, ChevronRight, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+import { useState } from 'react'
+import { Plus, Filter, Search, Target, TrendingUp, Users, Calendar, MoreVertical, ChevronRight, ArrowUpRight, ArrowDownRight, TreePine, List, Grid } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { GoalHierarchyView } from '../components/GoalHierarchyView'
+import { GoalCreationWizard } from '../components/GoalCreationWizard'
 
 const goals = [
   {
@@ -66,12 +69,15 @@ const filters = [
 ]
 
 const viewModes = [
-  { label: 'List View', active: true },
-  { label: 'Board View', active: false },
-  { label: 'Tree View', active: false },
+  { label: 'List View', icon: List, key: 'list' },
+  { label: 'Board View', icon: Grid, key: 'board' },
+  { label: 'Tree View', icon: TreePine, key: 'tree' },
 ]
 
 export default function GoalsListPage() {
+  const [viewMode, setViewMode] = useState('list')
+  const [showCreateWizard, setShowCreateWizard] = useState(false)
+  const [selectedParentGoal, setSelectedParentGoal] = useState(null)
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -82,13 +88,16 @@ export default function GoalsListPage() {
             Manage and track all strategic goals across your organization
           </p>
         </div>
-        <Link
-          to="/goals/new"
+        <button
+          onClick={() => {
+            setSelectedParentGoal(null)
+            setShowCreateWizard(true)
+          }}
           className="glass-button text-sky-300 hover:text-sky-200 px-4 py-2 flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
           New Goal
-        </Link>
+        </button>
       </div>
 
       {/* Stats Overview */}
@@ -147,18 +156,23 @@ export default function GoalsListPage() {
 
         {/* View Mode Toggle */}
         <div className="flex gap-1 glass-card p-1">
-          {viewModes.map((mode) => (
-            <button
-              key={mode.label}
-              className={`px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200
-                ${mode.active
-                  ? 'bg-sky-500/20 text-sky-300'
-                  : 'text-slate-400 hover:text-slate-300'
-                }`}
-            >
-              {mode.label}
-            </button>
-          ))}
+          {viewModes.map((mode) => {
+            const Icon = mode.icon
+            return (
+              <button
+                key={mode.key}
+                onClick={() => setViewMode(mode.key)}
+                className={`px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 flex items-center gap-2
+                  ${viewMode === mode.key
+                    ? 'bg-sky-500/20 text-sky-300'
+                    : 'text-slate-400 hover:text-slate-300'
+                  }`}
+              >
+                <Icon className="w-4 h-4" />
+                {mode.label}
+              </button>
+            )
+          })}
         </div>
 
         {/* Filter Button */}
@@ -187,114 +201,138 @@ export default function GoalsListPage() {
         ))}
       </div>
 
-      {/* Goals List */}
-      <div className="space-y-4">
-        {goals.map((goal) => (
-          <div key={goal.id} className="glass-card p-6 hover:bg-slate-800/40 transition-colors">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className={`
-                    px-3 py-1 rounded-full text-xs font-medium
-                    ${goal.type === 'company' 
-                      ? 'bg-sky-500/20 text-sky-400'
-                      : 'bg-green-500/20 text-green-400'
-                    }
-                  `}>
-                    {goal.type === 'company' ? 'Company Goal' : `${goal.department} Goal`}
-                  </span>
-                  <span className={`
-                    px-2 py-1 rounded-full text-xs font-medium
-                    ${goal.status === 'on-track'
-                      ? 'bg-green-500/20 text-green-400'
-                      : goal.status === 'at-risk'
-                      ? 'bg-yellow-500/20 text-yellow-400'
-                      : 'bg-blue-500/20 text-blue-400'
-                    }
-                  `}>
-                    {goal.status === 'on-track' ? 'On Track' : goal.status === 'at-risk' ? 'At Risk' : 'Ahead'}
-                  </span>
-                  <div className={`flex items-center gap-1 text-xs font-medium
-                    ${goal.trend === 'up' ? 'text-green-400' : 'text-red-400'}
-                  `}>
-                    {goal.trend === 'up' ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                    {goal.trendValue}
+      {/* Goal Views */}
+      {viewMode === 'tree' ? (
+        <GoalHierarchyView
+          onCreateGoal={(parentId) => {
+            setSelectedParentGoal(parentId ? { id: parentId } : null)
+            setShowCreateWizard(true)
+          }}
+          onEditGoal={(goalId) => {
+            // Navigate to edit page or open edit modal
+            console.log('Edit goal:', goalId)
+          }}
+          onUpdateProgress={(goalId, progress) => {
+            // Update goal progress
+            console.log('Update progress:', goalId, progress)
+          }}
+        />
+      ) : viewMode === 'board' ? (
+        <div className="text-center py-12 glass-card">
+          <Grid className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-slate-300 mb-2">Board View Coming Soon</h3>
+          <p className="text-slate-500">Kanban-style goal management will be available soon.</p>
+        </div>
+      ) : (
+        /* List View - Original Goals List */
+        <div className="space-y-4">
+          {goals.map((goal) => (
+            <div key={goal.id} className="glass-card p-6 hover:bg-slate-800/40 transition-colors">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className={`
+                      px-3 py-1 rounded-full text-xs font-medium
+                      ${goal.type === 'company' 
+                        ? 'bg-sky-500/20 text-sky-400'
+                        : 'bg-green-500/20 text-green-400'
+                      }
+                    `}>
+                      {goal.type === 'company' ? 'Company Goal' : `${goal.department} Goal`}
+                    </span>
+                    <span className={`
+                      px-2 py-1 rounded-full text-xs font-medium
+                      ${goal.status === 'on-track'
+                        ? 'bg-green-500/20 text-green-400'
+                        : goal.status === 'at-risk'
+                        ? 'bg-yellow-500/20 text-yellow-400'
+                        : 'bg-blue-500/20 text-blue-400'
+                      }
+                    `}>
+                      {goal.status === 'on-track' ? 'On Track' : goal.status === 'at-risk' ? 'At Risk' : 'Ahead'}
+                    </span>
+                    <div className={`flex items-center gap-1 text-xs font-medium
+                      ${goal.trend === 'up' ? 'text-green-400' : 'text-red-400'}
+                    `}>
+                      {goal.trend === 'up' ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                      {goal.trendValue}
+                    </div>
+                  </div>
+                  <Link
+                    to={`/goals/${goal.id}`}
+                    className="text-xl font-semibold text-slate-100 hover:text-sky-300 transition-colors"
+                  >
+                    {goal.title}
+                  </Link>
+                  <div className="flex items-center gap-4 mt-2 text-sm text-slate-400">
+                    <span className="flex items-center gap-1">
+                      <Users className="w-4 h-4" />
+                      {goal.owner}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      Due {new Date(goal.dueDate).toLocaleDateString()}
+                    </span>
                   </div>
                 </div>
-                <Link
-                  to={`/goals/${goal.id}`}
-                  className="text-xl font-semibold text-slate-100 hover:text-sky-300 transition-colors"
-                >
-                  {goal.title}
-                </Link>
-                <div className="flex items-center gap-4 mt-2 text-sm text-slate-400">
-                  <span className="flex items-center gap-1">
-                    <Users className="w-4 h-4" />
-                    {goal.owner}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
-                    Due {new Date(goal.dueDate).toLocaleDateString()}
-                  </span>
-                </div>
+                <button className="text-slate-400 hover:text-slate-300">
+                  <MoreVertical className="w-5 h-5" />
+                </button>
               </div>
-              <button className="text-slate-400 hover:text-slate-300">
-                <MoreVertical className="w-5 h-5" />
-              </button>
-            </div>
 
-            {/* Progress Bar */}
-            <div className="mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-slate-400">Overall Progress</span>
-                <span className="text-sm font-medium text-slate-300">{goal.progress}%</span>
+              {/* Progress Bar */}
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-slate-400">Overall Progress</span>
+                  <span className="text-sm font-medium text-slate-300">{goal.progress}%</span>
+                </div>
+                <div className="w-full bg-slate-700/50 rounded-full h-2">
+                  <div
+                    className={`h-2 rounded-full transition-all duration-300
+                      ${goal.status === 'at-risk' ? 'bg-yellow-500' : 
+                        goal.status === 'ahead' ? 'bg-blue-500' : 'bg-sky-500'}
+                    `}
+                    style={{ width: `${goal.progress}%` }}
+                  />
+                </div>
               </div>
-              <div className="w-full bg-slate-700/50 rounded-full h-2">
-                <div
-                  className={`h-2 rounded-full transition-all duration-300
-                    ${goal.status === 'at-risk' ? 'bg-yellow-500' : 
-                      goal.status === 'ahead' ? 'bg-blue-500' : 'bg-sky-500'}
-                  `}
-                  style={{ width: `${goal.progress}%` }}
-                />
-              </div>
-            </div>
 
-            {/* Metrics and Actions */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-6">
-                <div className="flex items-center gap-2">
-                  <Target className="w-4 h-4 text-slate-500" />
-                  <span className="text-sm text-slate-400">
-                    {goal.keyResults} Key Results
-                  </span>
+              {/* Metrics and Actions */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-2">
+                    <Target className="w-4 h-4 text-slate-500" />
+                    <span className="text-sm text-slate-400">
+                      {goal.keyResults} Key Results
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-slate-500" />
+                    <span className="text-sm text-slate-400">
+                      {goal.childGoals} Child Goals
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-slate-500" />
-                  <span className="text-sm text-slate-400">
-                    {goal.childGoals} Child Goals
-                  </span>
+                <div className="flex items-center gap-3">
+                  <Link
+                    to={`/goals/${goal.id}/edit`}
+                    className="text-slate-400 hover:text-slate-300 text-sm"
+                  >
+                    Edit
+                  </Link>
+                  <Link
+                    to={`/goals/${goal.id}`}
+                    className="text-sky-400 hover:text-sky-300 flex items-center gap-1 text-sm"
+                  >
+                    View Details
+                    <ChevronRight className="w-4 h-4" />
+                  </Link>
                 </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <Link
-                  to={`/goals/${goal.id}/edit`}
-                  className="text-slate-400 hover:text-slate-300 text-sm"
-                >
-                  Edit
-                </Link>
-                <Link
-                  to={`/goals/${goal.id}`}
-                  className="text-sky-400 hover:text-sky-300 flex items-center gap-1 text-sm"
-                >
-                  View Details
-                  <ChevronRight className="w-4 h-4" />
-                </Link>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Pagination */}
       <div className="flex items-center justify-center gap-2 pt-4">
@@ -310,6 +348,18 @@ export default function GoalsListPage() {
           Next
         </button>
       </div>
+
+      {/* Goal Creation Wizard */}
+      <GoalCreationWizard
+        isOpen={showCreateWizard}
+        onClose={() => setShowCreateWizard(false)}
+        onSubmit={(goal) => {
+          console.log('Creating goal:', goal)
+          // TODO: Implement goal creation
+          setShowCreateWizard(false)
+        }}
+        parentGoal={selectedParentGoal}
+      />
     </div>
   )
 }

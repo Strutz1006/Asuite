@@ -1,4 +1,5 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import { DevAuthProvider, useDevAuth, AuthGuard, DevLoginPage } from '@aesyros/auth'
 import Layout from '@/components/Layout'
 import DashboardPage from '@/features/dashboard/pages/DashboardPage'
 import GoalsListPage from '@/features/goals/pages/GoalsListPage'
@@ -8,27 +9,53 @@ import ObjectivesPage from '@/features/objectives/pages/ObjectivesPage'
 import AnalyticsPage from '@/features/analytics/pages/AnalyticsPage'
 import SetupPage from '@/features/setup/pages/SetupPage'
 
-function App() {
+function AppRoutes() {
+  const { isAuthenticated } = useDevAuth()
+  
   // TODO: Check if user has completed setup and redirect accordingly
-  const isSetupComplete = false // This will come from Supabase later
+  const isSetupComplete = true // For dev, assume setup is complete
 
   return (
     <Routes>
-      <Route path="/setup" element={<SetupPage />} />
+      <Route path="/login" element={
+        isAuthenticated ? <Navigate to="/" replace /> : 
+        <DevLoginPage 
+          appName="Aesyros Align" 
+          appColor="indigo"
+          onLogin={() => window.location.href = '/'}
+        />
+      } />
+      
+      <Route path="/setup" element={
+        <AuthGuard>
+          <SetupPage />
+        </AuthGuard>
+      } />
+      
       <Route path="/*" element={
-        <Layout>
-          <Routes>
-            <Route path="/" element={<DashboardPage />} />
-            <Route path="/goals" element={<GoalsListPage />} />
-            <Route path="/goals/new" element={<GoalFormPage />} />
-            <Route path="/goals/:id" element={<GoalDetailPage />} />
-            <Route path="/goals/:id/edit" element={<GoalFormPage />} />
-            <Route path="/objectives" element={<ObjectivesPage />} />
-            <Route path="/analytics" element={<AnalyticsPage />} />
-          </Routes>
-        </Layout>
+        <AuthGuard>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<DashboardPage />} />
+              <Route path="/goals" element={<GoalsListPage />} />
+              <Route path="/goals/new" element={<GoalFormPage />} />
+              <Route path="/goals/:id" element={<GoalDetailPage />} />
+              <Route path="/goals/:id/edit" element={<GoalFormPage />} />
+              <Route path="/objectives" element={<ObjectivesPage />} />
+              <Route path="/analytics" element={<AnalyticsPage />} />
+            </Routes>
+          </Layout>
+        </AuthGuard>
       } />
     </Routes>
+  )
+}
+
+function App() {
+  return (
+    <DevAuthProvider>
+      <AppRoutes />
+    </DevAuthProvider>
   )
 }
 

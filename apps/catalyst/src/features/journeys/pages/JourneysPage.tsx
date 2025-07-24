@@ -1,5 +1,6 @@
 import { Route, Plus, Users, Clock, CheckCircle, AlertTriangle, TrendingUp } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import JourneyBuilder from '../components/JourneyBuilder'
 
 const journeys = [
   {
@@ -61,8 +62,8 @@ export default function JourneysPage() {
           </p>
         </div>
         <Link
-          to="/journeys/new"
-          className="glass-button text-violet-300 hover:text-violet-200 px-4 py-2 flex items-center gap-2"
+          to="/journeys/builder"
+          className="glass-button text-purple-300 hover:text-purple-200 px-4 py-2 flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
           New Journey
@@ -77,7 +78,7 @@ export default function JourneysPage() {
               <p className="text-sm font-medium text-slate-400">Total Journeys</p>
               <p className="text-2xl font-semibold text-slate-100 mt-1">6</p>
             </div>
-            <Route className="w-8 h-8 text-violet-400" />
+            <Route className="w-8 h-8 text-purple-400" />
           </div>
         </div>
         <div className="glass-card p-6">
@@ -119,7 +120,7 @@ export default function JourneysPage() {
                   <div className="flex items-center gap-3 mb-2">
                     <Link
                       to={`/journeys/${journey.id}`}
-                      className="text-lg font-semibold text-slate-100 hover:text-violet-300"
+                      className="text-lg font-semibold text-slate-100 hover:text-purple-300"
                     >
                       {journey.title}
                     </Link>
@@ -130,7 +131,7 @@ export default function JourneysPage() {
                           ? 'bg-green-500/20 text-green-400'
                           : journey.status === 'at-risk'
                           ? 'bg-yellow-500/20 text-yellow-400'
-                          : 'bg-violet-500/20 text-violet-400'
+                          : 'bg-purple-500/20 text-purple-400'
                       }`}
                     >
                       {journey.status === 'on-track' ? 'On Track' : journey.status === 'at-risk' ? 'At Risk' : 'Ahead'}
@@ -148,7 +149,7 @@ export default function JourneysPage() {
                   </div>
                   <div className="w-full bg-slate-700/50 rounded-full h-2">
                     <div
-                      className="bg-violet-500 h-2 rounded-full transition-all duration-300"
+                      className="bg-purple-500 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${journey.progress}%` }}
                     />
                   </div>
@@ -194,7 +195,7 @@ export default function JourneysPage() {
                 <div className="text-right">
                   <Link
                     to={`/journeys/${journey.id}`}
-                    className="text-violet-400 hover:text-violet-300 text-sm"
+                    className="text-purple-400 hover:text-purple-300 text-sm"
                   >
                     View Details →
                   </Link>
