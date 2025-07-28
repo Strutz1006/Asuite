@@ -1,9 +1,9 @@
 # Claude Configuration
 
 ## Model Selection
-CLAUDE_MODEL: claude-3-5-sonnet-latest
+CLAUDE_MODEL: claude-sonnet-4
 
-Always use Sonnet model to preserve usage costs while maintaining excellent performance for development tasks.
+Always use Sonnet 4 for optimal performance on development tasks. If currently using Opus 4, switch to Sonnet 4 to maintain high quality while reducing costs.
 
 ## Project Context
 This is the Aesyros Suite monorepo containing 6 enterprise applications:

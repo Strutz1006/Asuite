@@ -29,11 +29,17 @@
     "type-check": "npm run type-check --workspace=apps/* --workspace=packages/*",
     "test": "npm run test --workspace=apps/* --workspace=packages/*",
     "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules apps/*/dist packages/*/dist",
-    "install:all": "npm install"
+    "install:all": "npm install",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "db:migrate": "supabase migration up",
+    "db:generate-types": "supabase gen types typescript --local > packages/supabase/src/types/database.ts"
   },
   "devDependencies": {
     "@types/node": "^20.14.10",
     "concurrently": "^8.2.2",
+    "supabase": "^1.226.4",
     "typescript": "^5.4.5",
     "vite": "^7.0.5"
   },

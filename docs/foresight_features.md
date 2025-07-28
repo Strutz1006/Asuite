@@ -3,6 +3,14 @@
 ## Overview
 Aesyros Foresight is a strategy simulation and impact modeling platform that creates a digital sandbox for testing potential decisions, allowing leaders to simulate scenarios and anticipate downstream effects on profitability, sustainability, and organizational alignment.
 
+## Implementation Status
+- ✅ **Scenario Builder & Simulation Engine** - Template-based scenario creation with variable configuration (IMPLEMENTED)
+- ✅ **Impact Analysis & Visualization** - Multi-dimensional impact analysis with timeline and stakeholder views (IMPLEMENTED)
+- 🔲 Business Modeling
+- 🔲 Decision Support
+- 🔲 Strategic Integration
+- 🔲 Collaboration Tools
+
 ## Core Features
 
 ### 1. Scenario Building System
