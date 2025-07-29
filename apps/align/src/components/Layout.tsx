@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Target, BarChart3, TrendingUp, Menu, X, Grid3X3, Zap, Activity, Eye, Workflow, CheckSquare, User, LogOut } from 'lucide-react'
+import { Target, BarChart3, TrendingUp, Menu, X, Grid3X3, Zap, Activity, Eye, Workflow, CheckSquare, User, LogOut, GitBranch, Clock } from 'lucide-react'
 import { useState } from 'react'
 import { useDevAuth } from '@aesyros/auth'
 
@@ -21,6 +21,8 @@ const navItems = [
   { name: 'Dashboard', href: '/', icon: BarChart3 },
   { name: 'Goals', href: '/goals', icon: Target },
   { name: 'Objectives', href: '/objectives', icon: TrendingUp },
+  { name: 'Alignment Matrix', href: '/alignment-matrix', icon: GitBranch },
+  { name: 'Progress Tracking', href: '/progress', icon: Clock },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
 ]
 

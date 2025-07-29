@@ -92,7 +92,8 @@ export function useSupabaseTable<T>(
       })
     }
     
-    return query
+    const result = await query
+    return { data: result.data as T[] | null, error: result.error }
   }, [tableName, select, JSON.stringify(filters)])
 }
 

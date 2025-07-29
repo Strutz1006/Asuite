@@ -149,7 +149,7 @@ export default function ScenariosPage() {
         </div>
         <div className="flex items-center gap-3">
           <Link
-            to="/scenarios/new"
+            to="/builder"
             className="glass-button text-purple-300 hover:text-purple-200 px-4 py-2 flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />

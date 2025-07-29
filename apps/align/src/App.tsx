@@ -8,6 +8,8 @@ import GoalFormPage from '@/features/goals/pages/GoalFormPage'
 import ObjectivesPage from '@/features/objectives/pages/ObjectivesPage'
 import AnalyticsPage from '@/features/analytics/pages/AnalyticsPage'
 import SetupPage from '@/features/setup/pages/SetupPage'
+import { AlignmentMatrixPage } from '@/features/alignment-matrix/pages/AlignmentMatrixPage'
+import { ProgressTrackingPage } from '@/features/progress/pages/ProgressTrackingPage'
 
 function AppRoutes() {
   const { isAuthenticated } = useDevAuth()
@@ -42,6 +44,8 @@ function AppRoutes() {
               <Route path="/goals/:id" element={<GoalDetailPage />} />
               <Route path="/goals/:id/edit" element={<GoalFormPage />} />
               <Route path="/objectives" element={<ObjectivesPage />} />
+              <Route path="/alignment-matrix" element={<AlignmentMatrixPage />} />
+              <Route path="/progress" element={<ProgressTrackingPage />} />
               <Route path="/analytics" element={<AnalyticsPage />} />
             </Routes>
           </Layout>

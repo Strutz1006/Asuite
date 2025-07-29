@@ -1,217 +1,188 @@
-import { BarChart3, TrendingUp, TrendingDown, Target, Calendar, Users } from 'lucide-react'
-
-const metrics = [
-  {
-    name: 'Goal Completion Rate',
-    value: '74%',
-    change: '+8.1%',
-    changeType: 'increase',
-    trend: 'up',
-  },
-  {
-    name: 'Average Progress',
-    value: '68%',
-    change: '+5.4%',
-    changeType: 'increase',
-    trend: 'up',
-  },
-  {
-    name: 'Overdue Goals',
-    value: '3',
-    change: '-2',
-    changeType: 'decrease',
-    trend: 'down',
-  },
-  {
-    name: 'Active Goals',
-    value: '12',
-    change: '+4',
-    changeType: 'increase',
-    trend: 'up',
-  },
-]
-
-const goalsByCategory = [
-  { category: 'Strategic', total: 5, completed: 3, progress: 60 },
-  { category: 'Operational', total: 4, completed: 3, progress: 75 },
-  { category: 'Financial', total: 2, completed: 1, progress: 50 },
-  { category: 'Customer', total: 3, completed: 2, progress: 67 },
-]
-
-const recentActivity = [
-  {
-    id: '1',
-    type: 'goal_completed',
-    title: 'Customer satisfaction improvement completed',
-    time: '2 hours ago',
-    user: 'Sarah Johnson',
-  },
-  {
-    id: '2',
-    type: 'goal_updated',
-    title: 'Product launch timeline updated',
-    time: '4 hours ago',
-    user: 'Mike Chen',
-  },
-  {
-    id: '3',
-    type: 'goal_created',
-    title: 'New operational efficiency goal created',
-    time: '1 day ago',
-    user: 'Emily Rodriguez',
-  },
-]
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  BarChart3, 
+  TrendingUp, 
+  TrendingDown, 
+  Target, 
+  Calendar, 
+  Users, 
+  Download,
+  RefreshCw,
+  Filter,
+  PieChart,
+  Activity,
+  AlertTriangle
+} from 'lucide-react';
+import { PerformanceMetrics } from '../components/PerformanceMetrics';
+import { ProgressTrends } from '../components/ProgressTrends';
+import { GoalAnalysis } from '../components/GoalAnalysis';
+import { TeamPerformance } from '../components/TeamPerformance';
+import { PredictiveAnalytics } from '../components/PredictiveAnalytics';
 
 export default function AnalyticsPage() {
+  const [selectedView, setSelectedView] = useState('overview');
+  const [timePeriod, setTimePeriod] = useState('current-quarter');
+  const [department, setDepartment] = useState('all');
+
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="container mx-auto py-6 space-y-6">
+      {/* Page Header */}
+      <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold text-slate-100">Analytics</h1>
-          <p className="text-slate-400 mt-1">
-            Analyze performance and track progress trends
+          <h1 className="text-3xl font-bold tracking-tight text-slate-100">Analytics Dashboard</h1>
+          <p className="text-slate-400 mt-2">
+            Comprehensive insights and performance analysis for your organization's goals
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <select className="glass-input px-3 py-1 text-sm text-slate-100">
-            <option value="30">Last 30 days</option>
-            <option value="90">Last 90 days</option>
-            <option value="180">Last 6 months</option>
-            <option value="365">Last year</option>
-          </select>
+        <div className="flex gap-2">
+          <Button variant="outline">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh Data
+          </Button>
+          <Button variant="outline">
+            <Download className="h-4 w-4 mr-2" />
+            Export Report
+          </Button>
+          <Button>
+            <Filter className="h-4 w-4 mr-2" />
+            Custom Report
+          </Button>
         </div>
       </div>
 
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {metrics.map((metric) => (
-          <div key={metric.name} className="glass-card p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-400">{metric.name}</p>
-                <p className="text-2xl font-semibold text-slate-100 mt-1">{metric.value}</p>
-              </div>
-              <div className="p-3 rounded-xl bg-sky-500/20">
-                {metric.trend === 'up' ? (
-                  <TrendingUp className="w-6 h-6 text-sky-400" />
-                ) : (
-                  <TrendingDown className="w-6 h-6 text-sky-400" />
-                )}
-              </div>
-            </div>
-            <div className="mt-4 flex items-center">
-              <span className={`text-sm font-medium ${
-                metric.changeType === 'increase' ? 'text-green-400' : 'text-red-400'
-              }`}>
-                {metric.change}
-              </span>
-              <span className="text-sm text-slate-400 ml-1">from last period</span>
-            </div>
-          </div>
-        ))}
+      {/* Quick Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-slate-200">Total Goals</CardTitle>
+            <Target className="h-4 w-4 text-blue-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-slate-100">42</div>
+            <p className="text-xs text-slate-400">+4 this quarter</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-slate-200">Completion Rate</CardTitle>
+            <PieChart className="h-4 w-4 text-green-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-slate-100">74%</div>
+            <p className="text-xs text-green-400">+8.1% from last period</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-slate-200">Avg Progress</CardTitle>
+            <Activity className="h-4 w-4 text-yellow-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-slate-100">68%</div>
+            <p className="text-xs text-green-400">+5.4% improvement</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-slate-200">At Risk</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-red-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-slate-100">8</div>
+            <p className="text-xs text-red-400">Need attention</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium textslate-200">Teams Active</CardTitle>
+            <Users className="h-4 w-4 text-purple-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-slate-100">6</div>
+            <p className="text-xs text-slate-400">All departments</p>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Goals by Category */}
-      <div className="glass-card p-6">
-        <h2 className="text-xl font-semibold text-slate-100 mb-6">Goals by Category</h2>
-        <div className="space-y-4">
-          {goalsByCategory.map((category) => (
-            <div key={category.category} className="glass-card p-4 bg-slate-800/40">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-medium text-slate-100">{category.category}</h3>
-                <div className="flex items-center gap-4 text-sm text-slate-400">
-                  <span>{category.completed}/{category.total} completed</span>
-                  <span>{category.progress}% avg progress</span>
-                </div>
-              </div>
-              <div className="w-full bg-slate-700/50 rounded-full h-2">
-                <div
-                  className="bg-sky-500 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${category.progress}%` }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
+      {/* Filters */}
+      <div className="flex gap-4 items-center">
+        <Select value={timePeriod} onValueChange={setTimePeriod}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Select time period" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="current-quarter">Current Quarter</SelectItem>
+            <SelectItem value="last-quarter">Last Quarter</SelectItem>
+            <SelectItem value="current-year">Current Year</SelectItem>
+            <SelectItem value="last-30-days">Last 30 Days</SelectItem>
+            <SelectItem value="last-90-days">Last 90 Days</SelectItem>
+          </SelectContent>
+        </Select>
+        
+        <Select value={department} onValueChange={setDepartment}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Select department" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Departments</SelectItem>
+            <SelectItem value="engineering">Engineering</SelectItem>
+            <SelectItem value="sales">Sales</SelectItem>
+            <SelectItem value="marketing">Marketing</SelectItem>
+            <SelectItem value="operations">Operations</SelectItem>
+            <SelectItem value="hr">Human Resources</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
-      {/* Progress Chart Placeholder */}
-      <div className="glass-card p-6">
-        <h2 className="text-xl font-semibold text-slate-100 mb-6">Progress Trends</h2>
-        <div className="h-64 bg-slate-800/40 rounded-lg flex items-center justify-center">
-          <div className="text-center text-slate-400">
-            <BarChart3 className="w-12 h-12 mx-auto mb-2" />
-            <p>Chart visualization would go here</p>
-            <p className="text-sm">Integration with charting library needed</p>
-          </div>
-        </div>
-      </div>
+      {/* Main Analytics Tabs */}
+      <Tabs value={selectedView} onValueChange={setSelectedView} className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="overview">Performance Overview</TabsTrigger>
+          <TabsTrigger value="trends">Progress Trends</TabsTrigger>
+          <TabsTrigger value="analysis">Goal Analysis</TabsTrigger>
+          <TabsTrigger value="teams">Team Performance</TabsTrigger>
+          <TabsTrigger value="predictions">Predictive Analytics</TabsTrigger>
+        </TabsList>
 
-      {/* Recent Activity and Performance */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Activity */}
-        <div className="glass-card p-6">
-          <h2 className="text-xl font-semibold text-slate-100 mb-6">Recent Activity</h2>
-          <div className="space-y-4">
-            {recentActivity.map((activity) => (
-              <div key={activity.id} className="glass-card p-4 bg-slate-800/40">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-sky-500/20">
-                    <Target className="w-4 h-4 text-sky-400" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-slate-100">{activity.title}</p>
-                    <div className="flex items-center gap-2 mt-1 text-xs text-slate-400">
-                      <Users className="w-3 h-3" />
-                      <span>{activity.user}</span>
-                      <span>•</span>
-                      <Calendar className="w-3 h-3" />
-                      <span>{activity.time}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <TabsContent value="overview" currentValue={selectedView} className="space-y-4">
+          <PerformanceMetrics 
+            timePeriod={timePeriod}
+            department={department}
+          />
+        </TabsContent>
 
-        {/* Performance Summary */}
-        <div className="glass-card p-6">
-          <h2 className="text-xl font-semibold text-slate-100 mb-6">Performance Summary</h2>
-          <div className="space-y-4">
-            <div className="glass-card p-4 bg-slate-800/40">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-slate-400">Goals On Track</p>
-                  <p className="text-2xl font-semibold text-green-400">85%</p>
-                </div>
-                <TrendingUp className="w-6 h-6 text-green-400" />
-              </div>
-            </div>
-            
-            <div className="glass-card p-4 bg-slate-800/40">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-slate-400">At Risk Goals</p>
-                  <p className="text-2xl font-semibold text-yellow-400">12%</p>
-                </div>
-                <TrendingDown className="w-6 h-6 text-yellow-400" />
-              </div>
-            </div>
-            
-            <div className="glass-card p-4 bg-slate-800/40">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-slate-400">Overdue Goals</p>
-                  <p className="text-2xl font-semibold text-red-400">3%</p>
-                </div>
-                <TrendingDown className="w-6 h-6 text-red-400" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+        <TabsContent value="trends" currentValue={selectedView} className="space-y-4">
+          <ProgressTrends 
+            timePeriod={timePeriod}
+            department={department}
+          />
+        </TabsContent>
+
+        <TabsContent value="analysis" currentValue={selectedView} className="space-y-4">
+          <GoalAnalysis 
+            timePeriod={timePeriod}
+            department={department}
+          />
+        </TabsContent>
+
+        <TabsContent value="teams" currentValue={selectedView} className="space-y-4">
+          <TeamPerformance 
+            timePeriod={timePeriod}
+            department={department}
+          />
+        </TabsContent>
+
+        <TabsContent value="predictions" currentValue={selectedView} className="space-y-4">
+          <PredictiveAnalytics 
+            timePeriod={timePeriod}
+            department={department}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
-  )
+  );
 }
