@@ -1,5 +1,5 @@
 import { Calendar, Users, Target, Clock, CheckCircle2, AlertCircle, MoreVertical, ChevronRight } from 'lucide-react'
-import { Task } from '../TaskManager'
+import { Task } from '../../hooks/useTasks'
 
 interface ListViewProps {
   tasks: Task[]
@@ -26,8 +26,8 @@ const getStatusColor = (status: string) => {
 }
 
 export default function ListView({ tasks }: ListViewProps) {
-  const isOverdue = (dueDate: string, status: string) => {
-    return new Date(dueDate) < new Date() && status !== 'done'
+  const isOverdue = (dueDate: string | null, status: string) => {
+    return dueDate && new Date(dueDate) < new Date() && status !== 'done'
   }
 
   const sortedTasks = [...tasks].sort((a, b) => {
@@ -40,7 +40,7 @@ export default function ListView({ tasks }: ListViewProps) {
       return aPriority - bPriority
     }
     
-    return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+    return new Date(a.due_date || '9999-12-31').getTime() - new Date(b.due_date || '9999-12-31').getTime()
   })
 
   return (
@@ -87,20 +87,20 @@ export default function ListView({ tasks }: ListViewProps) {
                     {/* Project and Goal */}
                     <div className="flex items-center gap-3 mt-2">
                       <span className="text-xs text-slate-500">
-                        📁 {task.project}
+                        📁 {task.project?.name || 'No Project'}
                       </span>
-                      {task.alignGoal && (
+                      {task.align_goal && (
                         <div className="flex items-center gap-1">
                           <Target className="w-3 h-3 text-orange-400" />
-                          <span className="text-xs text-orange-400">{task.alignGoal}</span>
+                          <span className="text-xs text-orange-400">{task.align_goal.title}</span>
                         </div>
                       )}
                     </div>
 
                     {/* Tags */}
-                    {task.tags.length > 0 && (
+                    {(task.tags || []).length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
-                        {task.tags.slice(0, 3).map((tag) => (
+                        {(task.tags || []).slice(0, 3).map((tag: string) => (
                           <span
                             key={tag}
                             className="text-xs px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-400"
@@ -108,9 +108,9 @@ export default function ListView({ tasks }: ListViewProps) {
                             {tag}
                           </span>
                         ))}
-                        {task.tags.length > 3 && (
+                        {(task.tags || []).length > 3 && (
                           <span className="text-xs px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-400">
-                            +{task.tags.length - 3}
+                            +{(task.tags || []).length - 3}
                           </span>
                         )}
                       </div>

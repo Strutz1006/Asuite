@@ -1,22 +1,67 @@
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TrendingUp, Clock, Target, AlertTriangle, Calendar, CheckCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { TrendingUp, Clock, Target, AlertTriangle, Calendar, CheckCircle, Loader2, Plus, BarChart3 } from 'lucide-react';
+import { useGoals } from '../../goals/hooks/useGoals';
+import { supabase } from '@aesyros/supabase';
 import { ProgressOverview } from '../components/ProgressOverview';
 import { ProgressHistory } from '../components/ProgressHistory';
 import { MilestoneTracker } from '../components/MilestoneTracker';
-import { ProgressUpdateModal } from '../components/ProgressUpdateModal';
+import { RealtimeProgressFeed } from '../components/RealtimeProgressFeed';
 
 export function ProgressTrackingPage() {
   const [selectedView, setSelectedView] = useState('overview');
   const [filterPeriod, setFilterPeriod] = useState('current-quarter');
   const [filterDepartment, setFilterDepartment] = useState('all');
-  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [departments, setDepartments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  const { goals, loading: goalsLoading, getGoalStats } = useGoals();
+  const stats = getGoalStats();
+
+  // Fetch departments for filtering
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const { data } = await supabase
+          .from('departments')
+          .select('id, name')
+          .order('name');
+        
+        if (data) {
+          setDepartments(data);
+        }
+      } catch (error) {
+        console.error('Error fetching departments:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDepartments();
+  }, []);
+
+  // Calculate velocity (progress change over time)
+  const calculateVelocity = () => {
+    // This would ideally be calculated from progress history
+    // For now, using a simple approximation
+    return Math.round(stats.avgProgress / 4); // Approximate weekly velocity
+  };
+
+  const velocity = calculateVelocity();
+
+  if (loading || goalsLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex items-center gap-3">
+          <Loader2 className="h-8 w-8 text-sky-400 animate-spin" />
+          <span className="text-slate-300">Loading progress data...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="space-y-8">
       {/* Page Header */}
       <div className="flex justify-between items-start">
         <div>
@@ -26,130 +71,165 @@ export function ProgressTrackingPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
-            <Calendar className="h-4 w-4 mr-2" />
-            Schedule Report
-          </Button>
-          <Button onClick={() => setIsUpdateModalOpen(true)}>
-            <TrendingUp className="h-4 w-4 mr-2" />
-            Update Progress
-          </Button>
+          <Link
+            to="/goals/new"
+            className="glass-button text-sky-300 hover:text-sky-200 px-4 py-2 flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            New Goal
+          </Link>
+          <Link
+            to="/analytics"
+            className="glass-button text-purple-300 hover:text-purple-200 px-4 py-2 flex items-center gap-2"
+          >
+            <BarChart3 className="h-4 w-4" />
+            Analytics
+          </Link>
         </div>
       </div>
 
       {/* Key Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-slate-200">Overall Progress</CardTitle>
-            <Target className="h-4 w-4 text-emerald-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-slate-100">73%</div>
-            <p className="text-xs text-slate-400">+8% from last month</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-slate-200">On Track Goals</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-slate-100">28</div>
-            <p className="text-xs text-slate-400">Out of 42 total</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-slate-200">At Risk Goals</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-yellow-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-slate-100">8</div>
-            <p className="text-xs text-slate-400">Need attention</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-slate-200">Avg Velocity</CardTitle>
-            <Clock className="h-4 w-4 text-blue-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-slate-100">12%</div>
-            <p className="text-xs text-slate-400">Per week</p>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="glass-card p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-slate-400">Overall Progress</p>
+              <p className="text-2xl font-semibold text-slate-100 mt-1">{stats.avgProgress}%</p>
+              <p className="text-xs text-slate-400 mt-1">
+                {stats.total > 0 ? `Across ${stats.total} goals` : 'No goals yet'}
+              </p>
+            </div>
+            <Target className="w-8 h-8 text-emerald-400" />
+          </div>
+        </div>
+
+        <div className="glass-card p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-slate-400">On Track Goals</p>
+              <p className="text-2xl font-semibold text-slate-100 mt-1">{stats.onTrack}</p>
+              <p className="text-xs text-slate-400 mt-1">
+                Out of {stats.total} total
+              </p>
+            </div>
+            <CheckCircle className="w-8 h-8 text-green-400" />
+          </div>
+        </div>
+
+        <div className="glass-card p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-slate-400">At Risk Goals</p>
+              <p className="text-2xl font-semibold text-slate-100 mt-1">{stats.atRisk}</p>
+              <p className="text-xs text-slate-400 mt-1">Need attention</p>
+            </div>
+            <AlertTriangle className="w-8 h-8 text-yellow-400" />
+          </div>
+        </div>
+
+        <div className="glass-card p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-slate-400">Completed Goals</p>
+              <p className="text-2xl font-semibold text-slate-100 mt-1">{stats.completed}</p>
+              <p className="text-xs text-slate-400 mt-1">Successfully finished</p>
+            </div>
+            <Clock className="w-8 h-8 text-blue-400" />
+          </div>
+        </div>
       </div>
 
       {/* Filters */}
       <div className="flex gap-4 items-center">
-        <Select value={filterPeriod} onValueChange={setFilterPeriod}>
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Select period" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="current-quarter">Current Quarter</SelectItem>
-            <SelectItem value="last-quarter">Last Quarter</SelectItem>
-            <SelectItem value="current-year">Current Year</SelectItem>
-            <SelectItem value="last-30-days">Last 30 Days</SelectItem>
-            <SelectItem value="last-90-days">Last 90 Days</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="glass-card p-1">
+          <select
+            value={filterPeriod}
+            onChange={(e) => setFilterPeriod(e.target.value)}
+            className="bg-transparent text-slate-200 px-3 py-2 text-sm focus:outline-none"
+          >
+            <option value="current-quarter">Current Quarter</option>
+            <option value="last-quarter">Last Quarter</option>
+            <option value="current-year">Current Year</option>
+            <option value="last-30-days">Last 30 Days</option>
+            <option value="last-90-days">Last 90 Days</option>
+          </select>
+        </div>
         
-        <Select value={filterDepartment} onValueChange={setFilterDepartment}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select department" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Departments</SelectItem>
-            <SelectItem value="engineering">Engineering</SelectItem>
-            <SelectItem value="sales">Sales</SelectItem>
-            <SelectItem value="marketing">Marketing</SelectItem>
-            <SelectItem value="operations">Operations</SelectItem>
-            <SelectItem value="hr">Human Resources</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="glass-card p-1">
+          <select
+            value={filterDepartment}
+            onChange={(e) => setFilterDepartment(e.target.value)}
+            className="bg-transparent text-slate-200 px-3 py-2 text-sm focus:outline-none"
+          >
+            <option value="all">All Departments</option>
+            {departments.map((dept) => (
+              <option key={dept.id} value={dept.id}>
+                {dept.name}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Main Content Tabs */}
-      <Tabs value={selectedView} onValueChange={setSelectedView} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">Progress Overview</TabsTrigger>
-          <TabsTrigger value="history">Progress History</TabsTrigger>
-          <TabsTrigger value="milestones">Milestones</TabsTrigger>
-        </TabsList>
+      <div className="space-y-6">
+        <div className="flex gap-2 glass-card p-1">
+          {[
+            { key: 'overview', label: 'Progress Overview' },
+            { key: 'realtime', label: 'Live Updates' },
+            { key: 'history', label: 'Progress History' },
+            { key: 'milestones', label: 'Milestones' }
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setSelectedView(tab.key)}
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                selectedView === tab.key
+                  ? 'bg-sky-500/20 text-sky-300'
+                  : 'text-slate-400 hover:text-slate-300'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
-        <TabsContent value="overview" currentValue={selectedView} className="space-y-4">
-          <ProgressOverview 
-            filterPeriod={filterPeriod}
-            filterDepartment={filterDepartment}
-          />
-        </TabsContent>
+        {selectedView === 'overview' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <ProgressOverview 
+                filterPeriod={filterPeriod}
+                filterDepartment={filterDepartment}
+                goals={goals}
+                departments={departments}
+              />
+            </div>
+            <div className="lg:col-span-1">
+              <RealtimeProgressFeed maxUpdates={5} showControls={false} />
+            </div>
+          </div>
+        )}
 
-        <TabsContent value="history" currentValue={selectedView} className="space-y-4">
+        {selectedView === 'realtime' && (
+          <RealtimeProgressFeed maxUpdates={20} showControls={true} />
+        )}
+
+        {selectedView === 'history' && (
           <ProgressHistory 
             filterPeriod={filterPeriod}
             filterDepartment={filterDepartment}
+            goals={goals}
           />
-        </TabsContent>
+        )}
 
-        <TabsContent value="milestones" currentValue={selectedView} className="space-y-4">
+        {selectedView === 'milestones' && (
           <MilestoneTracker 
             filterPeriod={filterPeriod}
             filterDepartment={filterDepartment}
+            goals={goals}
           />
-        </TabsContent>
-      </Tabs>
-
-      {/* Progress Update Modal */}
-      <ProgressUpdateModal
-        isOpen={isUpdateModalOpen}
-        onClose={() => setIsUpdateModalOpen(false)}
-        onSubmit={(data) => {
-          console.log('Progress update:', data);
-          setIsUpdateModalOpen(false);
-        }}
-      />
+        )}
+      </div>
     </div>
   );
 }

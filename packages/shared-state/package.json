@@ -1,0 +1,26 @@
+{
+  "name": "@aesyros/shared-state",
+  "version": "1.0.0",
+  "description": "Cross-app shared state management for Aesyros Suite",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint src --ext .ts,.tsx",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aesyros/supabase": "file:../supabase",
+    "@aesyros/types": "file:../types",
+    "react": "^18.2.0",
+    "zustand": "^4.4.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0"
+  }
+}

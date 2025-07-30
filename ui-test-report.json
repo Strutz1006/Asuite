@@ -1,0 +1,17 @@
+{
+  "timestamp": "2025-07-30T17:16:13.771Z",
+  "summary": {
+    "total": 0,
+    "passed": 0,
+    "failed": 0,
+    "success_rate": 0
+  },
+  "errors": [],
+  "screenshots": [],
+  "environment": {
+    "align_url": "http://localhost:5173",
+    "drive_url": "http://localhost:5179",
+    "screenshots_dir": "./test-screenshots",
+    "test_timeout": 30000
+  }
+}

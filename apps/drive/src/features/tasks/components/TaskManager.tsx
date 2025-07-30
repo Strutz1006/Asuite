@@ -1,107 +1,13 @@
 import { useState } from 'react'
-import { Plus, Search, Filter, Calendar, List, Grid3X3, BarChart3, Target, Users, Clock, AlertCircle, CheckCircle2, MoreVertical, ArrowRight } from 'lucide-react'
+import { Plus, Search, Calendar, List, Grid3X3, BarChart3, Target, Users, Clock, AlertCircle, Wifi, WifiOff, Loader2 } from 'lucide-react'
 import KanbanView from './views/KanbanView'
 import ListView from './views/ListView'
 import CalendarView from './views/CalendarView'
 import GanttView from './views/GanttView'
+import { TaskCreationModal } from './TaskCreationModal'
+import { useTasks } from '../hooks/useTasks'
 
-export interface Task {
-  id: string
-  title: string
-  description: string
-  status: 'todo' | 'in-progress' | 'review' | 'done'
-  priority: 'low' | 'medium' | 'high' | 'critical'
-  assignee: string
-  dueDate: string
-  project: string
-  alignGoal?: string
-  estimatedHours: number
-  actualHours: number
-  tags: string[]
-  dependencies: string[]
-  progress: number
-}
 
-const sampleTasks: Task[] = [
-  {
-    id: '1',
-    title: 'Design user authentication flow',
-    description: 'Create wireframes and user flow for the new authentication system',
-    status: 'in-progress',
-    priority: 'high',
-    assignee: 'Sarah Chen',
-    dueDate: '2024-08-15',
-    project: 'Customer Portal Redesign',
-    alignGoal: 'Improve Customer Satisfaction',
-    estimatedHours: 16,
-    actualHours: 12,
-    tags: ['design', 'ux', 'auth'],
-    dependencies: [],
-    progress: 75,
-  },
-  {
-    id: '2',
-    title: 'Implement API rate limiting',
-    description: 'Add rate limiting to prevent API abuse and ensure fair usage',
-    status: 'todo',
-    priority: 'medium',
-    assignee: 'Marcus Rodriguez',
-    dueDate: '2024-08-20',
-    project: 'API Integration Platform',
-    alignGoal: 'Increase Revenue by 25%',
-    estimatedHours: 24,
-    actualHours: 0,
-    tags: ['backend', 'api', 'security'],
-    dependencies: ['3'],
-    progress: 0,
-  },
-  {
-    id: '3',
-    title: 'API documentation update',
-    description: 'Update API documentation with new endpoints and examples',
-    status: 'review',
-    priority: 'medium',
-    assignee: 'Emily Watson',
-    dueDate: '2024-08-18',
-    project: 'API Integration Platform',
-    estimatedHours: 8,
-    actualHours: 7,
-    tags: ['documentation', 'api'],
-    dependencies: [],
-    progress: 90,
-  },
-  {
-    id: '4',
-    title: 'Mobile app onboarding screens',
-    description: 'Design and implement user onboarding flow for mobile app',
-    status: 'todo',
-    priority: 'high',
-    assignee: 'Alex Kim',
-    dueDate: '2024-09-01',
-    project: 'Mobile App Launch',
-    alignGoal: 'Expand Market Presence',
-    estimatedHours: 20,
-    actualHours: 0,
-    tags: ['mobile', 'design', 'onboarding'],
-    dependencies: [],
-    progress: 0,
-  },
-  {
-    id: '5',
-    title: 'Security vulnerability assessment',
-    description: 'Conduct comprehensive security audit of all systems',
-    status: 'done',
-    priority: 'critical',
-    assignee: 'David Park',
-    dueDate: '2024-07-30',
-    project: 'Security Audit & Compliance',
-    estimatedHours: 40,
-    actualHours: 38,
-    tags: ['security', 'audit', 'compliance'],
-    dependencies: [],
-    progress: 100,
-  },
-]
 
 type ViewMode = 'kanban' | 'list' | 'calendar' | 'gantt'
 
@@ -113,30 +19,34 @@ const viewOptions = [
 ]
 
 export default function TaskManager() {
+  const {
+    tasks,
+    loading,
+    error,
+    realtimeEnabled,
+    createTask,
+    getTaskStats
+  } = useTasks()
+
   const [viewMode, setViewMode] = useState<ViewMode>('kanban')
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [priorityFilter, setPriorityFilter] = useState<string>('all')
   const [assigneeFilter, setAssigneeFilter] = useState<string>('all')
+  const [showCreateModal, setShowCreateModal] = useState(false)
 
-  const filteredTasks = sampleTasks.filter(task => {
+  const filteredTasks = tasks.filter(task => {
     const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         task.description.toLowerCase().includes(searchTerm.toLowerCase())
+                         (task.description || '').toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter === 'all' || task.status === statusFilter
     const matchesPriority = priorityFilter === 'all' || task.priority === priorityFilter
-    const matchesAssignee = assigneeFilter === 'all' || task.assignee === assigneeFilter
+    const matchesAssignee = assigneeFilter === 'all' || 
+                           (task.assignee?.full_name || '').includes(assigneeFilter)
     
     return matchesSearch && matchesStatus && matchesPriority && matchesAssignee
   })
 
-  const taskStats = {
-    total: sampleTasks.length,
-    todo: sampleTasks.filter(t => t.status === 'todo').length,
-    inProgress: sampleTasks.filter(t => t.status === 'in-progress').length,
-    review: sampleTasks.filter(t => t.status === 'review').length,
-    done: sampleTasks.filter(t => t.status === 'done').length,
-    overdue: sampleTasks.filter(t => new Date(t.dueDate) < new Date() && t.status !== 'done').length,
-  }
+  const taskStats = getTaskStats()
 
   const renderView = () => {
     const commonProps = { tasks: filteredTasks }
@@ -165,10 +75,29 @@ export default function TaskManager() {
             Manage tasks aligned with your strategic goals
           </p>
         </div>
-        <button className="glass-button text-orange-300 hover:text-orange-200 px-4 py-2 flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          New Task
-        </button>
+        <div className="flex items-center gap-3">
+          {/* Real-time connection status */}
+          <div className="flex items-center gap-2 text-xs">
+            {realtimeEnabled ? (
+              <>
+                <Wifi className="w-3 h-3 text-green-400" />
+                <span className="text-green-400">Live</span>
+              </>
+            ) : (
+              <>
+                <WifiOff className="w-3 h-3 text-orange-400" />
+                <span className="text-orange-400">Offline</span>
+              </>
+            )}
+          </div>
+          <button 
+            onClick={() => setShowCreateModal(true)}
+            className="glass-button text-orange-300 hover:text-orange-200 px-4 py-2 flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            New Task
+          </button>
+        </div>
       </div>
 
       {/* Stats Overview */}
@@ -267,11 +196,9 @@ export default function TaskManager() {
             className="glass-input px-3 py-2 text-sm text-slate-100 min-w-32"
           >
             <option value="all" className="bg-slate-900">All Assignees</option>
-            <option value="Sarah Chen" className="bg-slate-900">Sarah Chen</option>
-            <option value="Marcus Rodriguez" className="bg-slate-900">Marcus Rodriguez</option>
-            <option value="Emily Watson" className="bg-slate-900">Emily Watson</option>
-            <option value="Alex Kim" className="bg-slate-900">Alex Kim</option>
-            <option value="David Park" className="bg-slate-900">David Park</option>
+            {Array.from(new Set(tasks.map(t => t.assignee?.full_name).filter(Boolean))).map(name => (
+              <option key={name} value={name} className="bg-slate-900">{name}</option>
+            ))}
           </select>
         </div>
 
@@ -299,14 +226,38 @@ export default function TaskManager() {
 
       {/* Main View */}
       <div className="min-h-96">
-        {renderView()}
+        {loading ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="flex items-center gap-3 text-slate-400">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span>Loading tasks...</span>
+            </div>
+          </div>
+        ) : error ? (
+          <div className="glass-card p-8 text-center bg-red-500/10 border-red-500/30">
+            <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-red-300 mb-2">Error Loading Tasks</h3>
+            <p className="text-red-200 mb-4">{error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="glass-button text-red-300 hover:text-red-200 px-4 py-2"
+            >
+              Retry
+            </button>
+          </div>
+        ) : (
+          renderView()
+        )}
       </div>
 
       {/* Quick Actions */}
       <div className="glass-card p-6 bg-orange-500/10 border-orange-500/30">
         <h2 className="text-lg font-semibold text-orange-300 mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <button className="glass-card p-4 hover:bg-slate-800/40 transition-colors text-center">
+          <button 
+            onClick={() => setShowCreateModal(true)}
+            className="glass-card p-4 hover:bg-slate-800/40 transition-colors text-center"
+          >
             <Plus className="w-6 h-6 text-orange-400 mx-auto mb-2" />
             <h3 className="font-medium text-slate-200 mb-1">Create Task</h3>
             <p className="text-xs text-slate-400">Add new task from scratch</p>
@@ -339,7 +290,7 @@ export default function TaskManager() {
           <div className="flex-1">
             <h3 className="text-lg font-semibold text-blue-300 mb-2">Strategic Alignment</h3>
             <p className="text-sm text-slate-300 mb-4">
-              {sampleTasks.filter(t => t.alignGoal).length} of {sampleTasks.length} tasks are aligned with strategic goals from Aesyros Align.
+              {tasks.filter(t => t.align_goal_id).length} of {tasks.length} tasks are aligned with strategic goals from Aesyros Align.
             </p>
             <div className="flex items-center gap-4">
               <button className="glass-button text-blue-300 hover:text-blue-200 px-4 py-2 text-sm">
@@ -352,6 +303,13 @@ export default function TaskManager() {
           </div>
         </div>
       </div>
+
+      {/* Task Creation Modal */}
+      <TaskCreationModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSubmit={createTask}
+      />
     </div>
   )
 }

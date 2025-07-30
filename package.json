@@ -34,11 +34,15 @@
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
     "db:migrate": "supabase migration up",
-    "db:generate-types": "supabase gen types typescript --local > packages/supabase/src/types/database.ts"
+    "db:generate-types": "supabase gen types typescript --local > packages/supabase/src/types/database.ts",
+    "test:integration": "node scripts/test-cross-app-integration.js",
+    "test:ui": "node scripts/test-ui-workflows.js",
+    "test:all": "node scripts/run-all-tests.js"
   },
   "devDependencies": {
     "@types/node": "^20.14.10",
     "concurrently": "^8.2.2",
+    "puppeteer": "^24.15.0",
     "supabase": "^1.226.4",
     "typescript": "^5.4.5",
     "vite": "^7.0.5"

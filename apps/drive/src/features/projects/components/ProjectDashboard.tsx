@@ -1,84 +1,9 @@
 import { useState } from 'react'
-import { Plus, Calendar, Users, Target, AlertCircle, TrendingUp, TrendingDown, Clock, CheckCircle2, MoreVertical, Filter, Search, ChevronRight } from 'lucide-react'
+import { Plus, Calendar, Users, Target, AlertCircle, TrendingUp, TrendingDown, Clock, CheckCircle2, MoreVertical, Search, ChevronRight, Wifi, WifiOff, Loader2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useProjects } from '../hooks/useProjects'
 
-interface Project {
-  id: string
-  name: string
-  description: string
-  status: 'planning' | 'active' | 'on-hold' | 'completed'
-  progress: number
-  dueDate: string
-  teamSize: number
-  tasksCompleted: number
-  totalTasks: number
-  budget?: number
-  spent?: number
-  health: 'excellent' | 'good' | 'at-risk' | 'critical'
-  alignGoal?: string
-}
 
-const projects: Project[] = [
-  {
-    id: '1',
-    name: 'Customer Portal Redesign',
-    description: 'Modernize customer-facing portal with improved UX',
-    status: 'active',
-    progress: 78,
-    dueDate: '2024-09-15',
-    teamSize: 8,
-    tasksCompleted: 23,
-    totalTasks: 31,
-    budget: 85000,
-    spent: 62000,
-    health: 'good',
-    alignGoal: 'Improve Customer Satisfaction',
-  },
-  {
-    id: '2',
-    name: 'API Integration Platform',
-    description: 'Build unified API gateway for third-party integrations',
-    status: 'active',
-    progress: 45,
-    dueDate: '2024-10-30',
-    teamSize: 6,
-    tasksCompleted: 18,
-    totalTasks: 40,
-    budget: 120000,
-    spent: 48000,
-    health: 'at-risk',
-    alignGoal: 'Increase Revenue by 25%',
-  },
-  {
-    id: '3',
-    name: 'Mobile App Launch',
-    description: 'Native mobile app for iOS and Android platforms',
-    status: 'planning',
-    progress: 12,
-    dueDate: '2024-12-01',
-    teamSize: 10,
-    tasksCompleted: 3,
-    totalTasks: 45,
-    budget: 150000,
-    spent: 15000,
-    health: 'excellent',
-    alignGoal: 'Expand Market Presence',
-  },
-  {
-    id: '4',
-    name: 'Security Audit & Compliance',
-    description: 'Comprehensive security review and SOC2 compliance',
-    status: 'completed',
-    progress: 100,
-    dueDate: '2024-07-31',
-    teamSize: 4,
-    tasksCompleted: 22,
-    totalTasks: 22,
-    budget: 45000,
-    spent: 43500,
-    health: 'excellent',
-  },
-]
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -111,17 +36,26 @@ const getHealthIcon = (health: string) => {
 }
 
 export default function ProjectDashboard() {
+  const {
+    projects,
+    loading,
+    error,
+    realtimeEnabled,
+    getProjectStats
+  } = useProjects()
+
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [searchTerm, setSearchTerm] = useState('')
 
-  const filteredProjects = projects.filter(project => 
-    statusFilter === 'all' || project.status === statusFilter
-  )
+  const filteredProjects = projects.filter(project => {
+    const matchesStatus = statusFilter === 'all' || project.status === statusFilter
+    const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (project.description || '').toLowerCase().includes(searchTerm.toLowerCase())
+    return matchesStatus && matchesSearch
+  })
 
-  const totalProjects = projects.length
-  const activeProjects = projects.filter(p => p.status === 'active').length
-  const completedProjects = projects.filter(p => p.status === 'completed').length
-  const atRiskProjects = projects.filter(p => p.health === 'at-risk' || p.health === 'critical').length
+  const projectStats = getProjectStats()
 
   return (
     <div className="space-y-8">
@@ -133,13 +67,29 @@ export default function ProjectDashboard() {
             Manage and track all your strategic initiatives
           </p>
         </div>
-        <Link
-          to="/projects/new"
-          className="glass-button text-orange-300 hover:text-orange-200 px-4 py-2 flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          New Project
-        </Link>
+        <div className="flex items-center gap-3">
+          {/* Real-time connection status */}
+          <div className="flex items-center gap-2 text-xs">
+            {realtimeEnabled ? (
+              <>
+                <Wifi className="w-3 h-3 text-green-400" />
+                <span className="text-green-400">Live</span>
+              </>
+            ) : (
+              <>
+                <WifiOff className="w-3 h-3 text-orange-400" />
+                <span className="text-orange-400">Offline</span>
+              </>
+            )}
+          </div>
+          <Link
+            to="/projects/new"
+            className="glass-button text-orange-300 hover:text-orange-200 px-4 py-2 flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            New Project
+          </Link>
+        </div>
       </div>
 
       {/* Stats Overview */}
@@ -148,7 +98,7 @@ export default function ProjectDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-400">Total Projects</p>
-              <p className="text-2xl font-semibold text-slate-100 mt-1">{totalProjects}</p>
+              <p className="text-2xl font-semibold text-slate-100 mt-1">{projectStats.total}</p>
             </div>
             <Target className="w-8 h-8 text-orange-400 opacity-50" />
           </div>
@@ -158,7 +108,7 @@ export default function ProjectDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-400">Active</p>
-              <p className="text-2xl font-semibold text-green-400 mt-1">{activeProjects}</p>
+              <p className="text-2xl font-semibold text-green-400 mt-1">{projectStats.active}</p>
             </div>
             <Clock className="w-8 h-8 text-green-400 opacity-50" />
           </div>
@@ -168,7 +118,7 @@ export default function ProjectDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-400">Completed</p>
-              <p className="text-2xl font-semibold text-purple-400 mt-1">{completedProjects}</p>
+              <p className="text-2xl font-semibold text-purple-400 mt-1">{projectStats.completed}</p>
             </div>
             <CheckCircle2 className="w-8 h-8 text-purple-400 opacity-50" />
           </div>
@@ -178,7 +128,7 @@ export default function ProjectDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-400">At Risk</p>
-              <p className="text-2xl font-semibold text-yellow-400 mt-1">{atRiskProjects}</p>
+              <p className="text-2xl font-semibold text-yellow-400 mt-1">{projectStats.atRisk}</p>
             </div>
             <AlertCircle className="w-8 h-8 text-yellow-400 opacity-50" />
           </div>
@@ -193,6 +143,8 @@ export default function ProjectDashboard() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-500" />
             <input
               type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search projects by name or description..."
               className="glass-input w-full pl-12 pr-4 py-3 text-slate-100 placeholder-slate-500"
             />
@@ -202,10 +154,10 @@ export default function ProjectDashboard() {
         {/* Status Filter */}
         <div className="flex gap-2">
           {[
-            { value: 'all', label: 'All', count: totalProjects },
-            { value: 'planning', label: 'Planning', count: projects.filter(p => p.status === 'planning').length },
-            { value: 'active', label: 'Active', count: activeProjects },
-            { value: 'completed', label: 'Completed', count: completedProjects },
+            { value: 'all', label: 'All', count: projectStats.total },
+            { value: 'planning', label: 'Planning', count: projectStats.planning },
+            { value: 'active', label: 'Active', count: projectStats.active },
+            { value: 'completed', label: 'Completed', count: projectStats.completed },
           ].map((filter) => (
             <button
               key={filter.value}
@@ -250,7 +202,26 @@ export default function ProjectDashboard() {
       </div>
 
       {/* Project Grid/List */}
-      {viewMode === 'grid' ? (
+      {loading ? (
+        <div className="flex items-center justify-center h-64">
+          <div className="flex items-center gap-3 text-slate-400">
+            <Loader2 className="w-5 h-5 animate-spin" />
+            <span>Loading projects...</span>
+          </div>
+        </div>
+      ) : error ? (
+        <div className="glass-card p-8 text-center bg-red-500/10 border-red-500/30">
+          <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-red-300 mb-2">Error Loading Projects</h3>
+          <p className="text-red-200 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="glass-button text-red-300 hover:text-red-200 px-4 py-2"
+          >
+            Retry
+          </button>
+        </div>
+      ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredProjects.map((project) => {
             const HealthIcon = getHealthIcon(project.health)
@@ -292,12 +263,12 @@ export default function ProjectDashboard() {
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm text-slate-400">Progress</span>
-                    <span className="text-sm font-medium text-slate-300">{project.progress}%</span>
+                    <span className="text-sm font-medium text-slate-300">{project.progress_percentage}%</span>
                   </div>
                   <div className="w-full bg-slate-700/50 rounded-full h-2">
                     <div
                       className="bg-orange-500 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${project.progress}%` }}
+                      style={{ width: `${project.progress_percentage}%` }}
                     />
                   </div>
                 </div>
@@ -309,7 +280,7 @@ export default function ProjectDashboard() {
                       <Users className="w-4 h-4" />
                       Team
                     </span>
-                    <span className="text-slate-300">{project.teamSize} members</span>
+                    <span className="text-slate-300">{project.team_size || 0} members</span>
                   </div>
                   
                   <div className="flex items-center justify-between text-sm">
@@ -318,7 +289,7 @@ export default function ProjectDashboard() {
                       Tasks
                     </span>
                     <span className="text-slate-300">
-                      {project.tasksCompleted}/{project.totalTasks}
+                      {project.task_stats?.completed_tasks || 0}/{project.task_stats?.total_tasks || 0}
                     </span>
                   </div>
                   
@@ -328,16 +299,16 @@ export default function ProjectDashboard() {
                       Due Date
                     </span>
                     <span className="text-slate-300">
-                      {new Date(project.dueDate).toLocaleDateString()}
+                      {project.due_date ? new Date(project.due_date).toLocaleDateString() : 'No due date'}
                     </span>
                   </div>
 
-                  {project.alignGoal && (
+                  {project.align_goal && (
                     <div className="pt-2 border-t border-slate-700/50">
                       <div className="flex items-center gap-2">
                         <Target className="w-3 h-3 text-orange-400" />
                         <span className="text-xs text-orange-400">
-                          Aligned: {project.alignGoal}
+                          Aligned: {project.align_goal.title}
                         </span>
                       </div>
                     </div>
@@ -367,10 +338,10 @@ export default function ProjectDashboard() {
                       <p className="text-sm text-slate-400 line-clamp-1">
                         {project.description}
                       </p>
-                      {project.alignGoal && (
+                      {project.align_goal && (
                         <div className="flex items-center gap-1 mt-1">
                           <Target className="w-3 h-3 text-orange-400" />
-                          <span className="text-xs text-orange-400">{project.alignGoal}</span>
+                          <span className="text-xs text-orange-400">{project.align_goal.title}</span>
                         </div>
                       )}
                     </div>
@@ -385,13 +356,13 @@ export default function ProjectDashboard() {
                     {/* Progress */}
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm font-medium text-slate-300">{project.progress}%</span>
+                        <span className="text-sm font-medium text-slate-300">{project.progress_percentage}%</span>
                         <HealthIcon className={`w-4 h-4 ${getHealthColor(project.health)}`} />
                       </div>
                       <div className="w-full bg-slate-700/50 rounded-full h-1.5">
                         <div
                           className="bg-orange-500 h-1.5 rounded-full transition-all duration-300"
-                          style={{ width: `${project.progress}%` }}
+                          style={{ width: `${project.progress_percentage}%` }}
                         />
                       </div>
                     </div>
@@ -400,11 +371,11 @@ export default function ProjectDashboard() {
                     <div className="text-sm text-slate-400">
                       <div className="flex items-center gap-1 mb-1">
                         <Users className="w-3 h-3" />
-                        <span>{project.teamSize} members</span>
+                        <span>{project.team_size || 0} members</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <CheckCircle2 className="w-3 h-3" />
-                        <span>{project.tasksCompleted}/{project.totalTasks} tasks</span>
+                        <span>{project.task_stats?.completed_tasks || 0}/{project.task_stats?.total_tasks || 0} tasks</span>
                       </div>
                     </div>
 
@@ -412,7 +383,7 @@ export default function ProjectDashboard() {
                     <div className="text-sm text-slate-400">
                       <div className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
-                        <span>{new Date(project.dueDate).toLocaleDateString()}</span>
+                        <span>{project.due_date ? new Date(project.due_date).toLocaleDateString() : 'No due date'}</span>
                       </div>
                     </div>
                   </div>

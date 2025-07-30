@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { DevAuthProvider, useDevAuth, AuthGuard, DevLoginPage } from '@aesyros/auth'
+import { CrossAppProvider } from '@aesyros/shared-state'
 import Layout from '@/components/Layout'
 import DashboardPage from '@/features/dashboard/pages/DashboardPage'
 import ProjectsPage from '@/features/projects/pages/ProjectsPage'
@@ -41,7 +42,9 @@ function AppRoutes() {
 function App() {
   return (
     <DevAuthProvider>
-      <AppRoutes />
+      <CrossAppProvider appName="drive">
+        <AppRoutes />
+      </CrossAppProvider>
     </DevAuthProvider>
   )
 }

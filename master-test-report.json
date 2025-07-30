@@ -1,0 +1,46 @@
+{
+  "timestamp": "2025-07-29T17:38:37.617Z",
+  "summary": {
+    "total": 2,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 1,
+    "success_rate": 50,
+    "duration": 223
+  },
+  "tests": [
+    {
+      "name": "Cross-App Integration Tests",
+      "description": "Tests database integration and cross-app data synchronization",
+      "success": true,
+      "skipped": false,
+      "duration": 216,
+      "output": "",
+      "error": null,
+      "timestamp": "2025-07-29T17:38:37.401Z"
+    },
+    {
+      "name": "UI Workflow Tests",
+      "description": "Tests user interface workflows and interactions",
+      "success": false,
+      "skipped": true,
+      "duration": 0,
+      "output": "",
+      "error": "Missing requirements: puppeteer",
+      "timestamp": "2025-07-29T17:38:37.617Z"
+    }
+  ],
+  "environment": {
+    "node_version": "v22.16.0",
+    "platform": "darwin",
+    "arch": "x64",
+    "cwd": "/Users/mark/Aeseyros Labs/aesyros-suite",
+    "env_vars": {
+      "SUPABASE_URL": "***"
+    }
+  },
+  "recommendations": [
+    "Install missing dependencies to run skipped tests",
+    "Success rate below 80% - investigate system issues"
+  ]
+}

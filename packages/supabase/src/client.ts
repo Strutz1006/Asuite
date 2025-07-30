@@ -2,8 +2,8 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from './types/database'
 
 // Environment variables - use import.meta.env for Vite apps
-const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL
-const supabaseAnonKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error(

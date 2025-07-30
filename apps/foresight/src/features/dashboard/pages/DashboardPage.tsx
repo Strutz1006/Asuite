@@ -167,7 +167,7 @@ export default function DashboardPage() {
           </p>
         </div>
         <Link
-          to="/scenarios/new"
+          to="/builder"
           className="glass-button text-purple-300 hover:text-purple-200 px-4 py-2 flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
@@ -428,7 +428,7 @@ export default function DashboardPage() {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Link to="/scenarios/new" className="glass-card p-6 hover:bg-slate-800/40 transition-colors">
+        <Link to="/builder" className="glass-card p-6 hover:bg-slate-800/40 transition-colors">
           <Brain className="w-8 h-8 text-purple-400 mb-3" />
           <h3 className="text-lg font-semibold text-slate-100 mb-2">Create Scenario</h3>
           <p className="text-slate-400 text-sm">Design and model new strategic scenarios</p>

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Calendar, Users, Target, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react'
-import { Task } from '../TaskManager'
+import { Task } from '../../hooks/useTasks'
 
 interface GanttViewProps {
   tasks: Task[]

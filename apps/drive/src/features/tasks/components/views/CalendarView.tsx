@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight, Calendar, Clock, Users, Target } from 'lucide-react'
-import { Task } from '../TaskManager'
+import { Task } from '../../hooks/useTasks'
 
 interface CalendarViewProps {
   tasks: Task[]

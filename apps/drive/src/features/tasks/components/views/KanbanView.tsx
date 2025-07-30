@@ -1,5 +1,5 @@
 import { Calendar, Users, Target, AlertCircle, Clock, MoreVertical } from 'lucide-react'
-import { Task } from '../TaskManager'
+import { Task } from '../../hooks/useTasks'
 
 interface KanbanViewProps {
   tasks: Task[]
@@ -88,34 +88,34 @@ export default function KanbanView({ tasks }: KanbanViewProps) {
                     {/* Project & Goal */}
                     <div className="space-y-1">
                       <div className="text-xs text-slate-500">
-                        📁 {task.project}
+                        📁 {task.project?.name || 'No Project'}
                       </div>
-                      {task.alignGoal && (
+                      {task.align_goal && (
                         <div className="flex items-center gap-1">
                           <Target className="w-3 h-3 text-orange-400" />
-                          <span className="text-xs text-orange-400">{task.alignGoal}</span>
+                          <span className="text-xs text-orange-400">{task.align_goal.title}</span>
                         </div>
                       )}
                     </div>
 
                     {/* Progress Bar */}
-                    {task.progress > 0 && (
+                    {task.progress_percentage > 0 && (
                       <div>
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-xs text-slate-400">Progress</span>
-                          <span className="text-xs text-slate-300">{task.progress}%</span>
+                          <span className="text-xs text-slate-300">{task.progress_percentage}%</span>
                         </div>
                         <div className="w-full bg-slate-700/50 rounded-full h-1">
                           <div
                             className="bg-orange-500 h-1 rounded-full transition-all duration-300"
-                            style={{ width: `${task.progress}%` }}
+                            style={{ width: `${task.progress_percentage}%` }}
                           />
                         </div>
                       </div>
                     )}
 
                     {/* Tags */}
-                    {task.tags.length > 0 && (
+                    {task.tags && task.tags.length > 0 && (
                       <div className="flex flex-wrap gap-1">
                         {task.tags.slice(0, 3).map((tag) => (
                           <span
@@ -137,34 +137,36 @@ export default function KanbanView({ tasks }: KanbanViewProps) {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1">
                         <Users className="w-3 h-3 text-slate-500" />
-                        <span className="text-xs text-slate-400">{task.assignee}</span>
+                        <span className="text-xs text-slate-400">{task.assignee?.full_name || 'Unassigned'}</span>
                       </div>
                       
-                      <div className={`flex items-center gap-1 ${
-                        isOverdue(task.dueDate, task.status) ? 'text-red-400' : 'text-slate-400'
-                      }`}>
-                        {isOverdue(task.dueDate, task.status) && (
-                          <AlertCircle className="w-3 h-3" />
-                        )}
-                        <Calendar className="w-3 h-3" />
-                        <span className="text-xs">
-                          {new Date(task.dueDate).toLocaleDateString('en-US', { 
-                            month: 'short', 
-                            day: 'numeric' 
-                          })}
-                        </span>
-                      </div>
+                      {task.due_date && (
+                        <div className={`flex items-center gap-1 ${
+                          isOverdue(task.due_date, task.status) ? 'text-red-400' : 'text-slate-400'
+                        }`}>
+                          {isOverdue(task.due_date, task.status) && (
+                            <AlertCircle className="w-3 h-3" />
+                          )}
+                          <Calendar className="w-3 h-3" />
+                          <span className="text-xs">
+                            {new Date(task.due_date).toLocaleDateString('en-US', { 
+                              month: 'short', 
+                              day: 'numeric' 
+                            })}
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Time Tracking */}
-                    {task.actualHours > 0 && (
+                    {task.actual_hours && task.actual_hours > 0 && (
                       <div className="flex items-center justify-between text-xs">
                         <div className="flex items-center gap-1 text-slate-500">
                           <Clock className="w-3 h-3" />
                           <span>Time</span>
                         </div>
                         <span className="text-slate-400">
-                          {task.actualHours}h / {task.estimatedHours}h
+                          {task.actual_hours}h / {task.estimated_hours || 0}h
                         </span>
                       </div>
                     )}
