@@ -17,7 +17,35 @@ export function useAuth() {
     error: null
   })
 
+  // Mock user for development mode
+  const mockUser = process.env.NODE_ENV === 'development' ? {
+    id: '550e8400-e29b-41d4-a716-446655440001', // Proper UUID format
+    email: 'dev@aesyros.com',
+    user_metadata: {
+      full_name: 'Dev User'
+    },
+    role: 'authenticated',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    aud: 'authenticated',
+    app_metadata: {},
+    identities: [],
+    factors: []
+  } as User : null
+
   useEffect(() => {
+    // In development mode, use mock user
+    if (process.env.NODE_ENV === 'development') {
+      setState(prev => ({
+        ...prev,
+        user: mockUser,
+        session: null, // Mock session not needed for dev
+        loading: false,
+        error: null
+      }))
+      return
+    }
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       setState(prev => ({
@@ -43,7 +71,7 @@ export function useAuth() {
     })
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, []) // Remove mockUser dependency to prevent infinite loop
 
   const signIn = async (email: string, password: string) => {
     setState(prev => ({ ...prev, loading: true, error: null }))

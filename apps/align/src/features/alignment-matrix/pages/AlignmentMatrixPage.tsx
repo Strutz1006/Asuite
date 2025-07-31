@@ -5,7 +5,6 @@ import { useGoals } from '../../goals/hooks/useGoals';
 import { supabase } from '@aesyros/supabase';
 
 export function AlignmentMatrixPage() {
-  const [selectedView, setSelectedView] = useState('matrix');
   const [filterLevel, setFilterLevel] = useState('all');
   const [filterDepartment, setFilterDepartment] = useState('all');
   const [departments, setDepartments] = useState<any[]>([]);
@@ -75,15 +74,14 @@ export function AlignmentMatrixPage() {
     // Calculate coverage gaps (objectives with fewer than 2 aligned goals)
     const coverageGaps = strategicObjectives.filter(objective => {
       const alignedGoals = filteredGoals.filter(g => 
-        g.parent_id === objective.id || // Direct parent relationship
-        g.linkedObjective === objective.id // New linking system
+        g.parent_id === objective.id // Direct parent relationship
       ).length;
       return alignedGoals < 2;
     }).length;
 
     // Calculate dependencies (goals linked to objectives)
     const dependencies = filteredGoals.filter(g => 
-      g.parent_id || g.linkedObjective
+      g.parent_id
     ).length;
 
     return {
@@ -99,7 +97,13 @@ export function AlignmentMatrixPage() {
 
   // Calculate department alignment insights
   const getDepartmentInsights = () => {
-    const insights = [];
+    const insights: Array<{
+      department: string;
+      alignedGoals: number;
+      totalGoals: number;
+      coverage: number;
+      recommendation: string;
+    }> = [];
     
     departments.forEach(dept => {
       const deptGoals = filteredGoals.filter(g => g.department_id === dept.id);
@@ -337,8 +341,6 @@ export function AlignmentMatrixPage() {
                         const getAlignment = () => {
                           // Direct parent relationship (strongest alignment)
                           if (goal.parent_id === objective.id) return 'strong';
-                          // New linking system from goal creation wizard
-                          if (goal.linkedObjective === objective.id) return 'strong';
                           // Keyword matching for medium alignment
                           const goalWords = goal.title.toLowerCase().split(' ');
                           const objectiveWords = objective.name.toLowerCase().split(' ');

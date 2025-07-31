@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Target, BarChart3, TrendingUp, Menu, X, Grid3X3, Zap, Activity, Eye, Workflow, CheckSquare, User, LogOut, GitBranch, Clock, Mountain, Compass, Building2, Settings } from 'lucide-react'
+import { Target, BarChart3, Menu, X, Grid3X3, Zap, Activity, Eye, Workflow, CheckSquare, User, LogOut, GitBranch, Clock, Mountain, Compass, Building2, Settings } from 'lucide-react'
 import { useState } from 'react'
 import { useDevAuth } from '@aesyros/auth'
 import { CrossAppNotificationBell, ConnectionStatus } from '@aesyros/shared-state'

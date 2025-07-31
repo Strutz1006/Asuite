@@ -4,8 +4,7 @@ import { useSetupStatus } from '@/hooks/useSetupStatus'
 import { useGoals } from '@/features/goals/hooks/useGoals'
 import { useStrategicPerformance } from '@/hooks/useStrategicPerformance'
 import { GoalCreationWizard } from '@/features/goals/components/GoalCreationWizard'
-import { useEffect, useState } from 'react'
-import { supabase } from '@aesyros/supabase'
+import { useState } from 'react'
 
 export default function DashboardPage() {
   const { isSetupComplete, loading: setupLoading, organization } = useSetupStatus()

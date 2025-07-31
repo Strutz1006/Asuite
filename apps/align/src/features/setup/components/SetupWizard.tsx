@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronRight, ChevronLeft, Check, Building2, Target, Eye, Sparkles, Users, BarChart3 } from 'lucide-react'
+import { ChevronRight, ChevronLeft, Check, Building2, Target, Eye, Sparkles, Users } from 'lucide-react'
 import { supabase } from '@aesyros/supabase'
 import CompanyDetailsStep from './steps/CompanyDetailsStep'
 import VisionValuesStep from './steps/VisionValuesStep'

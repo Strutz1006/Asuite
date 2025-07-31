@@ -8,112 +8,100 @@ import { useState } from 'react';
 interface MilestoneTrackerProps {
   filterPeriod: string;
   filterDepartment: string;
+  goals: any[];
 }
 
-export function MilestoneTracker({ filterPeriod, filterDepartment }: MilestoneTrackerProps) {
+export function MilestoneTracker({ filterPeriod, filterDepartment, goals }: MilestoneTrackerProps) {
   const [selectedGoal, setSelectedGoal] = useState('all');
 
-  // Mock data - would come from API
-  const milestones = [
-    {
-      id: 1,
-      goalId: 'goal-1',
-      goalTitle: 'Cloud Infrastructure Migration',
-      title: 'Development Environment Migration',
-      description: 'Complete migration of all development servers and applications',
-      status: 'completed',
-      dueDate: '2024-01-10',
-      completedDate: '2024-01-08',
-      progress: 100,
-      dependencies: [],
-      assignee: 'Sarah Chen',
-      department: 'Engineering'
-    },
-    {
-      id: 2,
-      goalId: 'goal-1',
-      goalTitle: 'Cloud Infrastructure Migration',
-      title: 'Staging Environment Migration',
-      description: 'Migrate staging environment with full testing suite',
-      status: 'in-progress',
-      dueDate: '2024-01-20',
-      completedDate: null,
-      progress: 75,
-      dependencies: ['Development Environment Migration'],
-      assignee: 'Sarah Chen',
-      department: 'Engineering'
-    },
-    {
-      id: 3,
-      goalId: 'goal-1',
-      goalTitle: 'Cloud Infrastructure Migration',
-      title: 'Production Cutover',
-      description: 'Execute production migration with zero-downtime strategy',
-      status: 'pending',
-      dueDate: '2024-02-01',
-      completedDate: null,
-      progress: 15,
-      dependencies: ['Staging Environment Migration'],
-      assignee: 'Sarah Chen',
-      department: 'Engineering'
-    },
-    {
-      id: 4,
-      goalId: 'goal-2',
-      goalTitle: 'Customer Satisfaction Score',
-      title: 'Customer Survey Implementation',
-      description: 'Deploy new customer feedback collection system',
-      status: 'completed',
-      dueDate: '2024-01-05',
-      completedDate: '2024-01-05',
-      progress: 100,
-      dependencies: [],
-      assignee: 'Mike Johnson',
-      department: 'Sales'
-    },
-    {
-      id: 5,
-      goalId: 'goal-2',
-      goalTitle: 'Customer Satisfaction Score',
-      title: 'Response Rate Optimization',
-      description: 'Achieve 75% customer survey response rate',
-      status: 'in-progress',
-      dueDate: '2024-01-25',
-      completedDate: null,
-      progress: 82,
-      dependencies: ['Customer Survey Implementation'],
-      assignee: 'Mike Johnson',
-      department: 'Sales'
-    },
-    {
-      id: 6,
-      goalId: 'goal-3',
-      goalTitle: 'Brand Awareness Campaign',
-      title: 'Creative Asset Development',
-      description: 'Complete all creative assets for multi-channel campaign',
-      status: 'overdue',
-      dueDate: '2024-01-15',
-      completedDate: null,
-      progress: 45,
-      dependencies: [],
-      assignee: 'David Kim',
-      department: 'Marketing'
-    },
-    {
-      id: 7,
-      goalId: 'goal-3',
-      goalTitle: 'Brand Awareness Campaign',
-      title: 'Campaign Launch Preparation',
-      description: 'Finalize media buying and launch schedule',
-      status: 'at-risk',
-      dueDate: '2024-01-30',
-      completedDate: null,
-      progress: 20,
-      dependencies: ['Creative Asset Development'],
-      assignee: 'David Kim',
-      department: 'Marketing'
-    }
-  ];
+  // Generate milestones from real goals data
+  const generateMilestonesFromGoals = () => {
+    if (!goals || goals.length === 0) return [];
+
+    return goals
+      .filter(goal => {
+        // Apply department filter
+        if (filterDepartment !== 'all' && goal.department_id !== filterDepartment) {
+          return false;
+        }
+        
+        // Apply period filter based on due_date or created_at
+        const goalDate = goal.due_date || goal.created_at;
+        if (!goalDate) return true; // Include goals without dates
+        
+        const date = new Date(goalDate);
+        const now = new Date();
+        
+        switch (filterPeriod) {
+          case 'current-quarter': {
+            const quarter = Math.floor(now.getMonth() / 3);
+            const quarterStart = new Date(now.getFullYear(), quarter * 3, 1);
+            const quarterEnd = new Date(now.getFullYear(), (quarter + 1) * 3, 0);
+            return date >= quarterStart && date <= quarterEnd;
+          }
+          case 'last-quarter': {
+            const quarter = Math.floor(now.getMonth() / 3) - 1;
+            const year = quarter < 0 ? now.getFullYear() - 1 : now.getFullYear();
+            const adjustedQuarter = quarter < 0 ? 3 : quarter;
+            const quarterStart = new Date(year, adjustedQuarter * 3, 1);
+            const quarterEnd = new Date(year, (adjustedQuarter + 1) * 3, 0);
+            return date >= quarterStart && date <= quarterEnd;
+          }
+          case 'current-year':
+            return date.getFullYear() === now.getFullYear();
+          case 'last-30-days': {
+            const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            return date >= thirtyDaysAgo && date <= now;
+          }
+          case 'last-90-days': {
+            const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+            return date >= ninetyDaysAgo && date <= now;
+          }
+          default:
+            return true;
+        }
+      })
+      .map(goal => {
+        // Determine milestone status based on goal status and progress
+        let status = 'pending';
+        if (goal.status === 'completed') {
+          status = 'completed';
+        } else if (goal.progress_percentage >= 80) {
+          status = 'in-progress';
+        } else if (goal.due_date) {
+          const dueDate = new Date(goal.due_date);
+          const now = new Date();
+          const daysUntilDue = Math.ceil((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+          
+          if (daysUntilDue < 0) {
+            status = 'overdue';
+          } else if (daysUntilDue <= 7 && goal.progress_percentage < 70) {
+            status = 'at-risk';
+          } else if (goal.progress_percentage > 0) {
+            status = 'in-progress';
+          }
+        } else if (goal.progress_percentage > 0) {
+          status = 'in-progress';
+        }
+
+        return {
+          id: goal.id,
+          goalId: goal.id,
+          goalTitle: goal.title,
+          title: `${goal.title} Milestone`,
+          description: goal.description || `Complete ${goal.title}`,
+          status,
+          dueDate: goal.due_date || '',
+          completedDate: goal.completion_date || null,
+          progress: goal.progress_percentage,
+          dependencies: [], // Could be derived from parent_id if needed
+          assignee: goal.owner?.full_name || 'Unassigned',
+          department: goal.department?.name || goal.team?.name || 'General'
+        };
+      });
+  };
+
+  const milestones = generateMilestonesFromGoals();
 
   const getStatusColor = (status: string) => {
     switch (status) {

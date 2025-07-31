@@ -3,13 +3,8 @@ import { Link } from 'react-router-dom';
 import { 
   BarChart3, 
   TrendingUp, 
-  TrendingDown, 
   Target, 
-  Calendar, 
   Users, 
-  Download,
-  RefreshCw,
-  Filter,
   PieChart,
   Activity,
   AlertTriangle,

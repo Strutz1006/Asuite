@@ -1,113 +1,30 @@
-import { useState } from 'react'
-import { Shield, Plus, Edit, Trash2, Search, Mail, Phone, Calendar, X, UserPlus } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Shield, Plus, Edit, Trash2, Search, Mail, Calendar, X, Loader2, AlertCircle, Lock } from 'lucide-react'
+import { useSetupStatus } from '@/hooks/useSetupStatus'
+import { supabase, useLicenseValidation } from '@aesyros/supabase'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 interface User {
   id: string
-  name: string
   email: string
-  role: string
-  department: string
-  team: string
-  phone: string
-  status: 'active' | 'inactive' | 'pending'
-  lastLogin: string
-  joinedAt: string
-  permissions: string[]
+  full_name: string | null
+  avatar_url: string | null
+  job_title: string | null
+  role: string | null
+  department_id: string | null
+  team_id: string | null
+  organization_id: string | null
+  permissions: any
+  preferences: any
+  last_active_at: string | null
+  created_at: string | null
+  updated_at: string | null
+  // Joined data
+  department?: { id: string; name: string } | null
+  team?: { id: string; name: string } | null
 }
 
-const mockUsers: User[] = [
-  {
-    id: '1',
-    name: 'Sarah Chen',
-    email: 'sarah.chen@company.com',
-    role: 'VP Technology',
-    department: 'Technology',
-    team: 'Engineering',
-    phone: '+1 (555) 123-4567',
-    status: 'active',
-    lastLogin: '2024-01-25T10:30:00',
-    joinedAt: '2023-06-15',
-    permissions: ['admin', 'create_goals', 'manage_teams', 'view_analytics']
-  },
-  {
-    id: '2',
-    name: 'Mike Rodriguez',
-    email: 'mike.rodriguez@company.com',
-    role: 'Product Marketing Manager',
-    department: 'Marketing',
-    team: 'Product Marketing',
-    phone: '+1 (555) 234-5678',
-    status: 'active',
-    lastLogin: '2024-01-24T15:45:00',
-    joinedAt: '2023-08-20',
-    permissions: ['create_goals', 'view_analytics', 'manage_objectives']
-  },
-  {
-    id: '3',
-    name: 'Emma Thompson',
-    email: 'emma.thompson@company.com',
-    role: 'Customer Success Lead',
-    department: 'Sales',
-    team: 'Customer Success',
-    phone: '+1 (555) 345-6789',
-    status: 'active',
-    lastLogin: '2024-01-25T09:15:00',
-    joinedAt: '2023-09-10',
-    permissions: ['create_goals', 'view_progress']
-  },
-  {
-    id: '4',
-    name: 'David Kim',
-    email: 'david.kim@company.com',
-    role: 'Senior Developer',
-    department: 'Technology',
-    team: 'Engineering',
-    phone: '+1 (555) 456-7890',
-    status: 'inactive',
-    lastLogin: '2024-01-20T14:20:00',
-    joinedAt: '2023-07-01',
-    permissions: ['create_goals', 'view_progress']
-  },
-  {
-    id: '5',
-    name: 'Lisa Wang',
-    email: 'lisa.wang@company.com',
-    role: 'UX Designer',
-    department: 'Technology',
-    team: 'Engineering',
-    phone: '+1 (555) 567-8901',
-    status: 'pending',
-    lastLogin: '',
-    joinedAt: '2024-01-22',
-    permissions: ['view_progress']
-  }
-]
-
-const roleOptions = [
-  'VP Technology',
-  'VP Marketing', 
-  'VP Sales',
-  'VP Operations',
-  'Director',
-  'Senior Manager',
-  'Manager',
-  'Senior Developer',
-  'Developer',
-  'UX Designer',
-  'Product Manager',
-  'Marketing Specialist',
-  'Sales Representative',
-  'Customer Success Manager'
-]
-
-const departmentOptions = [
-  'Technology',
-  'Marketing',
-  'Sales',
-  'Operations'
-]
-
-const permissionOptions = [
+const defaultPermissionOptions = [
   { id: 'admin', name: 'Administrator', description: 'Full system access' },
   { id: 'create_goals', name: 'Create Goals', description: 'Create and edit goals' },
   { id: 'manage_teams', name: 'Manage Teams', description: 'Manage team assignments' },
@@ -117,95 +34,246 @@ const permissionOptions = [
 ]
 
 export function UsersSection() {
-  const [users, setUsers] = useState<User[]>(mockUsers)
+  const { organization } = useSetupStatus()
+  const { validateUserCreation, usage, getLicenseStatus, loading: licenseLoading } = useLicenseValidation(organization?.id || null)
+  const [users, setUsers] = useState<User[]>([])
+  const [departments, setDepartments] = useState<any[]>([])
+  const [teams, setTeams] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   
   const [formData, setFormData] = useState({
-    name: '',
+    full_name: '',
     email: '',
+    job_title: '',
     role: '',
-    department: '',
-    team: '',
-    phone: '',
+    department_id: '',
+    team_id: '',
     permissions: [] as string[]
   })
 
+  // Fetch users, departments, and teams data
+  useEffect(() => {
+    if (organization?.id) {
+      fetchData()
+    }
+  }, [organization])
+
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      setErrorMessage(null)
+
+      // Fetch users with their department and team information
+      const { data: usersData, error: usersError } = await supabase
+        .from('users')
+        .select(`
+          *,
+          department:departments(id, name),
+          team:teams(id, name)
+        `)
+        .eq('organization_id', organization?.id)
+        .order('full_name')
+
+      if (usersError) throw usersError
+
+      // Fetch departments
+      const { data: departmentsData, error: departmentsError } = await supabase
+        .from('departments')
+        .select('*')
+        .eq('organization_id', organization?.id)
+        .order('name')
+
+      if (departmentsError) throw departmentsError
+
+      // Fetch teams
+      const { data: teamsData, error: teamsError } = await supabase
+        .from('teams')
+        .select('*')
+        .eq('organization_id', organization?.id)
+        .order('name')
+
+      if (teamsError) throw teamsError
+
+      setUsers(usersData || [])
+      setDepartments(departmentsData || [])
+      setTeams(teamsData || [])
+
+    } catch (error) {
+      console.error('Error fetching users data:', error)
+      let message = 'Failed to load users data. Please try refreshing the page.'
+      if (error instanceof Error) {
+        message = error.message
+      }
+      setErrorMessage(message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.department.toLowerCase().includes(searchTerm.toLowerCase())
+    const searchLower = searchTerm.toLowerCase()
+    const matchesSearch = 
+      (user.full_name?.toLowerCase().includes(searchLower)) ||
+      user.email.toLowerCase().includes(searchLower) ||
+      (user.job_title?.toLowerCase().includes(searchLower)) ||
+      (user.role?.toLowerCase().includes(searchLower)) ||
+      (user.department?.name?.toLowerCase().includes(searchLower))
     
-    const matchesStatus = statusFilter === 'all' || user.status === statusFilter
+    // For now, we'll consider all users as "active" since we don't have a status field in the DB
+    const matchesStatus = statusFilter === 'all' || statusFilter === 'active'
     
     return matchesSearch && matchesStatus
   })
 
-  const handleCreate = () => {
-    if (formData.name.trim() && formData.email.trim()) {
-      const newUser: User = {
-        id: Date.now().toString(),
-        name: formData.name,
-        email: formData.email,
-        role: formData.role,
-        department: formData.department,
-        team: formData.team,
-        phone: formData.phone,
-        status: 'pending',
-        lastLogin: '',
-        joinedAt: new Date().toISOString().split('T')[0],
-        permissions: formData.permissions
+  const handleCreate = async () => {
+    if (!formData.full_name.trim() || !formData.email.trim() || !organization?.id) {
+      setErrorMessage('Please fill in required fields')
+      return
+    }
+
+    // Validate license before creating user
+    const userValidation = validateUserCreation()
+    if (!userValidation.canCreate) {
+      setErrorMessage(userValidation.reason || 'Cannot create user due to license restrictions')
+      return
+    }
+
+    try {
+      setSaving(true)
+      setErrorMessage(null)
+
+      const { data, error } = await supabase
+        .from('users')
+        .insert({
+          full_name: formData.full_name,
+          email: formData.email,
+          job_title: formData.job_title || null,
+          role: formData.role || null,
+          department_id: formData.department_id || null,
+          team_id: formData.team_id || null,
+          organization_id: organization.id,
+          permissions: formData.permissions.length > 0 ? formData.permissions : null,
+          preferences: {},
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select(`
+          *,
+          department:departments(id, name),
+          team:teams(id, name)
+        `)
+        .single()
+
+      if (error) throw error
+
+      // Add to local state
+      if (data) {
+        setUsers([...users, data])
       }
       
-      setUsers([...users, newUser])
-      setFormData({ name: '', email: '', role: '', department: '', team: '', phone: '', permissions: [] })
+      setFormData({ full_name: '', email: '', job_title: '', role: '', department_id: '', team_id: '', permissions: [] })
       setShowCreateModal(false)
+      
+    } catch (error) {
+      console.error('Error creating user:', error)
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to create user')
+    } finally {
+      setSaving(false)
     }
   }
 
   const handleEdit = (user: User) => {
     setEditingUser(user)
     setFormData({
-      name: user.name,
+      full_name: user.full_name || '',
       email: user.email,
-      role: user.role,
-      department: user.department,
-      team: user.team,
-      phone: user.phone,
-      permissions: user.permissions
+      job_title: user.job_title || '',
+      role: user.role || '',
+      department_id: user.department_id || '',
+      team_id: user.team_id || '',
+      permissions: Array.isArray(user.permissions) ? user.permissions : []
     })
     setShowCreateModal(true)
   }
 
-  const handleUpdate = () => {
-    if (editingUser && formData.name.trim() && formData.email.trim()) {
-      setUsers(users.map(user => 
-        user.id === editingUser.id 
-          ? {
-              ...user,
-              name: formData.name,
-              email: formData.email,
-              role: formData.role,
-              department: formData.department,
-              team: formData.team,
-              phone: formData.phone,
-              permissions: formData.permissions
-            }
-          : user
-      ))
+  const handleUpdate = async () => {
+    if (!editingUser || !formData.full_name.trim() || !formData.email.trim()) {
+      setErrorMessage('Please fill in required fields')
+      return
+    }
+
+    try {
+      setSaving(true)
+      setErrorMessage(null)
+
+      const { data, error } = await supabase
+        .from('users')
+        .update({
+          full_name: formData.full_name,
+          email: formData.email,
+          job_title: formData.job_title || null,
+          role: formData.role || null,
+          department_id: formData.department_id || null,
+          team_id: formData.team_id || null,
+          permissions: formData.permissions.length > 0 ? formData.permissions : null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', editingUser.id)
+        .select(`
+          *,
+          department:departments(id, name),
+          team:teams(id, name)
+        `)
+        .single()
+
+      if (error) throw error
+
+      // Update local state
+      if (data) {
+        setUsers(users.map(user => 
+          user.id === editingUser.id ? data : user
+        ))
+      }
       
-      setFormData({ name: '', email: '', role: '', department: '', team: '', phone: '', permissions: [] })
+      setFormData({ full_name: '', email: '', job_title: '', role: '', department_id: '', team_id: '', permissions: [] })
       setEditingUser(null)
       setShowCreateModal(false)
+      
+    } catch (error) {
+      console.error('Error updating user:', error)
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to update user')
+    } finally {
+      setSaving(false)
     }
   }
 
-  const handleDelete = (userId: string) => {
-    if (confirm('Are you sure you want to delete this user?')) {
+  const handleDelete = async (userId: string) => {
+    if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      setErrorMessage(null)
+
+      const { error } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', userId)
+
+      if (error) throw error
+
+      // Remove from local state
       setUsers(users.filter(user => user.id !== userId))
+      
+    } catch (error) {
+      console.error('Error deleting user:', error)
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to delete user')
     }
   }
 
@@ -221,19 +289,35 @@ export function UsersSection() {
   const closeModal = () => {
     setShowCreateModal(false)
     setEditingUser(null)
-    setFormData({ name: '', email: '', role: '', department: '', team: '', phone: '', permissions: [] })
+    setFormData({ full_name: '', email: '', job_title: '', role: '', department_id: '', team_id: '', permissions: [] })
+    setErrorMessage(null)
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active': return 'bg-green-500/20 text-green-400'
-      case 'inactive': return 'bg-gray-500/20 text-gray-400'
-      case 'pending': return 'bg-yellow-500/20 text-yellow-400'
-      default: return 'bg-gray-500/20 text-gray-400'
-    }
+  const getStatusColor = (lastActive: string | null) => {
+    if (!lastActive) return 'bg-gray-500/20 text-gray-400' // Never logged in
+    
+    const lastActiveDate = new Date(lastActive)
+    const now = new Date()
+    const daysDiff = Math.floor((now.getTime() - lastActiveDate.getTime()) / (1000 * 60 * 60 * 24))
+    
+    if (daysDiff <= 7) return 'bg-green-500/20 text-green-400' // Active
+    if (daysDiff <= 30) return 'bg-yellow-500/20 text-yellow-400' // Recently active
+    return 'bg-gray-500/20 text-gray-400' // Inactive
   }
 
-  const formatLastLogin = (timestamp: string) => {
+  const getStatusText = (lastActive: string | null) => {
+    if (!lastActive) return 'Never logged in'
+    
+    const lastActiveDate = new Date(lastActive)
+    const now = new Date()
+    const daysDiff = Math.floor((now.getTime() - lastActiveDate.getTime()) / (1000 * 60 * 60 * 24))
+    
+    if (daysDiff <= 7) return 'Active'
+    if (daysDiff <= 30) return 'Recently Active'
+    return 'Inactive'
+  }
+
+  const formatLastLogin = (timestamp: string | null) => {
     if (!timestamp) return 'Never'
     return new Date(timestamp).toLocaleDateString()
   }
@@ -249,14 +333,71 @@ export function UsersSection() {
           </h2>
           <p className="text-slate-400 mt-1">Manage user accounts, roles, and permissions</p>
         </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="glass-button bg-purple-500/20 text-purple-300 hover:text-purple-200 px-4 py-2 flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          Add User
-        </button>
+        <div className="flex items-center gap-4">
+          {/* License Status */}
+          {!licenseLoading && (
+            <div className="text-right">
+              <div className="text-sm text-slate-300">
+                License: <span className={`font-medium ${getLicenseStatus() === 'Active' ? 'text-green-400' : 'text-amber-400'}`}>
+                  {getLicenseStatus()}
+                </span>
+              </div>
+              <div className="text-xs text-slate-400">
+                {usage.maxUsers ? `${usage.currentUsers}/${usage.maxUsers} users` : `${usage.currentUsers} users`}
+                {usage.maxUsers && (
+                  <span className={`ml-2 ${usage.usagePercentage > 80 ? 'text-amber-400' : 'text-slate-400'}`}>
+                    ({usage.usagePercentage}%)
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+          <button
+            onClick={() => {
+              const validation = validateUserCreation()
+              if (!validation.canCreate) {
+                setErrorMessage(validation.reason || 'Cannot create user')
+                return
+              }
+              setShowCreateModal(true)
+            }}
+            disabled={!validateUserCreation().canCreate}
+            className="glass-button bg-purple-500/20 text-purple-300 hover:text-purple-200 px-4 py-2 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {!validateUserCreation().canCreate ? <Lock className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+            Add User
+          </button>
+        </div>
       </div>
+
+      {/* License Warning */}
+      {!licenseLoading && usage.usagePercentage > 80 && usage.usagePercentage < 100 && (
+        <Alert className="border-amber-500/20 bg-amber-500/10">
+          <AlertCircle className="h-4 w-4 text-amber-400" />
+          <AlertDescription className="text-amber-300">
+            You're approaching your user limit ({usage.currentUsers}/{usage.maxUsers}). 
+            Consider upgrading your license to add more users.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Error Display */}
+      {errorMessage && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{errorMessage}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Loading State */}
+      {loading && (
+        <div className="glass-card p-8 text-center">
+          <div className="flex items-center justify-center gap-3">
+            <Loader2 className="w-6 h-6 text-purple-400 animate-spin" />
+            <span className="text-slate-300">Loading users...</span>
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="glass-card p-4">
@@ -302,33 +443,35 @@ export function UsersSection() {
                 <tr key={user.id} className="hover:bg-slate-800/30">
                   <td className="px-6 py-4">
                     <div>
-                      <div className="text-sm font-medium text-slate-100">{user.name}</div>
+                      <div className="text-sm font-medium text-slate-100">{user.full_name || 'Unnamed User'}</div>
                       <div className="text-sm text-slate-400 flex items-center gap-2">
                         <Mail className="w-3 h-3" />
                         {user.email}
                       </div>
-                      {user.phone && (
-                        <div className="text-sm text-slate-400 flex items-center gap-2 mt-1">
-                          <Phone className="w-3 h-3" />
-                          {user.phone}
+                      {user.job_title && (
+                        <div className="text-sm text-slate-400 mt-1">
+                          {user.job_title}
                         </div>
                       )}
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm text-slate-100">{user.role}</div>
-                    <div className="text-sm text-slate-400">{user.department} • {user.team}</div>
+                    <div className="text-sm text-slate-100">{user.role || 'No role assigned'}</div>
+                    <div className="text-sm text-slate-400">
+                      {user.department?.name || 'No department'} 
+                      {user.team?.name && ` • ${user.team.name}`}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(user.status)}`}>
-                      {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(user.last_active_at)}`}>
+                      {getStatusText(user.last_active_at)}
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm text-slate-100">{formatLastLogin(user.lastLogin)}</div>
+                    <div className="text-sm text-slate-100">{formatLastLogin(user.last_active_at)}</div>
                     <div className="text-sm text-slate-400 flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
-                      Joined {new Date(user.joinedAt).toLocaleDateString()}
+                      Joined {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -390,8 +533,8 @@ export function UsersSection() {
                   </label>
                   <input
                     type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    value={formData.full_name}
+                    onChange={(e) => setFormData({...formData, full_name: e.target.value})}
                     className="w-full px-3 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                     placeholder="Enter full name"
                   />
@@ -414,63 +557,74 @@ export function UsersSection() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Role
+                    Job Title
                   </label>
-                  <select
-                    value={formData.role}
-                    onChange={(e) => setFormData({...formData, role: e.target.value})}
-                    className="w-full px-3 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                  >
-                    <option value="">Select role</option>
-                    {roleOptions.map(role => (
-                      <option key={role} value={role}>{role}</option>
-                    ))}
-                  </select>
+                  <input
+                    type="text"
+                    value={formData.job_title}
+                    onChange={(e) => setFormData({...formData, job_title: e.target.value})}
+                    className="w-full px-3 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    placeholder="e.g. Senior Developer, Product Manager"
+                  />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Department
+                    Role
                   </label>
-                  <select
-                    value={formData.department}
-                    onChange={(e) => setFormData({...formData, department: e.target.value})}
-                    className="w-full px-3 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                  >
-                    <option value="">Select department</option>
-                    {departmentOptions.map(dept => (
-                      <option key={dept} value={dept}>{dept}</option>
-                    ))}
-                  </select>
+                  <input
+                    type="text"
+                    value={formData.role}
+                    onChange={(e) => setFormData({...formData, role: e.target.value})}
+                    className="w-full px-3 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    placeholder="e.g. Admin, Manager, Employee"
+                  />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Team
+                    Department
                   </label>
-                  <input
-                    type="text"
-                    value={formData.team}
-                    onChange={(e) => setFormData({...formData, team: e.target.value})}
-                    className="w-full px-3 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    placeholder="Team name"
-                  />
+                  <select
+                    value={formData.department_id}
+                    onChange={(e) => setFormData({...formData, department_id: e.target.value})}
+                    className="w-full px-3 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  >
+                    <option value="">No department</option>
+                    {departments.map(dept => (
+                      <option key={dept.id} value={dept.id}>{dept.name}</option>
+                    ))}
+                  </select>
+                  {departments.length === 0 && (
+                    <p className="text-xs text-amber-400 mt-1">
+                      💡 Create departments first in the Departments tab, then assign users to them
+                    </p>
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Phone Number
+                    Team
                   </label>
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    className="w-full px-3 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    placeholder="+1 (555) 123-4567"
-                  />
+                  <select
+                    value={formData.team_id}
+                    onChange={(e) => setFormData({...formData, team_id: e.target.value})}
+                    className="w-full px-3 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  >
+                    <option value="">No team</option>
+                    {teams.map(team => (
+                      <option key={team.id} value={team.id}>{team.name}</option>
+                    ))}
+                  </select>
+                  {teams.length === 0 && (
+                    <p className="text-xs text-amber-400 mt-1">
+                      💡 Create teams first in the Teams tab, then assign users to them
+                    </p>
+                  )}
                 </div>
+
               </div>
 
               <div>
@@ -478,7 +632,7 @@ export function UsersSection() {
                   Permissions
                 </label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {permissionOptions.map(permission => (
+                  {defaultPermissionOptions.map(permission => (
                     <div key={permission.id} className="flex items-start">
                       <input
                         type="checkbox"
@@ -508,10 +662,17 @@ export function UsersSection() {
               </button>
               <button
                 onClick={editingUser ? handleUpdate : handleCreate}
-                disabled={!formData.name.trim() || !formData.email.trim()}
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                disabled={!formData.full_name.trim() || !formData.email.trim() || saving}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
               >
-                {editingUser ? 'Update User' : 'Add User'}
+                {saving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    {editingUser ? 'Updating...' : 'Adding...'}
+                  </>
+                ) : (
+                  editingUser ? 'Update User' : 'Add User'
+                )}
               </button>
             </div>
           </div>

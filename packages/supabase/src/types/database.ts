@@ -2834,6 +2834,216 @@ export type Database = {
           },
         ]
       }
+      license_plans: {
+        Row: {
+          id: string
+          name: string
+          slug: string
+          description: string | null
+          pricing_model: string
+          price_per_unit: number | null
+          currency: string | null
+          billing_cycle: string | null
+          max_users: number | null
+          included_apps: string[]
+          features: Json | null
+          is_active: boolean | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          slug: string
+          description?: string | null
+          pricing_model: string
+          price_per_unit?: number | null
+          currency?: string | null
+          billing_cycle?: string | null
+          max_users?: number | null
+          included_apps: string[]
+          features?: Json | null
+          is_active?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          slug?: string
+          description?: string | null
+          pricing_model?: string
+          price_per_unit?: number | null
+          currency?: string | null
+          billing_cycle?: string | null
+          max_users?: number | null
+          included_apps?: string[]
+          features?: Json | null
+          is_active?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      organization_licenses: {
+        Row: {
+          id: string
+          organization_id: string
+          license_plan_id: string
+          status: string
+          trial_ends_at: string | null
+          subscription_starts_at: string | null
+          subscription_ends_at: string | null
+          current_user_count: number | null
+          max_users: number | null
+          billing_contact_email: string | null
+          payment_provider: string | null
+          external_subscription_id: string | null
+          metadata: Json | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          organization_id: string
+          license_plan_id: string
+          status: string
+          trial_ends_at?: string | null
+          subscription_starts_at?: string | null
+          subscription_ends_at?: string | null
+          current_user_count?: number | null
+          max_users?: number | null
+          billing_contact_email?: string | null
+          payment_provider?: string | null
+          external_subscription_id?: string | null
+          metadata?: Json | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          organization_id?: string
+          license_plan_id?: string
+          status?: string
+          trial_ends_at?: string | null
+          subscription_starts_at?: string | null
+          subscription_ends_at?: string | null
+          current_user_count?: number | null
+          max_users?: number | null
+          billing_contact_email?: string | null
+          payment_provider?: string | null
+          external_subscription_id?: string | null
+          metadata?: Json | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_licenses_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_licenses_license_plan_id_fkey"
+            columns: ["license_plan_id"]
+            isOneToOne: false
+            referencedRelation: "license_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_app_access: {
+        Row: {
+          id: string
+          organization_id: string
+          app_name: string
+          is_enabled: boolean | null
+          feature_limits: Json | null
+          usage_stats: Json | null
+          enabled_at: string | null
+          disabled_at: string | null
+        }
+        Insert: {
+          id?: string
+          organization_id: string
+          app_name: string
+          is_enabled?: boolean | null
+          feature_limits?: Json | null
+          usage_stats?: Json | null
+          enabled_at?: string | null
+          disabled_at?: string | null
+        }
+        Update: {
+          id?: string
+          organization_id?: string
+          app_name?: string
+          is_enabled?: boolean | null
+          feature_limits?: Json | null
+          usage_stats?: Json | null
+          enabled_at?: string | null
+          disabled_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_app_access_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_license_assignments: {
+        Row: {
+          id: string
+          organization_id: string
+          user_id: string
+          assigned_apps: string[]
+          assigned_at: string | null
+          assigned_by: string | null
+        }
+        Insert: {
+          id?: string
+          organization_id: string
+          user_id: string
+          assigned_apps: string[]
+          assigned_at?: string | null
+          assigned_by?: string | null
+        }
+        Update: {
+          id?: string
+          organization_id?: string
+          user_id?: string
+          assigned_apps?: string[]
+          assigned_at?: string | null
+          assigned_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_license_assignments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_license_assignments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_license_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

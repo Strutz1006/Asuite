@@ -1,12 +1,13 @@
 import { useState } from 'react'
-import { Settings, Users, Building, Shield, Globe, Bell, Palette, Database } from 'lucide-react'
+import { Settings, Users, Building, Shield, Globe, Database, CreditCard } from 'lucide-react'
 import { TeamsSection } from '../components/TeamsSection'
 import { DepartmentsSection } from '../components/DepartmentsSection'
 import { UsersSection } from '../components/UsersSection'
 import { OrganizationSection } from '../components/OrganizationSection'
 import { SystemSection } from '../components/SystemSection'
+import { LicenseSection } from '../components/LicenseSection'
 
-type SettingsTab = 'teams' | 'departments' | 'users' | 'organization' | 'system'
+type SettingsTab = 'teams' | 'departments' | 'users' | 'organization' | 'system' | 'license'
 
 const tabs = [
   {
@@ -38,11 +39,19 @@ const tabs = [
     name: 'System',
     icon: Database,
     description: 'Notifications, integrations, and preferences'
+  },
+  {
+    id: 'license' as const,
+    name: process.env.NODE_ENV === 'development' ? 'License (Dev Setup)' : 'License',
+    icon: CreditCard,
+    description: 'View and manage licensing and subscriptions'
   }
 ]
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<SettingsTab>('teams')
+  const [activeTab, setActiveTab] = useState<SettingsTab>(
+    process.env.NODE_ENV === 'development' ? 'license' : 'departments'
+  )
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -56,6 +65,8 @@ export default function SettingsPage() {
         return <OrganizationSection />
       case 'system':
         return <SystemSection />
+      case 'license':
+        return <LicenseSection />
       default:
         return <TeamsSection />
     }
@@ -73,6 +84,11 @@ export default function SettingsPage() {
           <p className="text-slate-400 mt-1">
             Manage your organization's configuration and preferences
           </p>
+          <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+            <p className="text-blue-300 text-sm">
+              💡 <strong>Recommended workflow:</strong> 1) Create Departments → 2) Add Users to departments → 3) Create Teams (can be cross-functional)
+            </p>
+          </div>
         </div>
       </div>
 

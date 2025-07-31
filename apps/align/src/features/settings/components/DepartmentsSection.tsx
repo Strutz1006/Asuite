@@ -1,76 +1,39 @@
-import { useState } from 'react'
-import { Building, Plus, Edit, Trash2, Search, Users, X } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Building, Plus, Edit, Trash2, Search, Users, X, Loader2, AlertCircle } from 'lucide-react'
+import { useSetupStatus } from '@/hooks/useSetupStatus'
+import { supabase } from '@aesyros/supabase'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 interface Department {
   id: string
   name: string
-  description: string
-  headId: string
-  headName: string
-  teamCount: number
-  memberCount: number
-  budget: number
-  createdAt: string
+  description: string | null
+  head_id: string | null
+  budget: number | null
+  organization_id: string | null
+  created_at: string | null
+  updated_at: string | null
+  // Computed fields
+  teamCount?: number
+  memberCount?: number
+  headName?: string
 }
 
-const mockDepartments: Department[] = [
-  {
-    id: '1',
-    name: 'Technology',
-    description: 'Software development, infrastructure, and technical operations',
-    headId: '1',
-    headName: 'Sarah Chen',
-    teamCount: 3,
-    memberCount: 25,
-    budget: 850000,
-    createdAt: '2024-01-10'
-  },
-  {
-    id: '2',
-    name: 'Marketing',
-    description: 'Brand management, digital marketing, and customer acquisition',
-    headId: '2',
-    headName: 'Mike Rodriguez',
-    teamCount: 2,
-    memberCount: 12,
-    budget: 320000,
-    createdAt: '2024-01-12'
-  },
-  {
-    id: '3',
-    name: 'Sales',
-    description: 'Customer relationships, revenue generation, and business development',
-    headId: '3',
-    headName: 'Emma Thompson',
-    teamCount: 2,
-    memberCount: 15,
-    budget: 480000,
-    createdAt: '2024-01-15'
-  },
-  {
-    id: '4',
-    name: 'Operations',
-    description: 'Business operations, HR, finance, and administrative functions',
-    headId: '4',
-    headName: 'David Kim',
-    teamCount: 1,
-    memberCount: 8,
-    budget: 240000,
-    createdAt: '2024-01-18'
-  }
-]
+interface User {
+  id: string
+  full_name: string | null
+  email: string
+  job_title: string | null
+}
 
-const mockUsers = [
-  { id: '1', name: 'Sarah Chen', role: 'VP Technology' },
-  { id: '2', name: 'Mike Rodriguez', role: 'VP Marketing' },
-  { id: '3', name: 'Emma Thompson', role: 'VP Sales' },
-  { id: '4', name: 'David Kim', role: 'VP Operations' },
-  { id: '5', name: 'Lisa Wang', role: 'Director' },
-  { id: '6', name: 'John Smith', role: 'Senior Manager' }
-]
 
 export function DepartmentsSection() {
-  const [departments, setDepartments] = useState<Department[]>(mockDepartments)
+  const { organization } = useSetupStatus()
+  const [departments, setDepartments] = useState<Department[]>([])
+  const [users, setUsers] = useState<User[]>([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(null)
@@ -78,35 +41,115 @@ export function DepartmentsSection() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    headId: '',
+    head_id: '',
     budget: ''
   })
 
+  // Fetch departments and users data
+  useEffect(() => {
+    if (organization?.id) {
+      fetchData()
+    }
+  }, [organization])
+
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      setErrorMessage(null)
+
+      // Fetch departments with computed team and member counts
+      const { data: departmentsData, error: departmentsError } = await supabase
+        .from('departments')
+        .select(`
+          *,
+          teams(id),
+          users(id)
+        `)
+        .eq('organization_id', organization?.id)
+        .order('name')
+
+      if (departmentsError) throw departmentsError
+
+      // Fetch users for department head selection
+      const { data: usersData, error: usersError } = await supabase
+        .from('users')
+        .select('id, full_name, email, job_title')
+        .eq('organization_id', organization?.id)
+        .order('full_name')
+
+      if (usersError) throw usersError
+
+      // Process departments data with computed fields
+      const processedDepartments = (departmentsData || []).map(dept => ({
+        ...dept,
+        teamCount: dept.teams?.length || 0,
+        memberCount: dept.users?.length || 0,
+        headName: usersData?.find(u => u.id === dept.head_id)?.full_name || ''
+      }))
+
+      setDepartments(processedDepartments)
+      setUsers(usersData || [])
+
+    } catch (error) {
+      console.error('Error fetching departments data:', error)
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to load departments data')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const filteredDepartments = departments.filter(dept =>
     dept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    dept.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    dept.headName.toLowerCase().includes(searchTerm.toLowerCase())
+    (dept.description?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (dept.headName?.toLowerCase().includes(searchTerm.toLowerCase()))
   )
 
-  const handleCreate = () => {
-    if (formData.name.trim()) {
-      const head = mockUsers.find(u => u.id === formData.headId)
-      
-      const newDepartment: Department = {
-        id: Date.now().toString(),
-        name: formData.name,
-        description: formData.description,
-        headId: formData.headId,
-        headName: head?.name || '',
-        teamCount: 0,
-        memberCount: 0,
-        budget: parseFloat(formData.budget) || 0,
-        createdAt: new Date().toISOString().split('T')[0]
+  const handleCreate = async () => {
+    if (!formData.name.trim() || !organization?.id) {
+      setErrorMessage('Please fill in required fields')
+      return
+    }
+
+    try {
+      setSaving(true)
+      setErrorMessage(null)
+
+      const { data, error } = await supabase
+        .from('departments')
+        .insert({
+          name: formData.name,
+          description: formData.description || null,
+          head_id: formData.head_id || null,
+          budget: formData.budget ? parseFloat(formData.budget) : null,
+          organization_id: organization.id,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select('*')
+        .single()
+
+      if (error) throw error
+
+      // Add computed fields and add to local state
+      if (data) {
+        const headUser = users.find(u => u.id === data.head_id)
+        const newDepartment = {
+          ...data,
+          teamCount: 0,
+          memberCount: 0,
+          headName: headUser?.full_name || ''
+        }
+        setDepartments([...departments, newDepartment])
       }
       
-      setDepartments([...departments, newDepartment])
-      setFormData({ name: '', description: '', headId: '', budget: '' })
+      setFormData({ name: '', description: '', head_id: '', budget: '' })
       setShowCreateModal(false)
+      
+    } catch (error) {
+      console.error('Error creating department:', error)
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to create department')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -114,46 +157,94 @@ export function DepartmentsSection() {
     setEditingDepartment(department)
     setFormData({
       name: department.name,
-      description: department.description,
-      headId: department.headId,
-      budget: department.budget.toString()
+      description: department.description || '',
+      head_id: department.head_id || '',
+      budget: department.budget?.toString() || ''
     })
     setShowCreateModal(true)
   }
 
-  const handleUpdate = () => {
-    if (editingDepartment && formData.name.trim()) {
-      const head = mockUsers.find(u => u.id === formData.headId)
+  const handleUpdate = async () => {
+    if (!editingDepartment || !formData.name.trim()) {
+      setErrorMessage('Please fill in required fields')
+      return
+    }
+
+    try {
+      setSaving(true)
+      setErrorMessage(null)
+
+      const { data, error } = await supabase
+        .from('departments')
+        .update({
+          name: formData.name,
+          description: formData.description || null,
+          head_id: formData.head_id || null,
+          budget: formData.budget ? parseFloat(formData.budget) : null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', editingDepartment.id)
+        .select('*')
+        .single()
+
+      if (error) throw error
+
+      // Update local state with computed fields
+      if (data) {
+        const headUser = users.find(u => u.id === data.head_id)
+        const updatedDepartment = {
+          ...data,
+          teamCount: editingDepartment.teamCount || 0,
+          memberCount: editingDepartment.memberCount || 0,
+          headName: headUser?.full_name || ''
+        }
+        
+        setDepartments(departments.map(dept => 
+          dept.id === editingDepartment.id ? updatedDepartment : dept
+        ))
+      }
       
-      setDepartments(departments.map(dept => 
-        dept.id === editingDepartment.id 
-          ? {
-              ...dept,
-              name: formData.name,
-              description: formData.description,
-              headId: formData.headId,
-              headName: head?.name || '',
-              budget: parseFloat(formData.budget) || 0
-            }
-          : dept
-      ))
-      
-      setFormData({ name: '', description: '', headId: '', budget: '' })
+      setFormData({ name: '', description: '', head_id: '', budget: '' })
       setEditingDepartment(null)
       setShowCreateModal(false)
+      
+    } catch (error) {
+      console.error('Error updating department:', error)
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to update department')
+    } finally {
+      setSaving(false)
     }
   }
 
-  const handleDelete = (departmentId: string) => {
-    if (confirm('Are you sure you want to delete this department? This will affect all associated teams and users.')) {
+  const handleDelete = async (departmentId: string) => {
+    if (!confirm('Are you sure you want to delete this department? This will affect all associated teams and users.')) {
+      return
+    }
+
+    try {
+      setErrorMessage(null)
+
+      const { error } = await supabase
+        .from('departments')
+        .delete()
+        .eq('id', departmentId)
+
+      if (error) throw error
+
+      // Remove from local state
       setDepartments(departments.filter(dept => dept.id !== departmentId))
+      
+    } catch (error) {
+      console.error('Error deleting department:', error)
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to delete department')
     }
   }
 
   const closeModal = () => {
     setShowCreateModal(false)
     setEditingDepartment(null)
-    setFormData({ name: '', description: '', headId: '', budget: '' })
+    setFormData({ name: '', description: '', head_id: '', budget: '' })
+    setErrorMessage(null)
   }
 
   const formatCurrency = (amount: number) => {
@@ -183,6 +274,24 @@ export function DepartmentsSection() {
           New Department
         </button>
       </div>
+
+      {/* Error Display */}
+      {errorMessage && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{errorMessage}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Loading State */}
+      {loading && (
+        <div className="glass-card p-8 text-center">
+          <div className="flex items-center justify-center gap-3">
+            <Loader2 className="w-6 h-6 text-green-400 animate-spin" />
+            <span className="text-slate-300">Loading departments...</span>
+          </div>
+        </div>
+      )}
 
       {/* Search */}
       <div className="glass-card p-4">
@@ -225,11 +334,11 @@ export function DepartmentsSection() {
 
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="p-4 bg-slate-800/30 rounded-lg">
-                <div className="text-2xl font-bold text-slate-100">{department.teamCount}</div>
+                <div className="text-2xl font-bold text-slate-100">{department.teamCount || 0}</div>
                 <div className="text-sm text-slate-400">Teams</div>
               </div>
               <div className="p-4 bg-slate-800/30 rounded-lg">
-                <div className="text-2xl font-bold text-slate-100">{department.memberCount}</div>
+                <div className="text-2xl font-bold text-slate-100">{department.memberCount || 0}</div>
                 <div className="text-sm text-slate-400">Members</div>
               </div>
             </div>
@@ -237,17 +346,21 @@ export function DepartmentsSection() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-slate-400">Department Head</span>
-                <span className="text-sm text-slate-300">{department.headName}</span>
+                <span className="text-sm text-slate-300">{department.headName || 'No head assigned'}</span>
               </div>
               
               <div className="flex items-center justify-between">
                 <span className="text-sm text-slate-400">Annual Budget</span>
-                <span className="text-sm text-slate-300 font-medium">{formatCurrency(department.budget)}</span>
+                <span className="text-sm text-slate-300 font-medium">
+                  {department.budget ? formatCurrency(department.budget) : 'Not set'}
+                </span>
               </div>
               
               <div className="flex items-center justify-between">
                 <span className="text-sm text-slate-400">Created</span>
-                <span className="text-sm text-slate-300">{new Date(department.createdAt).toLocaleDateString()}</span>
+                <span className="text-sm text-slate-300">
+                  {department.created_at ? new Date(department.created_at).toLocaleDateString() : 'Unknown'}
+                </span>
               </div>
             </div>
 
@@ -334,13 +447,15 @@ export function DepartmentsSection() {
                   Department Head *
                 </label>
                 <select
-                  value={formData.headId}
-                  onChange={(e) => setFormData({...formData, headId: e.target.value})}
+                  value={formData.head_id}
+                  onChange={(e) => setFormData({...formData, head_id: e.target.value})}
                   className="w-full px-3 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                 >
                   <option value="">Select department head</option>
-                  {mockUsers.map(user => (
-                    <option key={user.id} value={user.id}>{user.name} - {user.role}</option>
+                  {users.map(user => (
+                    <option key={user.id} value={user.id}>
+                      {user.full_name} {user.job_title && `- ${user.job_title}`}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -369,10 +484,17 @@ export function DepartmentsSection() {
               </button>
               <button
                 onClick={editingDepartment ? handleUpdate : handleCreate}
-                disabled={!formData.name.trim() || !formData.headId}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                disabled={!formData.name.trim() || saving}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
               >
-                {editingDepartment ? 'Update Department' : 'Create Department'}
+                {saving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    {editingDepartment ? 'Updating...' : 'Creating...'}
+                  </>
+                ) : (
+                  editingDepartment ? 'Update Department' : 'Create Department'
+                )}
               </button>
             </div>
           </div>

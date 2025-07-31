@@ -22,6 +22,8 @@ export { useOrganizationSync } from './hooks/useOrganizationSync'
 export { CrossAppNotificationBell } from './components/CrossAppNotificationBell'
 export { CrossAppGoalSelector } from './components/CrossAppGoalSelector'
 export { ConnectionStatus } from './components/ConnectionStatus'
+export { LicenseGuard, withLicenseGuard } from './components/LicenseGuard'
+export { LicenseUsageIndicator, LicenseStatusBadge } from './components/LicenseUsageIndicator'
 
 // Types
 export type {

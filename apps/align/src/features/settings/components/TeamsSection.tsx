@@ -1,71 +1,44 @@
-import { useState } from 'react'
-import { Users, Plus, Edit, Trash2, Search, UserPlus, X } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Users, Plus, Edit, Trash2, Search, UserPlus, X, Loader2, AlertCircle } from 'lucide-react'
+import { useSetupStatus } from '@/hooks/useSetupStatus'
+import { supabase } from '@aesyros/supabase'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 interface Team {
   id: string
   name: string
-  description: string
-  memberCount: number
-  departmentId: string
-  departmentName: string
-  leaderId: string
-  leaderName: string
-  createdAt: string
+  description: string | null
+  department_id: string | null
+  team_lead_id: string | null
+  organization_id: string | null
+  created_at: string | null
+  // Computed fields
+  memberCount?: number
+  departmentName?: string
+  leaderName?: string
 }
 
-const mockTeams: Team[] = [
-  {
-    id: '1',
-    name: 'Engineering',
-    description: 'Software development and technical implementation',
-    memberCount: 12,
-    departmentId: '1',
-    departmentName: 'Technology',
-    leaderId: '1',
-    leaderName: 'Sarah Chen',
-    createdAt: '2024-01-15'
-  },
-  {
-    id: '2',
-    name: 'Product Marketing',
-    description: 'Go-to-market strategy and product positioning',
-    memberCount: 6,
-    departmentId: '2',
-    departmentName: 'Marketing',
-    leaderId: '2',
-    leaderName: 'Mike Rodriguez',
-    createdAt: '2024-01-20'
-  },
-  {
-    id: '3',
-    name: 'Customer Success',
-    description: 'Client onboarding and relationship management',
-    memberCount: 8,
-    departmentId: '3',
-    departmentName: 'Sales',
-    leaderId: '3',
-    leaderName: 'Emma Thompson',
-    createdAt: '2024-02-01'
-  }
-]
+interface Department {
+  id: string
+  name: string
+}
 
-const mockDepartments = [
-  { id: '1', name: 'Technology' },
-  { id: '2', name: 'Marketing' },
-  { id: '3', name: 'Sales' },
-  { id: '4', name: 'Operations' }
-]
+interface User {
+  id: string
+  full_name: string | null
+  email: string
+  job_title: string | null
+}
 
-const mockUsers = [
-  { id: '1', name: 'Sarah Chen', role: 'Engineering Manager' },
-  { id: '2', name: 'Mike Rodriguez', role: 'Product Marketing Manager' },
-  { id: '3', name: 'Emma Thompson', role: 'Customer Success Lead' },
-  { id: '4', name: 'David Kim', role: 'Senior Developer' },
-  { id: '5', name: 'Lisa Wang', role: 'UX Designer' }
-]
 
 export function TeamsSection() {
-  const [teams, setTeams] = useState<Team[]>(mockTeams)
+  const { organization } = useSetupStatus()
+  const [teams, setTeams] = useState<Team[]>([])
+  const [departments, setDepartments] = useState<Department[]>([])
+  const [users, setUsers] = useState<User[]>([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingTeam, setEditingTeam] = useState<Team | null>(null)
@@ -73,36 +46,162 @@ export function TeamsSection() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    departmentId: '',
-    leaderId: ''
+    department_id: '',
+    team_lead_id: ''
   })
+
+  // Fetch teams, departments, and users data
+  useEffect(() => {
+    if (organization?.id) {
+      fetchData()
+    }
+  }, [organization])
+
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      setErrorMessage(null)
+
+      // Fetch teams with member counts
+      const { data: teamsData, error: teamsError } = await supabase
+        .from('teams')
+        .select(`
+          *,
+          users(id)
+        `)
+        .eq('organization_id', organization?.id)
+        .order('name')
+
+      if (teamsError) throw teamsError
+
+      // Fetch departments
+      const { data: departmentsData, error: departmentsError } = await supabase
+        .from('departments')
+        .select('id, name')
+        .eq('organization_id', organization?.id)
+        .order('name')
+
+      if (departmentsError) throw departmentsError
+
+      // Fetch users
+      const { data: usersData, error: usersError } = await supabase
+        .from('users')
+        .select('id, full_name, email, job_title')
+        .eq('organization_id', organization?.id)
+        .order('full_name')
+
+      if (usersError) throw usersError
+
+      // Process teams data with computed fields
+      const processedTeams = (teamsData || []).map(team => ({
+        ...team,
+        memberCount: team.users?.length || 0,
+        departmentName: departmentsData?.find(d => d.id === team.department_id)?.name || '',
+        leaderName: usersData?.find(u => u.id === team.team_lead_id)?.full_name || ''
+      }))
+
+      setTeams(processedTeams)
+      setDepartments(departmentsData || [])
+      setUsers(usersData || [])
+
+    } catch (error) {
+      console.error('Error fetching teams data:', error)
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to load teams data')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const filteredTeams = teams.filter(team =>
     team.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    team.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    team.departmentName.toLowerCase().includes(searchTerm.toLowerCase())
+    (team.description?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (team.departmentName?.toLowerCase().includes(searchTerm.toLowerCase()))
   )
 
-  const handleCreate = () => {
-    if (formData.name.trim()) {
-      const department = mockDepartments.find(d => d.id === formData.departmentId)
-      const leader = mockUsers.find(u => u.id === formData.leaderId)
-      
-      const newTeam: Team = {
-        id: Date.now().toString(),
-        name: formData.name,
-        description: formData.description,
-        memberCount: 1, // Just the leader initially
-        departmentId: formData.departmentId,
-        departmentName: department?.name || '',
-        leaderId: formData.leaderId,
-        leaderName: leader?.name || '',
-        createdAt: new Date().toISOString().split('T')[0]
+  const handleCreate = async () => {
+    if (!formData.name.trim() || !organization?.id) {
+      setErrorMessage('Please fill in required fields')
+      return
+    }
+
+    // For cross-functional teams, we need a department_id due to schema constraints
+    // Create a "Cross-Functional" department if none selected and none exists
+    let departmentId = formData.department_id
+
+    if (!departmentId) {
+      // Check if "Cross-Functional" department exists
+      const { data: crossFunctionalDept } = await supabase
+        .from('departments')
+        .select('id')
+        .eq('organization_id', organization.id)
+        .eq('name', 'Cross-Functional')
+        .single()
+
+      if (crossFunctionalDept) {
+        departmentId = crossFunctionalDept.id
+      } else {
+        // Create Cross-Functional department
+        const { data: newDept, error: deptError } = await supabase
+          .from('departments')
+          .insert({
+            name: 'Cross-Functional',
+            description: 'Cross-functional teams that span multiple departments',
+            organization_id: organization.id,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .select('id')
+          .single()
+
+        if (deptError) {
+          setErrorMessage('Failed to create cross-functional department: ' + deptError.message)
+          return
+        }
+        departmentId = newDept.id
+      }
+    }
+
+    try {
+      setSaving(true)
+      setErrorMessage(null)
+
+      const { data, error } = await supabase
+        .from('teams')
+        .insert({
+          name: formData.name,
+          description: formData.description || null,
+          department_id: departmentId,
+          team_lead_id: formData.team_lead_id || null,
+          organization_id: organization.id,
+          created_at: new Date().toISOString()
+        })
+        .select('*')
+        .single()
+
+      if (error) throw error
+
+      // Add computed fields and add to local state
+      if (data) {
+        const department = departments.find(d => d.id === data.department_id)
+        const leader = users.find(u => u.id === data.team_lead_id)
+        
+        const newTeam = {
+          ...data,
+          memberCount: 0, // No members initially
+          departmentName: department?.name || '',
+          leaderName: leader?.full_name || ''
+        }
+        setTeams([...teams, newTeam])
       }
       
-      setTeams([...teams, newTeam])
-      setFormData({ name: '', description: '', departmentId: '', leaderId: '' })
+      setFormData({ name: '', description: '', department_id: '', team_lead_id: '' })
       setShowCreateModal(false)
+      
+    } catch (error) {
+      console.error('Error creating team:', error)
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to create team')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -110,48 +209,96 @@ export function TeamsSection() {
     setEditingTeam(team)
     setFormData({
       name: team.name,
-      description: team.description,
-      departmentId: team.departmentId,
-      leaderId: team.leaderId
+      description: team.description || '',
+      department_id: team.department_id || '',
+      team_lead_id: team.team_lead_id || ''
     })
     setShowCreateModal(true)
   }
 
-  const handleUpdate = () => {
-    if (editingTeam && formData.name.trim()) {
-      const department = mockDepartments.find(d => d.id === formData.departmentId)
-      const leader = mockUsers.find(u => u.id === formData.leaderId)
+  const handleUpdate = async () => {
+    if (!editingTeam || !formData.name.trim()) {
+      setErrorMessage('Please fill in required fields')
+      return
+    }
+
+    try {
+      setSaving(true)
+      setErrorMessage(null)
+
+      const { data, error } = await supabase
+        .from('teams')
+        .update({
+          name: formData.name,
+          description: formData.description || null,
+          department_id: formData.department_id || null,
+          team_lead_id: formData.team_lead_id || null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', editingTeam.id)
+        .select('*')
+        .single()
+
+      if (error) throw error
+
+      // Update local state with computed fields
+      if (data) {
+        const department = departments.find(d => d.id === data.department_id)
+        const leader = users.find(u => u.id === data.team_lead_id)
+        
+        const updatedTeam = {
+          ...data,
+          memberCount: editingTeam.memberCount || 0,
+          departmentName: department?.name || '',
+          leaderName: leader?.full_name || ''
+        }
+        
+        setTeams(teams.map(team => 
+          team.id === editingTeam.id ? updatedTeam : team
+        ))
+      }
       
-      setTeams(teams.map(team => 
-        team.id === editingTeam.id 
-          ? {
-              ...team,
-              name: formData.name,
-              description: formData.description,
-              departmentId: formData.departmentId,
-              departmentName: department?.name || '',
-              leaderId: formData.leaderId,
-              leaderName: leader?.name || ''
-            }
-          : team
-      ))
-      
-      setFormData({ name: '', description: '', departmentId: '', leaderId: '' })
+      setFormData({ name: '', description: '', department_id: '', team_lead_id: '' })
       setEditingTeam(null)
       setShowCreateModal(false)
+      
+    } catch (error) {
+      console.error('Error updating team:', error)
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to update team')
+    } finally {
+      setSaving(false)
     }
   }
 
-  const handleDelete = (teamId: string) => {
-    if (confirm('Are you sure you want to delete this team?')) {
+  const handleDelete = async (teamId: string) => {
+    if (!confirm('Are you sure you want to delete this team? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      setErrorMessage(null)
+
+      const { error } = await supabase
+        .from('teams')
+        .delete()
+        .eq('id', teamId)
+
+      if (error) throw error
+
+      // Remove from local state
       setTeams(teams.filter(team => team.id !== teamId))
+      
+    } catch (error) {
+      console.error('Error deleting team:', error)
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to delete team')
     }
   }
 
   const closeModal = () => {
     setShowCreateModal(false)
     setEditingTeam(null)
-    setFormData({ name: '', description: '', departmentId: '', leaderId: '' })
+    setFormData({ name: '', description: '', department_id: '', team_lead_id: '' })
+    setErrorMessage(null)
   }
 
   return (
@@ -173,6 +320,24 @@ export function TeamsSection() {
           New Team
         </button>
       </div>
+
+      {/* Error Display */}
+      {errorMessage && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{errorMessage}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Loading State */}
+      {loading && (
+        <div className="glass-card p-8 text-center">
+          <div className="flex items-center justify-center gap-3">
+            <Loader2 className="w-6 h-6 text-blue-400 animate-spin" />
+            <span className="text-slate-300">Loading teams...</span>
+          </div>
+        </div>
+      )}
 
       {/* Search */}
       <div className="glass-card p-4">
@@ -216,25 +381,27 @@ export function TeamsSection() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-slate-400">Department</span>
-                <span className="text-sm text-slate-300">{team.departmentName}</span>
+                <span className="text-sm text-slate-300">{team.departmentName || 'No department'}</span>
               </div>
               
               <div className="flex items-center justify-between">
                 <span className="text-sm text-slate-400">Team Lead</span>
-                <span className="text-sm text-slate-300">{team.leaderName}</span>
+                <span className="text-sm text-slate-300">{team.leaderName || 'No lead assigned'}</span>
               </div>
               
               <div className="flex items-center justify-between">
                 <span className="text-sm text-slate-400">Members</span>
                 <span className="text-sm text-slate-300 flex items-center gap-1">
                   <Users className="w-3 h-3" />
-                  {team.memberCount}
+                  {team.memberCount || 0}
                 </span>
               </div>
               
               <div className="flex items-center justify-between">
                 <span className="text-sm text-slate-400">Created</span>
-                <span className="text-sm text-slate-300">{new Date(team.createdAt).toLocaleDateString()}</span>
+                <span className="text-sm text-slate-300">
+                  {team.created_at ? new Date(team.created_at).toLocaleDateString() : 'Unknown'}
+                </span>
               </div>
             </div>
 
@@ -314,32 +481,37 @@ export function TeamsSection() {
 
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Department *
+                  Department
                 </label>
                 <select
-                  value={formData.departmentId}
-                  onChange={(e) => setFormData({...formData, departmentId: e.target.value})}
+                  value={formData.department_id}
+                  onChange={(e) => setFormData({...formData, department_id: e.target.value})}
                   className="w-full px-3 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="">Select department</option>
-                  {mockDepartments.map(dept => (
+                  <option value="">Cross-Functional Team (No specific department)</option>
+                  {departments.map(dept => (
                     <option key={dept.id} value={dept.id}>{dept.name}</option>
                   ))}
                 </select>
+                <p className="text-xs text-slate-500 mt-1">
+                  Leave empty for cross-functional teams that span multiple departments
+                </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Team Lead *
+                  Team Lead
                 </label>
                 <select
-                  value={formData.leaderId}
-                  onChange={(e) => setFormData({...formData, leaderId: e.target.value})}
+                  value={formData.team_lead_id}
+                  onChange={(e) => setFormData({...formData, team_lead_id: e.target.value})}
                   className="w-full px-3 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">Select team lead</option>
-                  {mockUsers.map(user => (
-                    <option key={user.id} value={user.id}>{user.name} - {user.role}</option>
+                  {users.map(user => (
+                    <option key={user.id} value={user.id}>
+                      {user.full_name} {user.job_title && `- ${user.job_title}`}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -354,10 +526,17 @@ export function TeamsSection() {
               </button>
               <button
                 onClick={editingTeam ? handleUpdate : handleCreate}
-                disabled={!formData.name.trim() || !formData.departmentId || !formData.leaderId}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                disabled={!formData.name.trim() || saving}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
               >
-                {editingTeam ? 'Update Team' : 'Create Team'}
+                {saving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    {editingTeam ? 'Updating...' : 'Creating...'}
+                  </>
+                ) : (
+                  editingTeam ? 'Update Team' : 'Create Team'
+                )}
               </button>
             </div>
           </div>

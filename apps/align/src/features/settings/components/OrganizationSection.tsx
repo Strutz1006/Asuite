@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Globe, Save, Edit, Upload, Building, MapPin, Phone, Mail, Calendar, Users, Loader2 } from 'lucide-react'
+import { Globe, Save, Edit, Upload, Building, Users, Loader2 } from 'lucide-react'
 import { useSetupStatus } from '@/hooks/useSetupStatus'
 import { supabase } from '@aesyros/supabase'
 
@@ -7,32 +7,20 @@ interface OrganizationData {
   name: string
   industry: string
   size: string
-  founded: string
-  headquarters: string
   website: string
-  phone: string
-  email: string
   description: string
   logo: string
   timezone: string
-  fiscalYearStart: string
-  currency: string
 }
 
-const mockOrganization: OrganizationData = {
-  name: 'Aesyros Technologies',
-  industry: 'Clean Energy Technology',
-  size: '51-200',
-  founded: '2020',
-  headquarters: 'San Francisco, CA, USA',
-  website: 'https://aesyros.com',
-  phone: '+1 (555) 123-4567',
-  email: 'contact@aesyros.com',
-  description: 'Leading provider of sustainable energy solutions for emerging markets, focusing on solar power installation and energy storage systems.',
-  logo: '/api/placeholder/120/120',
-  timezone: 'America/Los_Angeles',
-  fiscalYearStart: 'January',
-  currency: 'USD'
+const defaultOrganization: OrganizationData = {
+  name: '',
+  industry: 'Technology',
+  size: '1-10',
+  website: '',
+  description: '',
+  logo: '',
+  timezone: 'America/Los_Angeles'
 }
 
 const industryOptions = [
@@ -59,19 +47,6 @@ const companySizeOptions = [
   '1000+'
 ]
 
-const currencyOptions = [
-  { code: 'USD', name: 'US Dollar' },
-  { code: 'EUR', name: 'Euro' },
-  { code: 'GBP', name: 'British Pound' },
-  { code: 'CAD', name: 'Canadian Dollar' },
-  { code: 'AUD', name: 'Australian Dollar' },
-  { code: 'JPY', name: 'Japanese Yen' }
-]
-
-const monthOptions = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
-]
 
 const timezoneOptions = [
   'America/Los_Angeles',
@@ -87,9 +62,9 @@ const timezoneOptions = [
 
 export function OrganizationSection() {
   const { organization: orgData, loading: orgLoading, refetchSetup } = useSetupStatus()
-  const [organization, setOrganization] = useState<OrganizationData>(mockOrganization)
+  const [organization, setOrganization] = useState<OrganizationData>(defaultOrganization)
   const [isEditing, setIsEditing] = useState(false)
-  const [formData, setFormData] = useState<OrganizationData>(mockOrganization)
+  const [formData, setFormData] = useState<OrganizationData>(defaultOrganization)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [uploadingLogo, setUploadingLogo] = useState(false)
@@ -100,17 +75,11 @@ export function OrganizationSection() {
       const mappedData: OrganizationData = {
         name: orgData.name || '',
         industry: orgData.industry || 'Technology',
-        size: orgData.size_category || '51-200',
-        founded: '2020', // Not in database, keeping mock
-        headquarters: 'San Francisco, CA, USA', // Not in database, keeping mock
+        size: orgData.size_category || '1-10',
         website: orgData.website || '',
-        phone: '+1 (555) 123-4567', // Not in database, keeping mock
-        email: 'contact@aesyros.com', // Not in database, keeping mock
         description: orgData.mission_statement || '',
         logo: orgData.logo_url || '',
-        timezone: orgData.timezone || 'America/Los_Angeles',
-        fiscalYearStart: 'January', // Not in database, keeping mock
-        currency: 'USD' // Not in database, keeping mock
+        timezone: orgData.timezone || 'America/Los_Angeles'
       }
       setOrganization(mappedData)
       setFormData(mappedData)
@@ -340,14 +309,6 @@ export function OrganizationSection() {
 
             <div className="space-y-4">
               <div className="p-4 bg-slate-800/30 rounded-lg">
-                <div className="text-sm text-slate-400 mb-1">Founded</div>
-                <div className="text-lg font-semibold text-slate-100 flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
-                  {organization.founded}
-                </div>
-              </div>
-              
-              <div className="p-4 bg-slate-800/30 rounded-lg">
                 <div className="text-sm text-slate-400 mb-1">Company Size</div>
                 <div className="text-lg font-semibold text-slate-100 flex items-center gap-2">
                   <Users className="w-4 h-4" />
@@ -420,23 +381,6 @@ export function OrganizationSection() {
                     )}
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      Founded
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="number"
-                        value={formData.founded}
-                        onChange={(e) => setFormData({...formData, founded: e.target.value})}
-                        className="w-full px-3 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                        min="1800"
-                        max={new Date().getFullYear()}
-                      />
-                    ) : (
-                      <div className="text-slate-100 py-2">{organization.founded}</div>
-                    )}
-                  </div>
                 </div>
 
                 <div className="mt-4">
@@ -456,151 +400,55 @@ export function OrganizationSection() {
                 </div>
               </div>
 
-              {/* Contact Information */}
+              {/* Website */}
               <div>
-                <h3 className="text-lg font-semibold text-slate-100 mb-4">Contact Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      Headquarters
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={formData.headquarters}
-                        onChange={(e) => setFormData({...formData, headquarters: e.target.value})}
-                        className="w-full px-3 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                      />
-                    ) : (
-                      <div className="text-slate-100 py-2 flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-slate-400" />
-                        {organization.headquarters}
-                      </div>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      Website
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="url"
-                        value={formData.website}
-                        onChange={(e) => setFormData({...formData, website: e.target.value})}
-                        className="w-full px-3 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                      />
-                    ) : (
-                      <div className="text-slate-100 py-2">
+                <h3 className="text-lg font-semibold text-slate-100 mb-4">Website</h3>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Website URL
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="url"
+                      value={formData.website}
+                      onChange={(e) => setFormData({...formData, website: e.target.value})}
+                      className="w-full px-3 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      placeholder="https://example.com"
+                    />
+                  ) : (
+                    <div className="text-slate-100 py-2">
+                      {organization.website ? (
                         <a href={organization.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:text-orange-300">
                           {organization.website}
                         </a>
-                      </div>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      Phone
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="tel"
-                        value={formData.phone}
-                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                        className="w-full px-3 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                      />
-                    ) : (
-                      <div className="text-slate-100 py-2 flex items-center gap-2">
-                        <Phone className="w-4 h-4 text-slate-400" />
-                        {organization.phone}
-                      </div>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      Email
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({...formData, email: e.target.value})}
-                        className="w-full px-3 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                      />
-                    ) : (
-                      <div className="text-slate-100 py-2 flex items-center gap-2">
-                        <Mail className="w-4 h-4 text-slate-400" />
-                        {organization.email}
-                      </div>
-                    )}
-                  </div>
+                      ) : (
+                        <span className="text-slate-400">No website specified</span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Business Settings */}
               <div>
                 <h3 className="text-lg font-semibold text-slate-100 mb-4">Business Settings</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      Timezone
-                    </label>
-                    {isEditing ? (
-                      <select
-                        value={formData.timezone}
-                        onChange={(e) => setFormData({...formData, timezone: e.target.value})}
-                        className="w-full px-3 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                      >
-                        {timezoneOptions.map(tz => (
-                          <option key={tz} value={tz}>{tz}</option>
-                        ))}
-                      </select>
-                    ) : (
-                      <div className="text-slate-100 py-2">{organization.timezone}</div>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      Currency
-                    </label>
-                    {isEditing ? (
-                      <select
-                        value={formData.currency}
-                        onChange={(e) => setFormData({...formData, currency: e.target.value})}
-                        className="w-full px-3 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                      >
-                        {currencyOptions.map(currency => (
-                          <option key={currency.code} value={currency.code}>
-                            {currency.code} - {currency.name}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <div className="text-slate-100 py-2">{organization.currency}</div>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      Fiscal Year Start
-                    </label>
-                    {isEditing ? (
-                      <select
-                        value={formData.fiscalYearStart}
-                        onChange={(e) => setFormData({...formData, fiscalYearStart: e.target.value})}
-                        className="w-full px-3 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                      >
-                        {monthOptions.map(month => (
-                          <option key={month} value={month}>{month}</option>
-                        ))}
-                      </select>
-                    ) : (
-                      <div className="text-slate-100 py-2">{organization.fiscalYearStart}</div>
-                    )}
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Timezone
+                  </label>
+                  {isEditing ? (
+                    <select
+                      value={formData.timezone}
+                      onChange={(e) => setFormData({...formData, timezone: e.target.value})}
+                      className="w-full px-3 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    >
+                      {timezoneOptions.map(tz => (
+                        <option key={tz} value={tz}>{tz}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <div className="text-slate-100 py-2">{organization.timezone}</div>
+                  )}
                 </div>
               </div>
 

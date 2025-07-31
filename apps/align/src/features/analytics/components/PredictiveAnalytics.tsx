@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, TrendingDown, AlertTriangle, Target, Calendar, BarChart3, Zap, Brain } from 'lucide-react';
+import { TrendingUp, TrendingDown, AlertTriangle, Target, Calendar, BarChart3, Zap, Brain, Clock } from 'lucide-react';
 
 interface PredictiveAnalyticsProps {
   timePeriod: string;
