@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { Target, BarChart3, TrendingUp, Menu, X, Grid3X3, Zap, Activity, Eye, Workflow, CheckSquare, FolderOpen, ListTodo, Calendar, User, LogOut } from 'lucide-react'
 import { useState } from 'react'
 import { useDevAuth } from '@aesyros/auth' 
-import { CrossAppNotificationBell } from '@aesyros/shared-state'
+import { CrossAppNotificationBell, ConnectionStatus } from '@aesyros/shared-state'
 
 interface LayoutProps {
   children: ReactNode
@@ -46,7 +46,7 @@ export default function Layout({ children }: LayoutProps) {
             </div>
 
             {/* Suite Apps Navigation */}
-            <nav className="hidden md:flex space-x-6">
+            <nav data-testid="suite-nav" className="hidden md:flex space-x-6">
               {suiteApps.map((app) => {
                 const Icon = app.icon
                 return (
@@ -85,6 +85,7 @@ export default function Layout({ children }: LayoutProps) {
                       <p className="text-xs text-slate-400">{user.role}</p>
                     </div>
                   </div>
+                  <ConnectionStatus className="mr-2" />
                   <CrossAppNotificationBell />
                   <button
                     onClick={logout}
@@ -192,6 +193,7 @@ export default function Layout({ children }: LayoutProps) {
 
               {/* Mobile menu button */}
               <button
+                data-testid="mobile-menu"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="text-slate-300 hover:text-slate-100 p-2"
               >

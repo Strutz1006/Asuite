@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Testing - Aesyros Suite</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .section {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #3b82f6;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 8px;
+            transition: background-color 0.2s;
+        }
+        .button:hover {
+            background: #2563eb;
+        }
+        .button.secondary {
+            background: #64748b;
+        }
+        .button.secondary:hover {
+            background: #475569;
+        }
+        .code {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            padding: 12px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin: 12px 0;
+        }
+        .status {
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+        .status.success { background: rgba(34, 197, 94, 0.2); border: 1px solid #22c55e; }
+        .status.warning { background: rgba(251, 191, 36, 0.2); border: 1px solid #fbbf24; }
+        .status.info { background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Authentication Testing</h1>
+            <p>Test both development and real authentication flows with local Supabase</p>
+        </div>
+
+        <!-- Current Status -->
+        <div class="section">
+            <h2>📊 Current Status</h2>
+            <div class="status info">
+                <strong>Environment:</strong> Local Development with Supabase
+            </div>
+            <div class="status success">
+                <strong>Supabase:</strong> Running on localhost:54321
+            </div>
+            <div class="status warning">
+                <strong>Current Mode:</strong> Development Auth (Mock Users)
+            </div>
+        </div>
+
+        <!-- Testing Options -->
+        <div class="section">
+            <h2>🧪 Testing Options</h2>
+            
+            <h3>Option 1: Test Apps with Current Dev Auth</h3>
+            <p>Use the existing mock authentication system:</p>
+            <a href="http://localhost:5173" class="button" target="_blank">🎯 Open Align App</a>
+            <a href="http://localhost:5179" class="button" target="_blank">🚗 Open Drive App</a>
+            
+            <h3>Option 2: Test Real Authentication Flow</h3>
+            <p>First, let's enable Supabase Auth for local testing:</p>
+            
+            <div class="code">
+# 1. Enable auth in local Supabase
+supabase auth enable
+
+# 2. Create test users via SQL
+psql postgresql://postgres:postgres@127.0.0.1:54322/postgres
+
+-- Create test users
+INSERT INTO auth.users (
+    id, email, encrypted_password, 
+    email_confirmed_at, created_at, updated_at,
+    raw_user_meta_data
+) VALUES (
+    gen_random_uuid(),
+    'admin@test.com',
+    '$2a$10$example_hashed_password',
+    now(),
+    now(),
+    now(),
+    '{"full_name": "Test Admin", "role": "admin"}'::jsonb
+);
+            </div>
+            
+            <h3>Option 3: Environment Variable Toggle</h3>
+            <p>Force real auth mode by setting environment variable:</p>
+            <div class="code">
+# Start apps with real auth mode
+VITE_FORCE_REAL_AUTH=true npm run dev:align
+VITE_FORCE_REAL_AUTH=true npm run dev:drive
+            </div>
+        </div>
+
+        <!-- Quick Commands -->
+        <div class="section">
+            <h2>⚡ Quick Commands</h2>
+            
+            <h3>Check Supabase Status</h3>
+            <div class="code">supabase status</div>
+            
+            <h3>View Auth Users</h3>
+            <div class="code">
+psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -c "
+SELECT email, created_at, email_confirmed_at, raw_user_meta_data 
+FROM auth.users;"
+            </div>
+            
+            <h3>Reset Auth (Clear all users)</h3>
+            <div class="code">
+psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -c "
+DELETE FROM auth.users;"
+            </div>
+        </div>
+
+        <!-- Testing Scenarios -->
+        <div class="section">
+            <h2>🎭 Testing Scenarios</h2>
+            
+            <h3>1. Development Flow (Current)</h3>
+            <ul>
+                <li>✅ Auto-login as admin user</li>
+                <li>✅ Switch between admin/manager/user roles</li>
+                <li>✅ No password required</li>
+                <li>✅ Fast iteration</li>
+            </ul>
+            
+            <h3>2. Real Authentication Flow</h3>
+            <ul>
+                <li>🔐 Email/password sign up</li>
+                <li>🔐 Email/password sign in</li>
+                <li>📧 Email verification (local SMTP)</li>
+                <li>🔄 Password reset</li>
+                <li>👤 User profile management</li>
+            </ul>
+            
+            <h3>3. Production Preparation</h3>
+            <ul>
+                <li>🛡️ Row Level Security (RLS) testing</li>
+                <li>🔑 JWT token validation</li>
+                <li>👥 Multi-tenant isolation</li>
+                <li>🚫 Unauthorized access prevention</li>
+            </ul>
+        </div>
+
+        <!-- Implementation Status -->
+        <div class="section">
+            <h2>📋 Implementation Status</h2>
+            
+            <h3>✅ Completed</h3>
+            <ul>
+                <li>Dev authentication system</li>
+                <li>Real Supabase auth hooks</li>
+                <li>Auth context providers</li>
+                <li>Login/logout flows</li>
+                <li>Mock user system</li>
+            </ul>
+            
+            <h3>🚧 In Progress</h3>
+            <ul>
+                <li>Real auth login components</li>
+                <li>Auth mode toggle</li>
+                <li>Environment-based switching</li>
+            </ul>
+            
+            <h3>📝 Todo</h3>
+            <ul>
+                <li>RLS policies implementation</li>
+                <li>Email verification flow</li>
+                <li>Password reset flow</li>
+                <li>User onboarding</li>
+                <li>Organization setup integration</li>
+            </ul>
+        </div>
+
+        <!-- Next Steps -->
+        <div class="section">
+            <h2>🚀 Recommended Next Steps</h2>
+            <ol>
+                <li><strong>Continue with current dev auth</strong> for Week 2 implementation</li>
+                <li><strong>Set up RLS policies</strong> for proper data isolation</li>
+                <li><strong>Test real auth flows</strong> when cross-app features are complete</li>
+                <li><strong>Implement production auth</strong> during deployment phase</li>
+            </ol>
+            
+            <p><strong>Why this approach?</strong> Dev auth allows rapid iteration on cross-app features without authentication friction. Real auth testing can be done in parallel once core functionality is solid.</p>
+        </div>
+    </div>
+</body>
+</html>

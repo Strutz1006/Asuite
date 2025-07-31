@@ -51,6 +51,7 @@ const DevAuthContext = createContext<DevAuthContextType | undefined>(undefined)
 
 export function DevAuthProvider({ children }: { children: React.ReactNode }) {
   const isDevelopment = import.meta.env.DEV || import.meta.env.VITE_APP_ENV === 'development'
+  const forceRealAuth = import.meta.env.VITE_FORCE_REAL_AUTH === 'true'
   const [mockUser, setMockUser] = useState<MockUser | null>(null)
   const [loading, setLoading] = useState(true)
   
@@ -58,7 +59,7 @@ export function DevAuthProvider({ children }: { children: React.ReactNode }) {
   const supabaseAuth = useSupabaseAuth()
 
   useEffect(() => {
-    if (isDevelopment) {
+    if (isDevelopment && !forceRealAuth) {
       // Auto-login as admin in development
       const savedUser = localStorage.getItem('dev-auth-user')
       if (savedUser) {
@@ -70,10 +71,10 @@ export function DevAuthProvider({ children }: { children: React.ReactNode }) {
       }
       setLoading(false)
     }
-  }, [isDevelopment])
+  }, [isDevelopment, forceRealAuth])
 
   const login = (email?: string) => {
-    if (isDevelopment) {
+    if (isDevelopment && !forceRealAuth) {
       // Determine which mock user to use based on email
       let user = MOCK_USERS.admin
       if (email?.includes('manager')) {
@@ -91,7 +92,7 @@ export function DevAuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const logout = () => {
-    if (isDevelopment) {
+    if (isDevelopment && !forceRealAuth) {
       setMockUser(null)
       localStorage.removeItem('dev-auth-user')
     } else {
@@ -99,8 +100,8 @@ export function DevAuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  // In production, use real auth
-  if (!isDevelopment) {
+  // In production or when forced, use real auth
+  if (!isDevelopment || forceRealAuth) {
     return (
       <DevAuthContext.Provider
         value={{

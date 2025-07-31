@@ -27,6 +27,11 @@ export default function GoalFormPage() {
   const { createGoal, updateGoal, getGoal, goals } = useGoals()
   const { organization } = useSetupStatus()
   
+  // Detect if we're creating an objective vs a goal based on URL
+  const isObjective = window.location.pathname.includes('/objectives')
+  const itemType = isObjective ? 'objective' : 'goal'
+  const ItemType = isObjective ? 'Objective' : 'Goal'
+  
   const [loading, setLoading] = useState(false)
   const [loadingGoal, setLoadingGoal] = useState(isEdit)
   const [departments, setDepartments] = useState<Department[]>([])
@@ -36,13 +41,15 @@ export default function GoalFormPage() {
     title: '',
     description: '',
     level: 'company' as 'company' | 'department' | 'team' | 'individual',
+    strategic_level: isObjective ? 'objective' : 'goal' as 'vision' | 'mission' | 'objective' | 'goal',
+    organizational_level: 'company' as 'company' | 'department' | 'team' | 'individual',
     department_id: '',
     due_date: '',
     owner_id: '',
     category: 'strategic',
     priority: 'medium' as 'high' | 'medium' | 'low',
     parent_id: '',
-    framework: 'okr' as 'smart' | 'okr' | 'objective',
+    framework: isObjective ? 'objective' : 'okr' as 'smart' | 'okr' | 'objective',
     target_value: '',
     unit: '',
   })
@@ -209,7 +216,7 @@ export default function GoalFormPage() {
         }
       }
       
-      navigate('/goals')
+      navigate(isObjective ? '/objectives' : '/goals')
     } catch (error) {
       console.error('Error saving goal:', error)
       // TODO: Show error toast
@@ -265,17 +272,22 @@ export default function GoalFormPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => navigate('/goals')}
+            onClick={() => navigate(isObjective ? '/objectives' : '/goals')}
             className="glass-button p-2 text-slate-300 hover:text-slate-100"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
             <h1 className="text-3xl font-bold text-slate-100">
-              {isEdit ? 'Edit Goal' : 'Create New Goal'}
+              {isEdit ? `Edit ${ItemType}` : `Create New ${ItemType}`}
             </h1>
             <p className="text-slate-400 mt-1">
-              {isEdit ? 'Update your strategic goal' : 'Define a new strategic goal with measurable outcomes'}
+              {isEdit 
+                ? `Update your strategic ${itemType}` 
+                : isObjective 
+                  ? 'Define a broad outcome that translates your mission into action'
+                  : 'Define a specific SMART target with measurable outcomes'
+              }
             </p>
           </div>
         </div>
@@ -695,13 +707,13 @@ export default function GoalFormPage() {
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  {isEdit ? 'Update Goal' : 'Create Goal'}
+                  {isEdit ? `Update ${ItemType}` : `Create ${ItemType}`}
                 </>
               )}
             </button>
             <button
               type="button"
-              onClick={() => navigate('/goals')}
+              onClick={() => navigate(isObjective ? '/objectives' : '/goals')}
               className="glass-button text-slate-300 hover:text-slate-100 px-6 py-3"
             >
               Cancel

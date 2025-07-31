@@ -15,8 +15,10 @@ import path from 'path'
 // Test configuration
 const SUPABASE_URL = process.env.SUPABASE_URL || 'http://localhost:54321'
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'your_anon_key_here'
-const TEST_ORGANIZATION_ID = 'test-org-' + Date.now()
-const TEST_USER_ID = 'test-user-' + Date.now()
+import { v4 as uuidv4 } from 'uuid'
+
+const TEST_ORGANIZATION_ID = uuidv4()
+const TEST_USER_ID = uuidv4()
 
 // Initialize Supabase client
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
@@ -83,12 +85,16 @@ async function testOrganizationSetup() {
       .insert({
         id: TEST_ORGANIZATION_ID,
         name: 'Test Organization',
+        slug: 'test-organization',
         industry: 'Technology',
-        size: 'medium'
+        size_category: 'medium'
       })
       .select()
       .single()
     
+    if (orgError) {
+      log(`Organization creation error: ${JSON.stringify(orgError)}`, 'error')
+    }
     assert(!orgError, 'Organization created successfully')
     
     // Create company setup for Align app

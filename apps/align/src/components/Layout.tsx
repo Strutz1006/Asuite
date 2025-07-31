@@ -1,9 +1,9 @@
 import { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Target, BarChart3, TrendingUp, Menu, X, Grid3X3, Zap, Activity, Eye, Workflow, CheckSquare, User, LogOut, GitBranch, Clock } from 'lucide-react'
+import { Target, BarChart3, TrendingUp, Menu, X, Grid3X3, Zap, Activity, Eye, Workflow, CheckSquare, User, LogOut, GitBranch, Clock, Mountain, Compass, Building2, Settings } from 'lucide-react'
 import { useState } from 'react'
 import { useDevAuth } from '@aesyros/auth'
-import { CrossAppNotificationBell } from '@aesyros/shared-state'
+import { CrossAppNotificationBell, ConnectionStatus } from '@aesyros/shared-state'
 
 interface LayoutProps {
   children: ReactNode
@@ -20,11 +20,16 @@ const suiteApps = [
 
 const navItems = [
   { name: 'Dashboard', href: '/', icon: BarChart3 },
-  { name: 'Goals', href: '/goals', icon: Target },
-  { name: 'Objectives', href: '/objectives', icon: TrendingUp },
+  // Strategic Planning Hierarchy
+  { name: 'Vision', href: '/vision', icon: Mountain, strategic: true },
+  { name: 'Mission', href: '/mission', icon: Compass, strategic: true },
+  { name: 'Strategic Objectives', href: '/objectives', icon: Building2, strategic: true },
+  { name: 'Goals', href: '/goals', icon: Target, strategic: true },
+  // Other Features
   { name: 'Alignment Matrix', href: '/alignment-matrix', icon: GitBranch },
   { name: 'Progress Tracking', href: '/progress', icon: Clock },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+  { name: 'Settings', href: '/settings', icon: Settings },
 ]
 
 export default function Layout({ children }: LayoutProps) {
@@ -47,7 +52,7 @@ export default function Layout({ children }: LayoutProps) {
             </div>
 
             {/* Suite Apps Navigation */}
-            <nav className="hidden md:flex space-x-6">
+            <nav data-testid="suite-nav" className="hidden md:flex space-x-6">
               {suiteApps.map((app) => {
                 const Icon = app.icon
                 return (
@@ -86,6 +91,7 @@ export default function Layout({ children }: LayoutProps) {
                       <p className="text-xs text-slate-400">{user.role}</p>
                     </div>
                   </div>
+                  <ConnectionStatus className="mr-2" />
                   <CrossAppNotificationBell />
                   <button
                     onClick={logout}
@@ -155,7 +161,8 @@ export default function Layout({ children }: LayoutProps) {
 
               {/* Navigation */}
               <nav className="flex-1 px-4 py-6 space-y-2">
-                {navItems.map((item) => {
+                {/* Dashboard */}
+                {navItems.filter(item => item.name === 'Dashboard').map((item) => {
                   const isActive = location.pathname === item.href
                   const Icon = item.icon
                   return (
@@ -173,6 +180,60 @@ export default function Layout({ children }: LayoutProps) {
                     </Link>
                   )
                 })}
+
+                {/* Strategic Planning Section */}
+                <div className="pt-4">
+                  <h3 className="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Strategic Planning
+                  </h3>
+                  <div className="mt-2 space-y-1">
+                    {navItems.filter(item => item.strategic).map((item) => {
+                      const isActive = location.pathname === item.href
+                      const Icon = item.icon
+                      return (
+                        <Link
+                          key={item.name}
+                          to={item.href}
+                          className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                            isActive
+                              ? 'bg-sky-500/20 text-sky-300 border border-sky-500/50'
+                              : 'text-slate-300 hover:text-slate-100 hover:bg-slate-800/50'
+                          }`}
+                        >
+                          <Icon className="w-4 h-4 mr-3" />
+                          {item.name}
+                        </Link>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Other Features Section */}
+                <div className="pt-4">
+                  <h3 className="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Analysis & Tracking
+                  </h3>
+                  <div className="mt-2 space-y-1">
+                    {navItems.filter(item => !item.strategic && item.name !== 'Dashboard').map((item) => {
+                      const isActive = location.pathname === item.href
+                      const Icon = item.icon
+                      return (
+                        <Link
+                          key={item.name}
+                          to={item.href}
+                          className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                            isActive
+                              ? 'bg-sky-500/20 text-sky-300 border border-sky-500/50'
+                              : 'text-slate-300 hover:text-slate-100 hover:bg-slate-800/50'
+                          }`}
+                        >
+                          <Icon className="w-4 h-4 mr-3" />
+                          {item.name}
+                        </Link>
+                      )
+                    })}
+                  </div>
+                </div>
               </nav>
             </div>
           </div>
@@ -193,6 +254,7 @@ export default function Layout({ children }: LayoutProps) {
 
               {/* Mobile menu button */}
               <button
+                data-testid="mobile-menu"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="text-slate-300 hover:text-slate-100 p-2"
               >
@@ -204,7 +266,8 @@ export default function Layout({ children }: LayoutProps) {
             {mobileMenuOpen && (
               <div className="border-t border-slate-700/80">
                 <div className="px-2 pt-2 pb-3 space-y-1">
-                  {navItems.map((item) => {
+                  {/* Dashboard */}
+                  {navItems.filter(item => item.name === 'Dashboard').map((item) => {
                     const isActive = location.pathname === item.href
                     const Icon = item.icon
                     return (
@@ -223,6 +286,58 @@ export default function Layout({ children }: LayoutProps) {
                       </Link>
                     )
                   })}
+
+                  {/* Strategic Planning */}
+                  <div className="pt-2">
+                    <h3 className="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                      Strategic Planning
+                    </h3>
+                    {navItems.filter(item => item.strategic).map((item) => {
+                      const isActive = location.pathname === item.href
+                      const Icon = item.icon
+                      return (
+                        <Link
+                          key={item.name}
+                          to={item.href}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                            isActive
+                              ? 'bg-sky-500/20 text-sky-300 border border-sky-500/50'
+                              : 'text-slate-300 hover:text-slate-100 hover:bg-slate-800/50'
+                          }`}
+                        >
+                          <Icon className="w-4 h-4 mr-2" />
+                          {item.name}
+                        </Link>
+                      )
+                    })}
+                  </div>
+
+                  {/* Analysis & Tracking */}
+                  <div className="pt-2">
+                    <h3 className="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                      Analysis & Tracking
+                    </h3>
+                    {navItems.filter(item => !item.strategic && item.name !== 'Dashboard').map((item) => {
+                      const isActive = location.pathname === item.href
+                      const Icon = item.icon
+                      return (
+                        <Link
+                          key={item.name}
+                          to={item.href}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                            isActive
+                              ? 'bg-sky-500/20 text-sky-300 border border-sky-500/50'
+                              : 'text-slate-300 hover:text-slate-100 hover:bg-slate-800/50'
+                          }`}
+                        >
+                          <Icon className="w-4 h-4 mr-2" />
+                          {item.name}
+                        </Link>
+                      )
+                    })}
+                  </div>
                 </div>
               </div>
             )}

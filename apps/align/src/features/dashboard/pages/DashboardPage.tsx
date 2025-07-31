@@ -1,4 +1,4 @@
-import { Target, TrendingUp, Users, BarChart3, Plus, ArrowRight, Loader2 } from 'lucide-react'
+import { Target, TrendingUp, Users, BarChart3, Plus, ArrowRight, Loader2, Building2, CheckCircle, Activity, AlertTriangle, Trophy } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useSetupStatus } from '@/hooks/useSetupStatus'
 import { useGoals } from '@/features/goals/hooks/useGoals'
@@ -48,75 +48,82 @@ export default function DashboardPage() {
     }
   }
   
-  // Calculate dynamic stats
-  const activeGoals = goalStats.total - goalStats.completed
+  // Separate objectives and goals
+  const objectives = goals.filter(g => g.strategic_level === 'objective' || g.framework === 'objective')
+  const actualGoals = goals.filter(g => g.strategic_level === 'goal' || (g.framework !== 'objective' && !g.strategic_level))
+  
+  // Calculate strategic metrics
+  const activeObjectives = objectives.filter(o => o.status === 'active').length
+  const activeGoals = actualGoals.filter(g => g.status === 'active').length
   const completionRate = goalStats.total > 0 
     ? Math.round((goalStats.completed / goalStats.total) * 100) 
     : 0
   
-  // Calculate quarter progress
-  const currentQuarter = Math.floor(new Date().getMonth() / 3) + 1
-  const quarterGoals = goals.filter(g => {
+  // Calculate company performance - strategic targets likelihood
+  const currentYear = new Date().getFullYear()
+  const yearEndGoals = goals.filter(g => {
     if (!g.due_date) return false
-    const goalQuarter = Math.floor(new Date(g.due_date).getMonth() / 3) + 1
-    const goalYear = new Date(g.due_date).getFullYear()
-    const currentYear = new Date().getFullYear()
-    return goalQuarter === currentQuarter && goalYear === currentYear
+    return new Date(g.due_date).getFullYear() === currentYear
   })
   
-  const quarterProgress = quarterGoals.length > 0
-    ? Math.round(quarterGoals.reduce((sum, g) => sum + g.progress_percentage, 0) / quarterGoals.length)
-    : 0
+  const onTrackGoals = yearEndGoals.filter(g => g.progress_percentage >= 70).length
+  const atRiskGoals = yearEndGoals.filter(g => g.progress_percentage >= 40 && g.progress_percentage < 70).length
+  const behindGoals = yearEndGoals.filter(g => g.progress_percentage < 40).length
   
-  // Get recent goals (top 3 by updated date)
+  const strategicLikelihood = yearEndGoals.length > 0
+    ? Math.round(((onTrackGoals * 1.0 + atRiskGoals * 0.6 + behindGoals * 0.2) / yearEndGoals.length) * 100)
+    : 0
+    
+  // Calculate alignment score (how many goals are linked to objectives)
+  const goalsWithObjectives = actualGoals.filter(g => g.parent_id && objectives.some(o => o.id === g.parent_id)).length
+  const alignmentScore = actualGoals.length > 0 
+    ? Math.round((goalsWithObjectives / actualGoals.length) * 100)
+    : 100 // 100% if no goals yet
+    
+  // Get recent activities for company performance
   const recentGoals = goals
     .filter(g => g.status === 'active')
     .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
-    .slice(0, 3)
-  
-  // Calculate new goals this month
-  const newGoalsThisMonth = goals.filter(g => {
-    const date = new Date(g.created_at)
-    const thirtyDaysAgo = new Date()
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-    return date > thirtyDaysAgo
-  }).length
+    .slice(0, 5)
   
   const stats = [
     {
+      name: 'Strategic Objectives',
+      value: activeObjectives.toString(),
+      change: objectives.length > activeObjectives ? `${objectives.length - activeObjectives} inactive` : 'All active',
+      changeType: objectives.length > activeObjectives ? 'neutral' : 'increase',
+      icon: Building2,
+    },
+    {
       name: 'Active Goals',
       value: activeGoals.toString(),
-      change: newGoalsThisMonth > 0 ? `+${newGoalsThisMonth}` : '0',
-      changeType: newGoalsThisMonth > 0 ? 'increase' : 'neutral',
+      change: actualGoals.length > activeGoals ? `${actualGoals.length - activeGoals} inactive` : 'All active',
+      changeType: actualGoals.length > activeGoals ? 'neutral' : 'increase',
       icon: Target,
     },
     {
       name: 'Completion Rate',
       value: `${completionRate}%`,
-      change: completionRate > 80 ? '+12.5%' : completionRate > 60 ? '+5.2%' : '+2.1%',
-      changeType: 'increase',
+      change: completionRate > 80 ? 'Excellent' : completionRate > 60 ? 'Good progress' : 'Needs focus',
+      changeType: completionRate > 80 ? 'increase' : completionRate > 60 ? 'neutral' : 'decrease',
       icon: TrendingUp,
     },
     {
-      name: 'Team Members',
-      value: teamCount.toString(),
-      change: departmentCount > 0 ? `${departmentCount} depts` : '0 depts',
-      changeType: 'neutral',
-      icon: Users,
-    },
-    {
-      name: 'This Quarter',
-      value: `${quarterProgress}%`,
-      change: `${quarterGoals.length} goals`,
-      changeType: 'neutral',
-      icon: BarChart3,
+      name: 'Alignment Score',
+      value: `${alignmentScore}%`,
+      change: `${goalsWithObjectives}/${actualGoals.length} linked`,
+      changeType: alignmentScore > 80 ? 'increase' : alignmentScore > 60 ? 'neutral' : 'decrease',
+      icon: Activity,
     },
   ]
 
-  if (setupLoading || goalsLoading || statsLoading) {
+  if (setupLoading || goalsLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 text-sky-400 animate-spin" />
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 text-sky-400 animate-spin mx-auto mb-4" />
+          <p className="text-slate-400">Loading dashboard...</p>
+        </div>
       </div>
     )
   }
@@ -198,87 +205,124 @@ export default function DashboardPage() {
         })}
       </div>
 
-      {/* Recent Goals */}
-      <div className="glass-card p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-slate-100">Recent Goals</h2>
-          <Link
-            to="/goals"
-            className="text-sky-400 hover:text-sky-300 flex items-center gap-1 text-sm"
-          >
-            View all
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-        <div className="space-y-4">
-          {recentGoals.length === 0 ? (
-            <div className="text-center py-8">
-              <Target className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-              <p className="text-slate-400">No goals yet. Create your first goal to get started.</p>
-              <Link
-                to="/goals/new"
-                className="inline-flex items-center gap-2 mt-4 text-sky-400 hover:text-sky-300"
-              >
-                <Plus className="w-4 h-4" />
-                Create Goal
-              </Link>
+      {/* Company Performance */}
+      <div className="glass-card p-8">
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <Trophy className="w-10 h-10 text-yellow-400" />
+            <h2 className="text-3xl font-bold text-slate-100">Company Performance</h2>
+          </div>
+          <div className="text-6xl font-bold text-slate-100 mb-2">{strategicLikelihood}%</div>
+          <div className="text-xl text-slate-300 mb-6">Strategic Target Likelihood</div>
+          
+          <div className="max-w-2xl mx-auto">
+            <div className="w-full bg-slate-700/50 rounded-full h-4 mb-4">
+              <div
+                className={`h-4 rounded-full transition-all duration-1000 ${
+                  strategicLikelihood >= 80 ? 'bg-green-500' :
+                  strategicLikelihood >= 60 ? 'bg-yellow-500' :
+                  'bg-red-500'
+                }`}
+                style={{ width: `${strategicLikelihood}%` }}
+              />
             </div>
-          ) : (
-            recentGoals.map((goal) => {
-              const statusColor = goal.progress_percentage >= 70 ? 'green' : 
-                                goal.progress_percentage >= 50 ? 'yellow' : 'red'
-              const statusText = goal.progress_percentage >= 70 ? 'On Track' : 
-                               goal.progress_percentage >= 50 ? 'At Risk' : 'Behind'
-              
-              return (
-                <div key={goal.id} className="glass-card p-4 bg-slate-800/40">
-                  <div className="flex items-center justify-between mb-3">
-                    <Link
-                      to={`/goals/${goal.id}`}
-                      className="text-slate-100 hover:text-sky-300 font-medium line-clamp-1"
-                    >
-                      {goal.title}
-                    </Link>
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ml-2 ${
-                        statusColor === 'green'
-                          ? 'bg-green-500/20 text-green-400'
-                          : statusColor === 'yellow'
-                          ? 'bg-yellow-500/20 text-yellow-400'
-                          : 'bg-red-500/20 text-red-400'
-                      }`}
-                    >
-                      {statusText}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm text-slate-400">Progress</span>
-                        <span className="text-sm text-slate-300">{goal.progress_percentage}%</span>
-                      </div>
-                      <div className="w-full bg-slate-700/50 rounded-full h-2">
-                        <div
-                          className={`h-2 rounded-full transition-all duration-300 ${
-                            statusColor === 'green' ? 'bg-sky-500' : 
-                            statusColor === 'yellow' ? 'bg-yellow-500' : 
-                            'bg-red-500'
-                          }`}
-                          style={{ width: `${goal.progress_percentage}%` }}
-                        />
-                      </div>
-                    </div>
-                    <div className="text-sm text-slate-400">
-                      {goal.due_date ? `Due ${new Date(goal.due_date).toLocaleDateString()}` : 'No due date'}
-                    </div>
-                  </div>
-                </div>
-              )
-            })
-          )}
+            <p className="text-slate-400">
+              Likelihood of achieving {yearEndGoals.length} strategic targets for {currentYear}
+            </p>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-3 gap-6">
+          <div className="text-center p-6 bg-green-500/10 rounded-lg border border-green-500/20">
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <CheckCircle className="w-6 h-6 text-green-400" />
+              <span className="text-lg font-semibold text-green-400">On Track</span>
+            </div>
+            <div className="text-4xl font-bold text-slate-100 mb-2">{onTrackGoals}</div>
+            <div className="text-sm text-slate-400">{yearEndGoals.length > 0 ? Math.round((onTrackGoals / yearEndGoals.length) * 100) : 0}% of strategic targets</div>
+          </div>
+          
+          <div className="text-center p-6 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <AlertTriangle className="w-6 h-6 text-yellow-400" />
+              <span className="text-lg font-semibold text-yellow-400">At Risk</span>
+            </div>
+            <div className="text-4xl font-bold text-slate-100 mb-2">{atRiskGoals}</div>
+            <div className="text-sm text-slate-400">{yearEndGoals.length > 0 ? Math.round((atRiskGoals / yearEndGoals.length) * 100) : 0}% of strategic targets</div>
+          </div>
+          
+          <div className="text-center p-6 bg-red-500/10 rounded-lg border border-red-500/20">
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <Activity className="w-6 h-6 text-red-400" />
+              <span className="text-lg font-semibold text-red-400">Behind</span>
+            </div>
+            <div className="text-4xl font-bold text-slate-100 mb-2">{behindGoals}</div>
+            <div className="text-sm text-slate-400">{yearEndGoals.length > 0 ? Math.round((behindGoals / yearEndGoals.length) * 100) : 0}% of strategic targets</div>
+          </div>
         </div>
       </div>
 
+      {/* Alignment Score Visualization */}
+      <div className="glass-card p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-slate-100 flex items-center gap-2">
+            <Activity className="w-6 h-6 text-purple-400" />
+            Strategic Alignment
+          </h2>
+          <div className="text-right">
+            <div className="text-2xl font-bold text-slate-100">{alignmentScore}%</div>
+            <div className="text-sm text-slate-400">Alignment Score</div>
+          </div>
+        </div>
+        
+        <div className="space-y-4">
+          <div className="bg-slate-800/30 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-slate-300">Goals Linked to Objectives</span>
+              <span className="text-sm font-medium text-slate-300">{goalsWithObjectives} / {actualGoals.length}</span>
+            </div>
+            <div className="w-full bg-slate-700/50 rounded-full h-3">
+              <div
+                className={`h-3 rounded-full transition-all duration-500 ${
+                  alignmentScore >= 80 ? 'bg-purple-500' :
+                  alignmentScore >= 60 ? 'bg-yellow-500' :
+                  'bg-red-500'
+                }`}
+                style={{ width: `${alignmentScore}%` }}
+              />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="p-3 bg-slate-800/20 rounded-lg">
+              <div className="text-purple-300 font-medium mb-1">Aligned Goals</div>
+              <div className="text-slate-300">{goalsWithObjectives} goals connected to strategic objectives</div>
+            </div>
+            <div className="p-3 bg-slate-800/20 rounded-lg">
+              <div className="text-slate-400 font-medium mb-1">Unaligned Goals</div>
+              <div className="text-slate-300">{actualGoals.length - goalsWithObjectives} goals operating independently</div>
+            </div>
+          </div>
+          
+          {alignmentScore < 80 && (
+            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <div className="text-sm font-medium text-yellow-300 mb-1">Alignment Opportunity</div>
+                  <div className="text-xs text-slate-300">
+                    {alignmentScore < 60 
+                      ? 'Consider linking more goals to strategic objectives for better organizational alignment'
+                      : 'Good progress! A few more goal-objective connections would strengthen strategic alignment'
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+      
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Link to="/goals/new" className="glass-card p-6 hover:bg-slate-800/40 transition-colors">
@@ -288,9 +332,9 @@ export default function DashboardPage() {
         </Link>
         
         <Link to="/objectives" className="glass-card p-6 hover:bg-slate-800/40 transition-colors">
-          <TrendingUp className="w-8 h-8 text-green-400 mb-3" />
+          <Building2 className="w-8 h-8 text-green-400 mb-3" />
           <h3 className="text-lg font-semibold text-slate-100 mb-2">View Objectives</h3>
-          <p className="text-slate-400 text-sm">See the complete goal hierarchy and alignment</p>
+          <p className="text-slate-400 text-sm">See the complete strategic hierarchy and alignment</p>
         </Link>
         
         <Link to="/analytics" className="glass-card p-6 hover:bg-slate-800/40 transition-colors">

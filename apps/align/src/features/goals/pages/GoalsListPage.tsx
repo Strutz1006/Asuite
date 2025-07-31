@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { GoalHierarchyView } from '../components/GoalHierarchyView'
 import { GoalCreationWizard } from '../components/GoalCreationWizard'
 import { useGoals, Goal } from '../hooks/useGoals'
+import { SimpleProgressUpdateModal } from '../../progress/components/SimpleProgressUpdateModal'
 
 // Filter options will be calculated from real data
 const filterOptions = [

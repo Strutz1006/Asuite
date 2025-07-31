@@ -7,7 +7,9 @@ export interface Goal {
   organization_id: string
   title: string
   description?: string
-  level: 'company' | 'department' | 'team' | 'individual'
+  level: 'company' | 'department' | 'team' | 'individual' // Legacy field - now called organizational_level
+  strategic_level?: 'vision' | 'mission' | 'objective' | 'goal' // What we're achieving
+  organizational_level?: 'company' | 'department' | 'team' | 'individual' // Who owns it
   parent_id?: string
   owner_id?: string
   category?: string

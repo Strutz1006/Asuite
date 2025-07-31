@@ -62,6 +62,7 @@ export function CrossAppNotificationBell({ className = '' }: CrossAppNotificatio
     <div className={`relative ${className}`}>
       {/* Notification Bell Button */}
       <button
+        data-testid="notification-bell"
         onClick={() => setIsOpen(!isOpen)}
         className={`
           relative p-2 rounded-lg transition-colors duration-200

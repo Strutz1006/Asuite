@@ -56,5 +56,9 @@
     "url": "git+https://github.com/aesyros/aesyros-suite.git"
   },
   "author": "Aesyros Team",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "node-fetch": "^3.3.2",
+    "uuid": "^11.1.0"
+  }
 }

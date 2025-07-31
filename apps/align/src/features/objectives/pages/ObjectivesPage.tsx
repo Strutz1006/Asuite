@@ -1,32 +1,65 @@
 import { useState, useEffect } from 'react'
-import { Target, TrendingUp, Users, Building, Search, Loader2, Calendar, User, ChevronDown, ChevronRight } from 'lucide-react'
+import { Target, TrendingUp, Users, Building, Building2, Search, Loader2, Calendar, User, ChevronDown, ChevronRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useGoals, Goal } from '../../goals/hooks/useGoals'
 
-const levelConfig = {
-  company: {
-    icon: Building,
+// Strategic levels (what we're trying to achieve)
+const strategicLevelConfig = {
+  vision: {
+    icon: Target,
     color: 'text-purple-400',
     bg: 'bg-purple-500/20',
     border: 'border-purple-500/50',
+    name: 'Vision',
+    description: 'Desired future state'
   },
-  department: {
-    icon: Users,
-    color: 'text-sky-400',
-    bg: 'bg-sky-500/20',
-    border: 'border-sky-500/50',
+  mission: {
+    icon: TrendingUp,
+    color: 'text-blue-400',
+    bg: 'bg-blue-500/20',
+    border: 'border-blue-500/50',
+    name: 'Mission', 
+    description: 'What we do and why'
   },
-  team: {
-    icon: Target,
+  objective: {
+    icon: Building,
     color: 'text-green-400',
     bg: 'bg-green-500/20',
     border: 'border-green-500/50',
+    name: 'Objective',
+    description: 'Strategic outcomes'
   },
-  individual: {
-    icon: User,
+  goal: {
+    icon: Target,
     color: 'text-orange-400',
     bg: 'bg-orange-500/20',
     border: 'border-orange-500/50',
+    name: 'Goal',
+    description: 'Specific SMART targets'
+  },
+}
+
+// Organizational ownership levels (who owns it)
+const organizationalLevelConfig = {
+  company: {
+    icon: Building,
+    color: 'text-slate-400',
+    name: 'Company-wide'
+  },
+  department: {
+    icon: Users,
+    color: 'text-slate-400', 
+    name: 'Department'
+  },
+  team: {
+    icon: Users,
+    color: 'text-slate-400',
+    name: 'Team'
+  },
+  individual: {
+    icon: User,
+    color: 'text-slate-400',
+    name: 'Individual'
   },
 }
 
@@ -40,7 +73,7 @@ function ObjectiveCard({ objective, children = [], depth = 0 }: {
   depth?: number 
 }) {
   const [isExpanded, setIsExpanded] = useState(depth < 2)
-  const config = levelConfig[objective.level as keyof typeof levelConfig]
+  const config = strategicLevelConfig[objective.strategic_level as keyof typeof strategicLevelConfig] || strategicLevelConfig.goal
   const Icon = config.icon
 
   // Calculate status based on progress
@@ -216,7 +249,8 @@ export default function ObjectivesPage() {
 
   // Calculate hierarchy stats
   const levelCounts = goals.reduce((acc, goal) => {
-    acc[goal.level] = (acc[goal.level] || 0) + 1
+    const strategicLevel = goal.strategic_level || 'goal'
+    acc[strategicLevel] = (acc[strategicLevel] || 0) + 1
     return acc
   }, {} as Record<string, number>)
 
@@ -245,17 +279,17 @@ export default function ObjectivesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-100">Objectives</h1>
+          <h1 className="text-3xl font-bold text-slate-100">Strategic Objectives</h1>
           <p className="text-slate-400 mt-1">
-            View the complete goal hierarchy and organizational alignment
+            Define broad outcomes that translate your mission into actionable results
           </p>
         </div>
         <Link
-          to="/goals/new"
-          className="glass-button text-sky-300 hover:text-sky-200 px-4 py-2 flex items-center gap-2"
+          to="/objectives/new"
+          className="glass-button text-green-300 hover:text-green-200 px-4 py-2 flex items-center gap-2"
         >
-          <Target className="w-4 h-4" />
-          New Goal
+          <Building2 className="w-4 h-4" />
+          New Objective
         </Link>
       </div>
 
@@ -318,7 +352,7 @@ export default function ObjectivesPage() {
       <div className="glass-card p-4">
         <h3 className="text-sm font-medium text-slate-300 mb-3">Hierarchy Levels</h3>
         <div className="flex flex-wrap gap-4">
-          {Object.entries(levelConfig).map(([level, config]) => {
+          {Object.entries(strategicLevelConfig).map(([level, config]) => {
             const Icon = config.icon
             const count = levelCounts[level] || 0
             return (
@@ -326,8 +360,8 @@ export default function ObjectivesPage() {
                 <div className={`p-1 rounded ${config.bg}`}>
                   <Icon className={`w-3 h-3 ${config.color}`} />
                 </div>
-                <span className="text-sm text-slate-300 capitalize">
-                  {level} ({count})
+                <span className="text-sm text-slate-300">
+                  {config.name} ({count})
                 </span>
               </div>
             )
@@ -344,16 +378,16 @@ export default function ObjectivesPage() {
           </h3>
           <p className="text-slate-500">
             {goals.length === 0 
-              ? 'Create your first goal to start building your organizational hierarchy.'
+              ? 'Create your first objective to translate your mission into actionable outcomes.'
               : 'Try adjusting your search criteria.'}
           </p>
           {goals.length === 0 && (
             <Link
-              to="/goals/new"
-              className="inline-flex items-center gap-2 mt-4 text-sky-400 hover:text-sky-300"
+              to="/objectives/new"
+              className="inline-flex items-center gap-2 mt-4 text-green-400 hover:text-green-300"
             >
-              <Target className="w-4 h-4" />
-              Create First Goal
+              <Building2 className="w-4 h-4" />
+              Create First Objective
             </Link>
           )}
         </div>

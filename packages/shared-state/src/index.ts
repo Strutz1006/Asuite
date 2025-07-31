@@ -21,6 +21,7 @@ export { useOrganizationSync } from './hooks/useOrganizationSync'
 // Components
 export { CrossAppNotificationBell } from './components/CrossAppNotificationBell'
 export { CrossAppGoalSelector } from './components/CrossAppGoalSelector'
+export { ConnectionStatus } from './components/ConnectionStatus'
 
 // Types
 export type {

@@ -9,7 +9,7 @@ export function AlignmentMatrixPage() {
   const [filterLevel, setFilterLevel] = useState('all');
   const [filterDepartment, setFilterDepartment] = useState('all');
   const [departments, setDepartments] = useState<any[]>([]);
-  const [strategicPillars, setStrategicPillars] = useState<any[]>([]);
+  const [strategicObjectives, setStrategicObjectives] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   const { goals, loading: goalsLoading } = useGoals();
@@ -30,16 +30,19 @@ export function AlignmentMatrixPage() {
           setDepartments(deptData);
         }
 
-        // For now, use predefined strategic pillars (in a real system, these would come from database)
-        const pillars = [
-          { id: 1, name: 'Digital Transformation', shortName: 'Digital', category: 'strategic' },
-          { id: 2, name: 'Customer Experience', shortName: 'Customer', category: 'strategic' },
-          { id: 3, name: 'Operational Excellence', shortName: 'Operations', category: 'operational' },
-          { id: 4, name: 'Market Expansion', shortName: 'Market', category: 'financial' },
-          { id: 5, name: 'Innovation & R&D', shortName: 'Innovation', category: 'learning' },
-          { id: 6, name: 'Talent Development', shortName: 'Talent', category: 'learning' }
-        ];
-        setStrategicPillars(pillars);
+        // Get strategic objectives from goals data
+        const objectives = goals.filter(goal => 
+          goal.strategic_level === 'objective' || goal.framework === 'objective'
+        ).map(objective => ({
+          id: objective.id,
+          name: objective.title,
+          shortName: objective.title.length > 15 ? objective.title.substring(0, 15) + '...' : objective.title,
+          description: objective.description,
+          progress: objective.progress_percentage || 0
+        }));
+        
+        // If no objectives exist yet, show placeholder message
+        setStrategicObjectives(objectives);
 
       } catch (error) {
         console.error('Error fetching alignment data:', error);
@@ -49,10 +52,12 @@ export function AlignmentMatrixPage() {
     };
 
     fetchData();
-  }, []);
+  }, [goals]);
 
-  // Filter goals based on selected filters
+  // Filter goals based on selected filters (exclude objectives from the goal list)
   const filteredGoals = goals.filter(goal => {
+    // Exclude strategic objectives from goals list
+    if (goal.strategic_level === 'objective' || goal.framework === 'objective') return false;
     if (filterLevel !== 'all' && goal.level !== filterLevel) return false;
     if (filterDepartment !== 'all' && goal.department_id !== filterDepartment) return false;
     return true;
@@ -67,18 +72,19 @@ export function AlignmentMatrixPage() {
     const strategicAlignment = filteredGoals.filter(g => g.category === 'strategic').length;
     const alignmentScore = totalGoals > 0 ? Math.round((strategicAlignment / totalGoals) * 100) : 0;
     
-    // Calculate coverage gaps (pillars with fewer than 2 aligned goals)
-    const coverageGaps = strategicPillars.filter(pillar => {
+    // Calculate coverage gaps (objectives with fewer than 2 aligned goals)
+    const coverageGaps = strategicObjectives.filter(objective => {
       const alignedGoals = filteredGoals.filter(g => 
-        g.category === pillar.category || 
-        (pillar.name.toLowerCase().includes('digital') && g.title.toLowerCase().includes('digital')) ||
-        (pillar.name.toLowerCase().includes('customer') && g.title.toLowerCase().includes('customer'))
+        g.parent_id === objective.id || // Direct parent relationship
+        g.linkedObjective === objective.id // New linking system
       ).length;
       return alignedGoals < 2;
     }).length;
 
-    // Calculate dependencies (goals with parent_id)
-    const dependencies = filteredGoals.filter(g => g.parent_id).length;
+    // Calculate dependencies (goals linked to objectives)
+    const dependencies = filteredGoals.filter(g => 
+      g.parent_id || g.linkedObjective
+    ).length;
 
     return {
       alignmentScore,
@@ -242,14 +248,27 @@ export function AlignmentMatrixPage() {
       <div className="glass-card p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-xl font-semibold text-slate-100">Goal-Strategy Alignment Matrix</h3>
+            <h3 className="text-xl font-semibold text-slate-100">Goal-Objective Alignment Matrix</h3>
             <p className="text-slate-400 text-sm mt-1">
-              Shows how operational goals align with strategic objectives
+              Shows how goals align with strategic objectives across your organization
             </p>
           </div>
         </div>
 
-        {filteredGoals.length === 0 ? (
+        {strategicObjectives.length === 0 ? (
+          <div className="text-center py-12">
+            <Target className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+            <p className="text-slate-400">No strategic objectives found</p>
+            <p className="text-slate-300 text-sm mt-2">Create strategic objectives first to build the alignment matrix</p>
+            <Link
+              to="/objectives/new"
+              className="inline-flex items-center gap-2 mt-4 text-sky-400 hover:text-sky-300"
+            >
+              <Plus className="w-4 h-4" />
+              Create Strategic Objective
+            </Link>
+          </div>
+        ) : filteredGoals.length === 0 ? (
           <div className="text-center py-12">
             <Target className="h-12 w-12 text-slate-400 mx-auto mb-4" />
             <p className="text-slate-400">No goals match the selected filters</p>
@@ -267,11 +286,11 @@ export function AlignmentMatrixPage() {
               <thead>
                 <tr className="border-b border-slate-700">
                   <th className="text-left p-4 font-medium text-slate-200">Goals</th>
-                  {strategicPillars.map(pillar => (
-                    <th key={pillar.id} className="text-center p-4 font-medium text-slate-200 min-w-[120px]">
+                  {strategicObjectives.map(objective => (
+                    <th key={objective.id} className="text-center p-4 font-medium text-slate-200 min-w-[140px]">
                       <div className="space-y-1">
-                        <div className="font-medium">{pillar.shortName}</div>
-                        <div className="text-xs text-slate-400 capitalize">{pillar.category}</div>
+                        <div className="font-medium" title={objective.name}>{objective.shortName}</div>
+                        <div className="text-xs text-slate-400">{objective.progress}% complete</div>
                       </div>
                     </th>
                   ))}
@@ -313,13 +332,21 @@ export function AlignmentMatrixPage() {
                           </div>
                         </div>
                       </td>
-                      {strategicPillars.map(pillar => {
-                        // Calculate alignment based on goal category and strategic pillar
+                      {strategicObjectives.map(objective => {
+                        // Calculate alignment based on goal-objective relationship
                         const getAlignment = () => {
-                          if (goal.category === pillar.category) return 'strong';
-                          if (pillar.name.toLowerCase().includes('digital') && goal.title.toLowerCase().includes('digital')) return 'strong';
-                          if (pillar.name.toLowerCase().includes('customer') && goal.title.toLowerCase().includes('customer')) return 'medium';
-                          if (pillar.name.toLowerCase().includes('operation') && goal.category === 'operational') return 'strong';
+                          // Direct parent relationship (strongest alignment)
+                          if (goal.parent_id === objective.id) return 'strong';
+                          // New linking system from goal creation wizard
+                          if (goal.linkedObjective === objective.id) return 'strong';
+                          // Keyword matching for medium alignment
+                          const goalWords = goal.title.toLowerCase().split(' ');
+                          const objectiveWords = objective.name.toLowerCase().split(' ');
+                          const commonWords = goalWords.filter(word => 
+                            word.length > 3 && objectiveWords.some(oWord => oWord.includes(word) || word.includes(oWord))
+                          );
+                          if (commonWords.length >= 2) return 'medium';
+                          if (commonWords.length === 1) return 'weak';
                           return 'none';
                         };
 
@@ -334,11 +361,11 @@ export function AlignmentMatrixPage() {
                         };
 
                         return (
-                          <td key={pillar.id} className="p-4 text-center">
+                          <td key={objective.id} className="p-4 text-center">
                             <div className="flex justify-center">
                               <div
                                 className={`w-8 h-8 rounded-full ${getAlignmentColor()}`}
-                                title={`${alignment === 'none' ? 'No' : alignment} alignment`}
+                                title={`${alignment === 'none' ? 'No' : alignment} alignment with ${objective.name}`}
                               />
                             </div>
                           </td>

@@ -1,26 +1,20 @@
 {
-  "timestamp": "2025-07-30T17:14:56.862Z",
+  "timestamp": "2025-07-31T09:22:55.323Z",
   "summary": {
-    "total": 11,
-    "passed": 1,
-    "failed": 10,
-    "success_rate": 9
+    "total": 19,
+    "passed": 15,
+    "failed": 4,
+    "success_rate": 79
   },
   "errors": [
-    "Database connection established",
-    "Organization created successfully",
     "Align company setup created successfully",
-    "Test user created successfully",
-    "Strategic goal created successfully",
-    "Align goal management failed: Cannot read properties of null (reading 'id')",
-    "Drive project management failed: Cannot read properties of undefined (reading 'id')",
-    "Goal update executed successfully",
-    "Real-time synchronization working",
-    "Data counts retrieved successfully"
+    "Cross-app link created successfully",
+    "Cross-app notification created successfully",
+    "Real-time synchronization working"
   ],
   "environment": {
     "supabase_url": "http://localhost:54321",
     "node_version": "v22.16.0",
-    "test_duration": 3084
+    "test_duration": 3154
   }
 }
