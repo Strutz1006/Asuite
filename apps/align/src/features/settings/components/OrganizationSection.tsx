@@ -1,5 +1,7 @@
-import { useState } from 'react'
-import { Globe, Save, Edit, Upload, Building, MapPin, Phone, Mail, Calendar, Users } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Globe, Save, Edit, Upload, Building, MapPin, Phone, Mail, Calendar, Users, Loader2 } from 'lucide-react'
+import { useSetupStatus } from '@/hooks/useSetupStatus'
+import { supabase } from '@aesyros/supabase'
 
 interface OrganizationData {
   name: string
@@ -84,14 +86,79 @@ const timezoneOptions = [
 ]
 
 export function OrganizationSection() {
+  const { organization: orgData, loading: orgLoading, refetchSetup } = useSetupStatus()
   const [organization, setOrganization] = useState<OrganizationData>(mockOrganization)
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState<OrganizationData>(mockOrganization)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [uploadingLogo, setUploadingLogo] = useState(false)
+  
+  // Load organization data when available
+  useEffect(() => {
+    if (orgData) {
+      const mappedData: OrganizationData = {
+        name: orgData.name || '',
+        industry: orgData.industry || 'Technology',
+        size: orgData.size_category || '51-200',
+        founded: '2020', // Not in database, keeping mock
+        headquarters: 'San Francisco, CA, USA', // Not in database, keeping mock
+        website: orgData.website || '',
+        phone: '+1 (555) 123-4567', // Not in database, keeping mock
+        email: 'contact@aesyros.com', // Not in database, keeping mock
+        description: orgData.mission_statement || '',
+        logo: orgData.logo_url || '',
+        timezone: orgData.timezone || 'America/Los_Angeles',
+        fiscalYearStart: 'January', // Not in database, keeping mock
+        currency: 'USD' // Not in database, keeping mock
+      }
+      setOrganization(mappedData)
+      setFormData(mappedData)
+    }
+  }, [orgData])
 
-  const handleSave = () => {
-    setOrganization(formData)
-    setIsEditing(false)
-    // TODO: Save to backend
+  const handleSave = async () => {
+    if (!orgData?.id) {
+      setSaveError('Organization ID not found')
+      return
+    }
+    
+    try {
+      setSaving(true)
+      setSaveError(null)
+      
+      // Update organization in database
+      const { error } = await supabase
+        .from('organizations')
+        .update({
+          name: formData.name,
+          industry: formData.industry,
+          size_category: formData.size,
+          website: formData.website,
+          mission_statement: formData.description,
+          logo_url: formData.logo,
+          timezone: formData.timezone,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', orgData.id)
+      
+      if (error) {
+        throw error
+      }
+      
+      // Update local state
+      setOrganization(formData)
+      setIsEditing(false)
+      
+      // Refresh organization data
+      await refetchSetup()
+      
+    } catch (error) {
+      console.error('Error saving organization:', error)
+      setSaveError(error instanceof Error ? error.message : 'Failed to save changes')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleCancel = () => {
@@ -99,13 +166,99 @@ export function OrganizationSection() {
     setIsEditing(false)
   }
 
-  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (file) {
-      // TODO: Upload file and get URL
-      const mockUrl = URL.createObjectURL(file)
-      setFormData({ ...formData, logo: mockUrl })
+    if (!file || !orgData?.id) return
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+    if (!allowedTypes.includes(file.type)) {
+      setSaveError('Please upload a valid image file (JPG, PNG, GIF, or WebP)')
+      return
     }
+
+    // Validate file size (5MB limit)
+    const maxSize = 5 * 1024 * 1024 // 5MB in bytes
+    if (file.size > maxSize) {
+      setSaveError('Image file must be smaller than 5MB')
+      return
+    }
+
+    try {
+      setUploadingLogo(true)
+      setSaveError(null)
+
+      // Create a unique filename
+      const fileExt = file.name.split('.').pop()
+      const fileName = `org-${orgData.id}-logo-${Date.now()}.${fileExt}`
+      const filePath = `organization-logos/${fileName}`
+
+      // Clean up old logo if it exists and is from our storage
+      if (formData.logo && formData.logo.includes('supabase')) {
+        try {
+          const oldFileName = formData.logo.split('/').pop()
+          if (oldFileName && oldFileName.startsWith('org-')) {
+            await supabase.storage
+              .from('uploads')
+              .remove([`organization-logos/${oldFileName}`])
+          }
+        } catch (cleanupError) {
+          console.warn('Could not clean up old logo:', cleanupError)
+          // Don't fail the upload if cleanup fails
+        }
+      }
+
+      // Upload file to Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('uploads')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        })
+
+      if (uploadError) {
+        throw uploadError
+      }
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('uploads')
+        .getPublicUrl(filePath)
+
+      if (urlData?.publicUrl) {
+        // Update form data with the new logo URL
+        setFormData({ ...formData, logo: urlData.publicUrl })
+        
+        // Clear any previous errors on successful upload
+        setSaveError(null)
+      } else {
+        throw new Error('Failed to get public URL for uploaded image')
+      }
+
+    } catch (error) {
+      console.error('Error uploading logo:', error)
+      
+      let message = 'Failed to upload logo. Please try again.'
+      if (error instanceof Error) {
+        message = error.message
+      }
+      setSaveError(message)
+    } finally {
+      setUploadingLogo(false)
+    }
+  }
+
+  if (orgLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center py-12">
+          <div className="flex items-center gap-3">
+            <Loader2 className="h-6 w-6 text-orange-400 animate-spin" />
+            <span className="text-slate-300">Loading organization data...</span>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -151,17 +304,36 @@ export function OrganizationSection() {
                   <input
                     type="file"
                     id="logo-upload"
-                    accept="image/*"
+                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
                     onChange={handleLogoUpload}
+                    disabled={uploadingLogo || saving}
                     className="hidden"
                   />
                   <label
                     htmlFor="logo-upload"
-                    className="cursor-pointer inline-flex items-center gap-2 text-sm text-orange-400 hover:text-orange-300"
+                    className={`cursor-pointer inline-flex items-center gap-2 text-sm transition-colors ${
+                      uploadingLogo || saving 
+                        ? 'text-slate-500 cursor-not-allowed' 
+                        : 'text-orange-400 hover:text-orange-300'
+                    }`}
                   >
-                    <Upload className="w-4 h-4" />
-                    Upload Logo
+                    {uploadingLogo ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4" />
+                        Upload Logo
+                      </>
+                    )}
                   </label>
+                  {(isEditing && !uploadingLogo) && (
+                    <p className="text-xs text-slate-500 mt-1">
+                      JPG, PNG, GIF or WebP. Max 5MB.
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -432,21 +604,39 @@ export function OrganizationSection() {
                 </div>
               </div>
 
+              {/* Error Display */}
+              {isEditing && saveError && (
+                <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+                  <p className="text-red-400 text-sm">{saveError}</p>
+                </div>
+              )}
+
               {/* Action Buttons */}
               {isEditing && (
                 <div className="flex justify-end gap-3 pt-4 border-t border-slate-700/50">
                   <button
                     onClick={handleCancel}
-                    className="px-4 py-2 border border-slate-600 rounded-lg text-slate-300 hover:bg-slate-800/50 transition-colors"
+                    disabled={saving || uploadingLogo}
+                    className="px-4 py-2 border border-slate-600 rounded-lg text-slate-300 hover:bg-slate-800/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleSave}
-                    className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center gap-2"
+                    disabled={saving || uploadingLogo}
+                    className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:bg-orange-600/50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
                   >
-                    <Save className="w-4 h-4" />
-                    Save Changes
+                    {saving ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" />
+                        Save Changes
+                      </>
+                    )}
                   </button>
                 </div>
               )}

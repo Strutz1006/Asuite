@@ -1,5 +1,7 @@
-import { useState } from 'react'
-import { Database, Bell, Palette, Zap, Shield, Download, Trash2, Save, Toggle } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Database, Bell, Palette, Zap, Shield, Download, Trash2, Save, Loader2, X } from 'lucide-react'
+import { useSetupStatus } from '@/hooks/useSetupStatus'
+import { supabase } from '@aesyros/supabase'
 
 interface SystemSettings {
   notifications: {
@@ -66,33 +68,227 @@ const defaultSettings: SystemSettings = {
 }
 
 export function SystemSection() {
+  const { organization: orgData, loading: orgLoading, refetchSetup } = useSetupStatus()
   const [settings, setSettings] = useState<SystemSettings>(defaultSettings)
+  const [originalSettings, setOriginalSettings] = useState<SystemSettings>(defaultSettings)
   const [hasChanges, setHasChanges] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+
+  // Load organization settings when available
+  useEffect(() => {
+    if (orgData?.settings) {
+      try {
+        const loadedSettings = typeof orgData.settings === 'string' 
+          ? JSON.parse(orgData.settings) 
+          : orgData.settings as SystemSettings
+        
+        // Merge with defaults to ensure all fields exist
+        const mergedSettings = {
+          notifications: { ...defaultSettings.notifications, ...loadedSettings.notifications },
+          appearance: { ...defaultSettings.appearance, ...loadedSettings.appearance },
+          integrations: { ...defaultSettings.integrations, ...loadedSettings.integrations },
+          data: { ...defaultSettings.data, ...loadedSettings.data },
+          security: { ...defaultSettings.security, ...loadedSettings.security }
+        }
+        
+        setSettings(mergedSettings)
+        setOriginalSettings(mergedSettings)
+        setHasChanges(false)
+      } catch (error) {
+        console.error('Error parsing settings:', error)
+        // Keep default settings if parsing fails
+      }
+    }
+  }, [orgData])
 
   const updateSetting = (section: keyof SystemSettings, key: string, value: any) => {
-    setSettings(prev => ({
-      ...prev,
+    const newSettings = {
+      ...settings,
       [section]: {
-        ...prev[section],
+        ...settings[section],
         [key]: value
       }
-    }))
-    setHasChanges(true)
+    }
+    setSettings(newSettings)
+    
+    // Check if settings have actually changed from original
+    const hasActualChanges = JSON.stringify(newSettings) !== JSON.stringify(originalSettings)
+    setHasChanges(hasActualChanges)
+    setSaveError(null) // Clear any previous errors
   }
 
-  const handleSave = () => {
-    // TODO: Save to backend
+  const handleSave = async () => {
+    if (!orgData?.id) {
+      setSaveError('Organization ID not found')
+      return
+    }
+    
+    try {
+      setSaving(true)
+      setSaveError(null)
+      
+      const { error } = await supabase
+        .from('organizations')
+        .update({
+          settings: settings as any,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', orgData.id)
+      
+      if (error) {
+        throw error
+      }
+      
+      setOriginalSettings({ ...settings })
+      setHasChanges(false)
+      await refetchSetup()
+      
+    } catch (error) {
+      console.error('Error saving settings:', error)
+      setSaveError(error instanceof Error ? error.message : 'Failed to save settings')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleExportData = async () => {
+    if (!orgData?.id) {
+      setSaveError('Organization ID not found')
+      return
+    }
+
+    try {
+      // Fetch all organization data including goals, objectives, etc.
+      const [goalsResponse, objectivesResponse, orgResponse] = await Promise.all([
+        supabase.from('align_goals').select('*').eq('organization_id', orgData.id),
+        supabase.from('align_objectives').select('*').eq('organization_id', orgData.id),
+        supabase.from('organizations').select('*').eq('id', orgData.id).single()
+      ])
+
+      if (goalsResponse.error) throw goalsResponse.error
+      if (objectivesResponse.error) throw objectivesResponse.error
+      if (orgResponse.error) throw orgResponse.error
+
+      const exportData = {
+        organization: orgResponse.data,
+        goals: goalsResponse.data,
+        objectives: objectivesResponse.data,
+        settings: settings,
+        exportedAt: new Date().toISOString(),
+        exportFormat: settings.data.exportFormat
+      }
+
+      // Create and download file based on selected format
+      let fileContent: string
+      let fileName: string
+      let mimeType: string
+
+      switch (settings.data.exportFormat) {
+        case 'csv':
+          // Simple CSV export for goals
+          const csvHeaders = 'Title,Description,Progress,Due Date,Created At\n'
+          const csvContent = goalsResponse.data.map(goal => 
+            `"${goal.title}","${goal.description || ''}","${goal.progress_percentage || 0}%","${goal.due_date || ''}","${goal.created_at}"`
+          ).join('\n')
+          fileContent = csvHeaders + csvContent
+          fileName = `align-data-export-${new Date().toISOString().split('T')[0]}.csv`
+          mimeType = 'text/csv'
+          break
+        
+        case 'xlsx':
+          // For Excel, we'll export as JSON for now (would need a library like xlsx for proper Excel format)
+          fileContent = JSON.stringify(exportData, null, 2)
+          fileName = `align-data-export-${new Date().toISOString().split('T')[0]}.json`
+          mimeType = 'application/json'
+          break
+        
+        default: // JSON
+          fileContent = JSON.stringify(exportData, null, 2)
+          fileName = `align-data-export-${new Date().toISOString().split('T')[0]}.json`
+          mimeType = 'application/json'
+      }
+
+      // Create and trigger download
+      const blob = new Blob([fileContent], { type: mimeType })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = fileName
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+
+    } catch (error) {
+      console.error('Export failed:', error)
+      setSaveError(error instanceof Error ? error.message : 'Export failed')
+    }
+  }
+
+  const handleBackupNow = async () => {
+    if (!orgData?.id) {
+      setSaveError('Organization ID not found')
+      return
+    }
+
+    try {
+      // Create comprehensive backup data
+      const [goalsResponse, objectivesResponse, orgResponse, setupResponse] = await Promise.all([
+        supabase.from('align_goals').select('*').eq('organization_id', orgData.id),
+        supabase.from('align_objectives').select('*').eq('organization_id', orgData.id),
+        supabase.from('organizations').select('*').eq('id', orgData.id).single(),
+        supabase.from('align_company_setup').select('*').eq('organization_id', orgData.id)
+      ])
+
+      if (goalsResponse.error) throw goalsResponse.error
+      if (objectivesResponse.error) throw objectivesResponse.error
+      if (orgResponse.error) throw orgResponse.error
+      if (setupResponse.error) throw setupResponse.error
+
+      const backupData = {
+        backup: {
+          createdAt: new Date().toISOString(),
+          version: '1.0',
+          organizationId: orgData.id,
+          appVersion: 'align-v1'
+        },
+        organization: orgResponse.data,
+        setup: setupResponse.data,
+        goals: goalsResponse.data,
+        objectives: objectivesResponse.data,
+        settings: settings
+      }
+
+      // Create timestamped backup file
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0]
+      const fileName = `align-backup-${orgData.name?.replace(/[^a-zA-Z0-9]/g, '-') || 'organization'}-${timestamp}.json`
+      
+      const fileContent = JSON.stringify(backupData, null, 2)
+      const blob = new Blob([fileContent], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      
+      const link = document.createElement('a')
+      link.href = url
+      link.download = fileName
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+
+      // Log backup action (could be enhanced with activity logging)
+      console.log(`Backup created: ${fileName}`)
+
+    } catch (error) {
+      console.error('Backup failed:', error)
+      setSaveError(error instanceof Error ? error.message : 'Backup failed')
+    }
+  }
+
+  const handleResetChanges = () => {
+    setSettings({ ...originalSettings })
     setHasChanges(false)
-  }
-
-  const handleExportData = () => {
-    // TODO: Implement data export
-    alert('Data export functionality will be implemented')
-  }
-
-  const handleBackupNow = () => {
-    // TODO: Implement backup
-    alert('Backup initiated')
+    setSaveError(null)
   }
 
   const ToggleSwitch = ({ checked, onChange, label, description }: {
@@ -121,6 +317,19 @@ export function SystemSection() {
     </div>
   )
 
+  if (orgLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center py-12">
+          <div className="flex items-center gap-3">
+            <Loader2 className="h-6 w-6 text-slate-400 animate-spin" />
+            <span className="text-slate-300">Loading system settings...</span>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -133,15 +342,42 @@ export function SystemSection() {
           <p className="text-slate-400 mt-1">Configure system preferences and integrations</p>
         </div>
         {hasChanges && (
-          <button
-            onClick={handleSave}
-            className="glass-button bg-blue-500/20 text-blue-300 hover:text-blue-200 px-4 py-2 flex items-center gap-2"
-          >
-            <Save className="w-4 h-4" />
-            Save Changes
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleResetChanges}
+              disabled={saving}
+              className="glass-button text-slate-400 hover:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 flex items-center gap-2"
+            >
+              <X className="w-4 h-4" />
+              Reset Changes
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="glass-button bg-blue-500/20 text-blue-300 hover:text-blue-200 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 flex items-center gap-2"
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  Save Changes
+                </>
+              )}
+            </button>
+          </div>
         )}
       </div>
+
+      {/* Error Display */}
+      {saveError && (
+        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+          <p className="text-red-400 text-sm">{saveError}</p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Notifications */}

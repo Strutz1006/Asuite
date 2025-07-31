@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { X, Save, Loader2 } from 'lucide-react';
+import { X, Save, Loader2, AlertCircle } from 'lucide-react';
 import { useGoals } from '../../goals/hooks/useGoals';
 import { supabase } from '@aesyros/supabase';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface SimpleProgressUpdateModalProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ export function SimpleProgressUpdateModal({
   const [currentValue, setCurrentValue] = useState('');
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
   const { goals, updateGoalProgress } = useGoals();
 
@@ -46,16 +48,32 @@ export function SimpleProgressUpdateModal({
       }
       setComment('');
       setSubmitting(false);
+      setErrorMessage(null); // Clear error message when modal closes
     }
   }, [isOpen, goalId]);
 
   const selectedGoalData = goals.find(g => g.id === selectedGoal);
 
   const handleSubmit = async () => {
-    if (!selectedGoal) return;
+    if (!selectedGoal) {
+      setErrorMessage('Please select a goal to update');
+      return;
+    }
+
+    // Basic validation
+    if (progressValue < 0 || progressValue > 100) {
+      setErrorMessage('Progress percentage must be between 0 and 100');
+      return;
+    }
+
+    if (selectedGoalData?.target_value && !currentValue.trim()) {
+      setErrorMessage('Current value is required for this goal');
+      return;
+    }
 
     try {
       setSubmitting(true);
+      setErrorMessage(null); // Clear any previous errors
 
       // Update goal progress using the hook
       await updateGoalProgress(selectedGoal, progressValue, currentValue);
@@ -82,7 +100,23 @@ export function SimpleProgressUpdateModal({
       onClose();
     } catch (error) {
       console.error('Error updating progress:', error);
-      // TODO: Add proper error handling/notification
+      
+      // Extract meaningful error message
+      let message = 'Failed to update progress. Please try again.';
+      
+      if (error instanceof Error) {
+        message = error.message;
+      } else if (typeof error === 'object' && error !== null) {
+        // Handle Supabase errors
+        const supabaseError = error as any;
+        if (supabaseError.message) {
+          message = supabaseError.message;
+        } else if (supabaseError.error?.message) {
+          message = supabaseError.error.message;
+        }
+      }
+      
+      setErrorMessage(message);
     } finally {
       setSubmitting(false);
     }
@@ -111,6 +145,25 @@ export function SimpleProgressUpdateModal({
           </div>
 
           <div className="space-y-4">
+            {/* Error Message */}
+            {errorMessage && (
+              <Alert className="border-red-500/20 bg-red-500/10 relative">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0" />
+                  <AlertDescription className="text-red-400 flex-1">
+                    {errorMessage}
+                  </AlertDescription>
+                  <button
+                    type="button"
+                    onClick={() => setErrorMessage(null)}
+                    className="text-red-400 hover:text-red-300 flex-shrink-0"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </Alert>
+            )}
+
             {/* Goal Selection */}
             {!goalId && (
               <div className="space-y-2">

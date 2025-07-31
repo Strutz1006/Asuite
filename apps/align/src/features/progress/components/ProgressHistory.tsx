@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@aesyros/supabase';
-import { Calendar, TrendingUp, TrendingDown, User, MessageSquare, Clock, Filter, Loader2 } from 'lucide-react';
+import { Calendar, TrendingUp, TrendingDown, User, MessageSquare, Clock, Filter, Loader2, AlertCircle, X } from 'lucide-react';
 import { Goal } from '../../goals/hooks/useGoals';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface ProgressHistoryProps {
   filterPeriod: string;
@@ -28,6 +29,7 @@ export function ProgressHistory({ filterPeriod, filterDepartment, goals }: Progr
   const [sortBy, setSortBy] = useState('newest');
   const [progressUpdates, setProgressUpdates] = useState<ProgressUpdate[]>([]);
   const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Fetch progress updates from database
   useEffect(() => {
@@ -53,6 +55,12 @@ export function ProgressHistory({ filterPeriod, filterDepartment, goals }: Progr
         setProgressUpdates(data || []);
       } catch (error) {
         console.error('Error fetching progress updates:', error);
+        
+        let message = 'Failed to load progress history. Please try refreshing the page.';
+        if (error instanceof Error) {
+          message = error.message;
+        }
+        setErrorMessage(message);
       } finally {
         setLoading(false);
       }
@@ -110,6 +118,25 @@ export function ProgressHistory({ filterPeriod, filterDepartment, goals }: Progr
 
   return (
     <div className="space-y-6">
+      {/* Error Message */}
+      {errorMessage && (
+        <Alert className="border-red-500/20 bg-red-500/10 relative">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0" />
+            <AlertDescription className="text-red-400 flex-1">
+              {errorMessage}
+            </AlertDescription>
+            <button
+              type="button"
+              onClick={() => setErrorMessage(null)}
+              className="text-red-400 hover:text-red-300 flex-shrink-0"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </Alert>
+      )}
+
       {/* Filters */}
       <div className="glass-card p-4">
         <div className="flex items-center gap-3 mb-4">

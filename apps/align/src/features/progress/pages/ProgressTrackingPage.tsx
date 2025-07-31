@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { TrendingUp, Clock, Target, AlertTriangle, Calendar, CheckCircle, Loader2, Plus, BarChart3 } from 'lucide-react';
+import { TrendingUp, Clock, Target, AlertTriangle, Calendar, CheckCircle, Loader2, Plus, BarChart3, AlertCircle, X } from 'lucide-react';
 import { useGoals } from '../../goals/hooks/useGoals';
 import { supabase } from '@aesyros/supabase';
 import { ProgressOverview } from '../components/ProgressOverview';
 import { ProgressHistory } from '../components/ProgressHistory';
 import { MilestoneTracker } from '../components/MilestoneTracker';
 import { RealtimeProgressFeed } from '../components/RealtimeProgressFeed';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export function ProgressTrackingPage() {
   const [selectedView, setSelectedView] = useState('overview');
@@ -14,6 +15,7 @@ export function ProgressTrackingPage() {
   const [filterDepartment, setFilterDepartment] = useState('all');
   const [departments, setDepartments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
   const { goals, loading: goalsLoading, getGoalStats } = useGoals();
   const stats = getGoalStats();
@@ -32,6 +34,12 @@ export function ProgressTrackingPage() {
         }
       } catch (error) {
         console.error('Error fetching departments:', error);
+        
+        let message = 'Failed to load departments. Some filtering options may not be available.';
+        if (error instanceof Error) {
+          message = error.message;
+        }
+        setErrorMessage(message);
       } finally {
         setLoading(false);
       }
@@ -87,6 +95,25 @@ export function ProgressTrackingPage() {
           </Link>
         </div>
       </div>
+
+      {/* Error Message */}
+      {errorMessage && (
+        <Alert className="border-red-500/20 bg-red-500/10 relative">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0" />
+            <AlertDescription className="text-red-400 flex-1">
+              {errorMessage}
+            </AlertDescription>
+            <button
+              type="button"
+              onClick={() => setErrorMessage(null)}
+              className="text-red-400 hover:text-red-300 flex-shrink-0"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </Alert>
+      )}
 
       {/* Key Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

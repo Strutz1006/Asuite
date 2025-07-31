@@ -4,6 +4,7 @@ import { Save, ArrowLeft, Plus, X, Target, TrendingUp, Calendar, Users, AlertCir
 import { useGoals } from '../hooks/useGoals'
 import { useSetupStatus } from '@/hooks/useSetupStatus'
 import { supabase } from '@aesyros/supabase'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 interface KeyResult {
   id: string
@@ -36,6 +37,7 @@ export default function GoalFormPage() {
   const [loadingGoal, setLoadingGoal] = useState(isEdit)
   const [departments, setDepartments] = useState<Department[]>([])
   const [users, setUsers] = useState<any[]>([])
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const [formData, setFormData] = useState({
     title: '',
@@ -120,6 +122,7 @@ export default function GoalFormPage() {
       }
     } catch (error) {
       console.error('Error loading goal data:', error)
+      setErrorMessage('Failed to load goal data. Please refresh the page and try again.')
     } finally {
       setLoadingGoal(false)
     }
@@ -150,12 +153,45 @@ export default function GoalFormPage() {
       }
     } catch (error) {
       console.error('Error fetching options:', error)
+      setErrorMessage('Failed to load form options. Some fields may not display correctly.')
     }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setErrorMessage(null) // Clear any previous errors
+    
+    // Basic form validation
+    if (!formData.title.trim()) {
+      setErrorMessage('Goal title is required')
+      setLoading(false)
+      return
+    }
+    
+    if (!formData.due_date) {
+      setErrorMessage('Due date is required')
+      setLoading(false)
+      return
+    }
+    
+    // Validate key results for OKR framework
+    if (formData.framework === 'okr') {
+      const validKeyResults = keyResults.filter(kr => kr.title.trim())
+      if (validKeyResults.length === 0) {
+        setErrorMessage('At least one key result is required for OKR goals')
+        setLoading(false)
+        return
+      }
+      
+      for (const kr of validKeyResults) {
+        if (!kr.target_value.trim()) {
+          setErrorMessage(`Target value is required for key result: "${kr.title}"`)
+          setLoading(false)
+          return
+        }
+      }
+    }
     
     try {
       const goalData = {
@@ -219,7 +255,23 @@ export default function GoalFormPage() {
       navigate(isObjective ? '/objectives' : '/goals')
     } catch (error) {
       console.error('Error saving goal:', error)
-      // TODO: Show error toast
+      
+      // Extract meaningful error message
+      let message = 'Failed to save goal. Please try again.'
+      
+      if (error instanceof Error) {
+        message = error.message
+      } else if (typeof error === 'object' && error !== null) {
+        // Handle Supabase errors
+        const supabaseError = error as any
+        if (supabaseError.message) {
+          message = supabaseError.message
+        } else if (supabaseError.error?.message) {
+          message = supabaseError.error.message
+        }
+      }
+      
+      setErrorMessage(message)
     } finally {
       setLoading(false)
     }
@@ -689,6 +741,25 @@ export default function GoalFormPage() {
               ))}
             </div>
           </div>
+        )}
+
+        {/* Error Message */}
+        {errorMessage && (
+          <Alert className="border-red-500/20 bg-red-500/10 relative">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0" />
+              <AlertDescription className="text-red-400 flex-1">
+                {errorMessage}
+              </AlertDescription>
+              <button
+                type="button"
+                onClick={() => setErrorMessage(null)}
+                className="text-red-400 hover:text-red-300 flex-shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </Alert>
         )}
 
         {/* Actions */}

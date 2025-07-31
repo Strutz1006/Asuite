@@ -1,56 +1,32 @@
-import { Target, TrendingUp, Users, BarChart3, Plus, ArrowRight, Loader2, Building2, CheckCircle, Activity, AlertTriangle, Trophy } from 'lucide-react'
+import { Target, TrendingUp, BarChart3, Plus, Loader2, Building2, CheckCircle, Activity, AlertTriangle, Trophy } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useSetupStatus } from '@/hooks/useSetupStatus'
 import { useGoals } from '@/features/goals/hooks/useGoals'
+import { useStrategicPerformance } from '@/hooks/useStrategicPerformance'
+import { GoalCreationWizard } from '@/features/goals/components/GoalCreationWizard'
 import { useEffect, useState } from 'react'
 import { supabase } from '@aesyros/supabase'
 
 export default function DashboardPage() {
   const { isSetupComplete, loading: setupLoading, organization } = useSetupStatus()
-  const { goals, loading: goalsLoading, getGoalStats } = useGoals()
-  const [teamCount, setTeamCount] = useState(0)
-  const [departmentCount, setDepartmentCount] = useState(0)
-  const [statsLoading, setStatsLoading] = useState(true)
+  const { goals, loading: goalsLoading, getGoalStats, createGoal } = useGoals()
+  const [showCreateWizard, setShowCreateWizard] = useState(false)
   
   const goalStats = getGoalStats()
-  
-  // Fetch additional stats
-  useEffect(() => {
-    if (organization?.id) {
-      fetchAdditionalStats()
-    }
-  }, [organization])
-  
-  const fetchAdditionalStats = async () => {
-    try {
-      setStatsLoading(true)
-      
-      // Get team member count
-      const { count: userCount } = await supabase
-        .from('users')
-        .select('*', { count: 'exact', head: true })
-        .eq('organization_id', organization?.id)
-      
-      setTeamCount(userCount || 0)
-      
-      // Get department count
-      const { count: deptCount } = await supabase
-        .from('departments')
-        .select('*', { count: 'exact', head: true })
-        .eq('organization_id', organization?.id)
-      
-      setDepartmentCount(deptCount || 0)
-      
-    } catch (error) {
-      console.error('Error fetching stats:', error)
-    } finally {
-      setStatsLoading(false)
-    }
-  }
   
   // Separate objectives and goals
   const objectives = goals.filter(g => g.strategic_level === 'objective' || g.framework === 'objective')
   const actualGoals = goals.filter(g => g.strategic_level === 'goal' || (g.framework !== 'objective' && !g.strategic_level))
+  
+  // Calculate year-end goals for display
+  const currentYear = new Date().getFullYear()
+  const yearEndGoals = goals.filter(g => {
+    if (!g.due_date) return false
+    return new Date(g.due_date).getFullYear() === currentYear
+  })
+  
+  // Use enhanced strategic performance analysis
+  const { performanceData, loading: performanceLoading, error: performanceError } = useStrategicPerformance(goals, objectives)
   
   // Calculate strategic metrics
   const activeObjectives = objectives.filter(o => o.status === 'active').length
@@ -59,26 +35,13 @@ export default function DashboardPage() {
     ? Math.round((goalStats.completed / goalStats.total) * 100) 
     : 0
   
-  // Calculate company performance - strategic targets likelihood
-  const currentYear = new Date().getFullYear()
-  const yearEndGoals = goals.filter(g => {
-    if (!g.due_date) return false
-    return new Date(g.due_date).getFullYear() === currentYear
-  })
-  
-  const onTrackGoals = yearEndGoals.filter(g => g.progress_percentage >= 70).length
-  const atRiskGoals = yearEndGoals.filter(g => g.progress_percentage >= 40 && g.progress_percentage < 70).length
-  const behindGoals = yearEndGoals.filter(g => g.progress_percentage < 40).length
-  
-  const strategicLikelihood = yearEndGoals.length > 0
-    ? Math.round(((onTrackGoals * 1.0 + atRiskGoals * 0.6 + behindGoals * 0.2) / yearEndGoals.length) * 100)
-    : 0
-    
-  // Calculate alignment score (how many goals are linked to objectives)
-  const goalsWithObjectives = actualGoals.filter(g => g.parent_id && objectives.some(o => o.id === g.parent_id)).length
-  const alignmentScore = actualGoals.length > 0 
-    ? Math.round((goalsWithObjectives / actualGoals.length) * 100)
-    : 100 // 100% if no goals yet
+  // Use enhanced performance data from Edge Function
+  const strategicLikelihood = performanceData?.strategicLikelihood || 0
+  const onTrackGoals = performanceData?.breakdown.onTrack || 0
+  const atRiskGoals = performanceData?.breakdown.atRisk || 0
+  const behindGoals = performanceData?.breakdown.behind || 0
+  const alignmentScore = performanceData?.objectiveAlignment.score || 0
+  const goalsWithObjectives = performanceData?.objectiveAlignment.aligned || 0
     
   // Get recent activities for company performance
   const recentGoals = goals
@@ -117,6 +80,31 @@ export default function DashboardPage() {
     },
   ]
 
+  const handleCreateGoal = async (goalData: any) => {
+    try {
+      // Convert wizard format to database format
+      const dbGoalData = {
+        title: goalData.title,
+        description: goalData.description,
+        level: goalData.level || 'company',
+        due_date: goalData.targetDate,
+        owner_id: goalData.owner || undefined,
+        category: goalData.category,
+        priority: goalData.priority,
+        parent_id: goalData.linkedObjective || undefined,
+        framework: goalData.type === 'smart' ? 'smart' : 'okr',
+        target_value: goalData.targetValue?.toString() || null,
+        unit: goalData.unit || null,
+        organization_id: organization?.id,
+      }
+
+      await createGoal(dbGoalData)
+      setShowCreateWizard(false)
+    } catch (error) {
+      console.error('Error creating goal:', error)
+    }
+  }
+
   if (setupLoading || goalsLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -138,13 +126,13 @@ export default function DashboardPage() {
             Track your strategic goals and organizational alignment
           </p>
         </div>
-        <Link
-          to="/goals/new"
+        <button
+          onClick={() => setShowCreateWizard(true)}
           className="glass-button text-sky-300 hover:text-sky-200 px-4 py-2 flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
           New Goal
-        </Link>
+        </button>
       </div>
 
       {/* Company Setup Notice or Welcome Message */}
@@ -227,8 +215,13 @@ export default function DashboardPage() {
               />
             </div>
             <p className="text-slate-400">
-              Likelihood of achieving {yearEndGoals.length} strategic targets for {currentYear}
+              Likelihood of achieving {performanceData?.breakdown.total || 0} strategic targets for {new Date().getFullYear()}
             </p>
+            {performanceData?.confidenceInterval && (
+              <p className="text-xs text-slate-500 mt-1">
+                Confidence range: {performanceData.confidenceInterval[0]}%-{performanceData.confidenceInterval[1]}%
+              </p>
+            )}
           </div>
         </div>
         
@@ -323,13 +316,74 @@ export default function DashboardPage() {
         </div>
       </div>
       
+      {/* Enhanced Strategic Insights */}
+      {performanceData && (performanceData.riskFactors.length > 0 || performanceData.recommendations.length > 0) && (
+        <div className="glass-card p-6">
+          <h2 className="text-xl font-semibold text-slate-100 mb-6 flex items-center gap-2">
+            <CheckCircle className="w-6 h-6 text-blue-400" />
+            Strategic Insights
+          </h2>
+          
+          <div className="space-y-4">
+            {performanceData.riskFactors.length > 0 && (
+              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
+                <h4 className="text-yellow-400 font-medium mb-3 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4" />
+                  Risk Factors Identified
+                </h4>
+                <ul className="space-y-2">
+                  {performanceData.riskFactors.map((risk, index) => (
+                    <li key={index} className="text-sm text-slate-300 flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full mt-2 flex-shrink-0"></div>
+                      {risk}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            
+            {performanceData.recommendations.length > 0 && (
+              <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+                <h4 className="text-blue-400 font-medium mb-3 flex items-center gap-2">
+                  <Target className="w-4 h-4" />
+                  Strategic Recommendations
+                </h4>
+                <ul className="space-y-2">
+                  {performanceData.recommendations.map((rec, index) => (
+                    <li key={index} className="text-sm text-slate-300 flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
+                      {rec}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            
+            {performanceError && (
+              <div className="bg-slate-500/10 border border-slate-500/20 rounded-lg p-4">
+                <h4 className="text-slate-400 font-medium mb-2 flex items-center gap-2">
+                  <Activity className="w-4 h-4" />
+                  Enhanced Analysis Status
+                </h4>
+                <p className="text-sm text-slate-400">
+                  Using basic analysis - enhanced insights temporarily unavailable
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Link to="/goals/new" className="glass-card p-6 hover:bg-slate-800/40 transition-colors">
+        <button 
+          onClick={() => setShowCreateWizard(true)}
+          className="glass-card p-6 hover:bg-slate-800/40 transition-colors text-left w-full"
+        >
           <Target className="w-8 h-8 text-sky-400 mb-3" />
           <h3 className="text-lg font-semibold text-slate-100 mb-2">Create Goal</h3>
           <p className="text-slate-400 text-sm">Set up a new strategic goal with key results</p>
-        </Link>
+        </button>
         
         <Link to="/objectives" className="glass-card p-6 hover:bg-slate-800/40 transition-colors">
           <Building2 className="w-8 h-8 text-green-400 mb-3" />
@@ -343,6 +397,13 @@ export default function DashboardPage() {
           <p className="text-slate-400 text-sm">Analyze performance and track progress trends</p>
         </Link>
       </div>
+
+      {/* Goal Creation Wizard */}
+      <GoalCreationWizard
+        isOpen={showCreateWizard}
+        onClose={() => setShowCreateWizard(false)}
+        onSubmit={handleCreateGoal}
+      />
     </div>
   )
 }

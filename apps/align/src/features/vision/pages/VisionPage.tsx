@@ -1,5 +1,7 @@
-import { Mountain, Edit, Save, X, Plus, Trash2, Heart } from 'lucide-react'
-import { useState } from 'react'
+import { Mountain, Edit, Save, X, Plus, Trash2, Heart, Loader2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useSetupStatus } from '@/hooks/useSetupStatus'
+import { supabase } from '@aesyros/supabase'
 
 interface CoreValue {
   id: string
@@ -8,45 +10,142 @@ interface CoreValue {
 }
 
 export default function VisionPage() {
+  const { organization: orgData, loading: orgLoading, refetchSetup } = useSetupStatus()
   const [isEditingVision, setIsEditingVision] = useState(false)
   const [isEditingValues, setIsEditingValues] = useState(false)
-  const [visionText, setVisionText] = useState('To create a world where every home is powered by clean energy')
-  const [coreValues, setCoreValues] = useState<CoreValue[]>([
-    {
-      id: '1',
-      title: 'Innovation',
-      description: 'We continuously push boundaries to create breakthrough solutions'
-    },
-    {
-      id: '2', 
-      title: 'Sustainability',
-      description: 'We prioritize long-term environmental and social impact in everything we do'
-    },
-    {
-      id: '3',
-      title: 'Integrity',
-      description: 'We act with honesty, transparency, and ethical responsibility'
-    }
-  ])
+  const [visionText, setVisionText] = useState('')
+  const [originalVisionText, setOriginalVisionText] = useState('')
+  const [coreValues, setCoreValues] = useState<CoreValue[]>([])
+  const [originalCoreValues, setOriginalCoreValues] = useState<CoreValue[]>([])
   const [newValue, setNewValue] = useState({ title: '', description: '' })
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
-  const handleSaveVision = () => {
-    // TODO: Save vision to database
-    setIsEditingVision(false)
+  // Load organization data when available
+  useEffect(() => {
+    if (orgData) {
+      const vision = orgData.vision_statement || 'To create a world where every home is powered by clean energy'
+      const values = orgData.core_values ? 
+        (Array.isArray(orgData.core_values) ? orgData.core_values : [
+          {
+            id: '1',
+            title: 'Innovation',
+            description: 'We continuously push boundaries to create breakthrough solutions'
+          },
+          {
+            id: '2', 
+            title: 'Sustainability',
+            description: 'We prioritize long-term environmental and social impact in everything we do'
+          },
+          {
+            id: '3',
+            title: 'Integrity',
+            description: 'We act with honesty, transparency, and ethical responsibility'
+          }
+        ]) : [
+          {
+            id: '1',
+            title: 'Innovation',
+            description: 'We continuously push boundaries to create breakthrough solutions'
+          },
+          {
+            id: '2', 
+            title: 'Sustainability',
+            description: 'We prioritize long-term environmental and social impact in everything we do'
+          },
+          {
+            id: '3',
+            title: 'Integrity',
+            description: 'We act with honesty, transparency, and ethical responsibility'
+          }
+        ]
+      
+      setVisionText(vision)
+      setOriginalVisionText(vision)
+      setCoreValues(values)
+      setOriginalCoreValues(values)
+    }
+  }, [orgData])
+
+  const handleSaveVision = async () => {
+    if (!orgData?.id) {
+      setSaveError('Organization ID not found')
+      return
+    }
+    
+    try {
+      setSaving(true)
+      setSaveError(null)
+      
+      const { error } = await supabase
+        .from('organizations')
+        .update({
+          vision_statement: visionText,
+          vision_last_updated: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', orgData.id)
+      
+      if (error) {
+        throw error
+      }
+      
+      setOriginalVisionText(visionText)
+      setIsEditingVision(false)
+      await refetchSetup()
+      
+    } catch (error) {
+      console.error('Error saving vision:', error)
+      setSaveError(error instanceof Error ? error.message : 'Failed to save vision')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleCancelVision = () => {
-    // TODO: Reset to original value
+    setVisionText(originalVisionText)
+    setSaveError(null)
     setIsEditingVision(false)
   }
 
-  const handleSaveValues = () => {
-    // TODO: Save values to database
-    setIsEditingValues(false)
+  const handleSaveValues = async () => {
+    if (!orgData?.id) {
+      setSaveError('Organization ID not found')
+      return
+    }
+    
+    try {
+      setSaving(true)
+      setSaveError(null)
+      
+      const { error } = await supabase
+        .from('organizations')
+        .update({
+          core_values: coreValues as any,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', orgData.id)
+      
+      if (error) {
+        throw error
+      }
+      
+      setOriginalCoreValues([...coreValues])
+      setIsEditingValues(false)
+      await refetchSetup()
+      
+    } catch (error) {
+      console.error('Error saving core values:', error)
+      setSaveError(error instanceof Error ? error.message : 'Failed to save core values')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleCancelValues = () => {
-    // TODO: Reset to original values
+    setCoreValues([...originalCoreValues])
+    setNewValue({ title: '', description: '' })
+    setSaveError(null)
     setIsEditingValues(false)
   }
 
@@ -69,6 +168,19 @@ export default function VisionPage() {
     setCoreValues(coreValues.map(val => 
       val.id === id ? { ...val, [field]: value } : val
     ))
+  }
+
+  if (orgLoading) {
+    return (
+      <div className="space-y-8">
+        <div className="flex items-center justify-center py-12">
+          <div className="flex items-center gap-3">
+            <Loader2 className="h-6 w-6 text-purple-400 animate-spin" />
+            <span className="text-slate-300">Loading vision and values...</span>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -112,17 +224,33 @@ export default function VisionPage() {
               className="w-full h-32 px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-center text-lg"
               placeholder="Enter your organization's vision statement..."
             />
+            {saveError && (
+              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-center">
+                <p className="text-red-400 text-sm">{saveError}</p>
+              </div>
+            )}
             <div className="flex items-center justify-center gap-3">
               <button
                 onClick={handleSaveVision}
-                className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg transition-colors"
+                disabled={saving}
+                className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600 disabled:bg-purple-500/50 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg transition-colors"
               >
-                <Save className="w-4 h-4" />
-                Save Vision
+                {saving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Save Vision
+                  </>
+                )}
               </button>
               <button
                 onClick={handleCancelVision}
-                className="flex items-center gap-2 bg-slate-600 hover:bg-slate-700 text-white px-6 py-2 rounded-lg transition-colors"
+                disabled={saving}
+                className="flex items-center gap-2 bg-slate-600 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg transition-colors"
               >
                 <X className="w-4 h-4" />
                 Cancel
@@ -223,18 +351,36 @@ export default function VisionPage() {
               </div>
             </div>
 
+            {/* Error Display */}
+            {saveError && (
+              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-center">
+                <p className="text-red-400 text-sm">{saveError}</p>
+              </div>
+            )}
+
             {/* Save/Cancel Actions */}
             <div className="flex items-center justify-center gap-3 pt-4 border-t border-slate-700/50">
               <button
                 onClick={handleSaveValues}
-                className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg transition-colors"
+                disabled={saving}
+                className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600 disabled:bg-purple-500/50 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg transition-colors"
               >
-                <Save className="w-4 h-4" />
-                Save Values
+                {saving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Save Values
+                  </>
+                )}
               </button>
               <button
                 onClick={handleCancelValues}
-                className="flex items-center gap-2 bg-slate-600 hover:bg-slate-700 text-white px-6 py-2 rounded-lg transition-colors"
+                disabled={saving}
+                className="flex items-center gap-2 bg-slate-600 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg transition-colors"
               >
                 <X className="w-4 h-4" />
                 Cancel

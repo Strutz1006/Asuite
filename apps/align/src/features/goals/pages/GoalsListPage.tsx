@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
-import { Plus, Filter, Search, Target, TrendingUp, Users, Calendar, MoreVertical, ChevronRight, ArrowUpRight, ArrowDownRight, TreePine, List, Grid, Loader2, Edit, Trash2, BarChart3 } from 'lucide-react'
+import { Plus, Filter, Search, Target, TrendingUp, Users, Calendar, MoreVertical, ChevronRight, ArrowUpRight, ArrowDownRight, TreePine, List, Grid, Loader2, Edit, Trash2, BarChart3, AlertCircle, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { GoalHierarchyView } from '../components/GoalHierarchyView'
 import { GoalCreationWizard } from '../components/GoalCreationWizard'
 import { useGoals, Goal } from '../hooks/useGoals'
 import { SimpleProgressUpdateModal } from '../../progress/components/SimpleProgressUpdateModal'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 // Filter options will be calculated from real data
 const filterOptions = [
@@ -29,6 +30,7 @@ export default function GoalsListPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
   const [showProgressModal, setShowProgressModal] = useState<string | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   
   const { goals, loading, error, createGoal, deleteGoal, updateGoalProgress, getGoalStats } = useGoals()
@@ -56,7 +58,11 @@ export default function GoalsListPage() {
         setOpenDropdown(null)
       } catch (err) {
         console.error('Failed to delete goal:', err)
-        // You could show a toast notification here
+        let message = 'Failed to delete goal. Please try again.'
+        if (err instanceof Error) {
+          message = err.message
+        }
+        setErrorMessage(message)
       }
     }
   }
@@ -79,6 +85,7 @@ export default function GoalsListPage() {
   
   const handleCreateGoal = async (goalData: any) => {
     try {
+      setErrorMessage(null) // Clear any previous errors
       await createGoal({
         title: goalData.title,
         description: goalData.description,
@@ -96,7 +103,12 @@ export default function GoalsListPage() {
       setShowCreateWizard(false)
     } catch (err) {
       console.error('Failed to create goal:', err)
-      // You could show a toast notification here
+      
+      let message = 'Failed to create goal. Please try again.'
+      if (err instanceof Error) {
+        message = err.message
+      }
+      setErrorMessage(message)
     }
   }
   return (
@@ -120,6 +132,25 @@ export default function GoalsListPage() {
           New Goal
         </button>
       </div>
+
+      {/* Error Message */}
+      {errorMessage && (
+        <Alert className="border-red-500/20 bg-red-500/10 relative">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0" />
+            <AlertDescription className="text-red-400 flex-1">
+              {errorMessage}
+            </AlertDescription>
+            <button
+              type="button"
+              onClick={() => setErrorMessage(null)}
+              className="text-red-400 hover:text-red-300 flex-shrink-0"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </Alert>
+      )}
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

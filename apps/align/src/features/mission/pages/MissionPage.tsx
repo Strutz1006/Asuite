@@ -1,18 +1,77 @@
-import { Compass, Edit, Save, X } from 'lucide-react'
-import { useState } from 'react'
+import { Compass, Edit, Save, X, Loader2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useSetupStatus } from '@/hooks/useSetupStatus'
+import { supabase } from '@aesyros/supabase'
 
 export default function MissionPage() {
+  const { organization: orgData, loading: orgLoading, refetchSetup } = useSetupStatus()
   const [isEditing, setIsEditing] = useState(false)
-  const [missionText, setMissionText] = useState('To deliver affordable solar energy solutions to underserved communities globally')
+  const [missionText, setMissionText] = useState('')
+  const [originalMissionText, setOriginalMissionText] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
-  const handleSave = () => {
-    // TODO: Save to database
-    setIsEditing(false)
+  // Load organization data when available
+  useEffect(() => {
+    if (orgData) {
+      const mission = orgData.mission_statement || 'To deliver affordable solar energy solutions to underserved communities globally'
+      setMissionText(mission)
+      setOriginalMissionText(mission)
+    }
+  }, [orgData])
+
+  const handleSave = async () => {
+    if (!orgData?.id) {
+      setSaveError('Organization ID not found')
+      return
+    }
+    
+    try {
+      setSaving(true)
+      setSaveError(null)
+      
+      const { error } = await supabase
+        .from('organizations')
+        .update({
+          mission_statement: missionText,
+          mission_last_updated: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', orgData.id)
+      
+      if (error) {
+        throw error
+      }
+      
+      setOriginalMissionText(missionText)
+      setIsEditing(false)
+      await refetchSetup()
+      
+    } catch (error) {
+      console.error('Error saving mission:', error)
+      setSaveError(error instanceof Error ? error.message : 'Failed to save mission')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleCancel = () => {
-    // TODO: Reset to original value
+    setMissionText(originalMissionText)
+    setSaveError(null)
     setIsEditing(false)
+  }
+
+  if (orgLoading) {
+    return (
+      <div className="space-y-8">
+        <div className="flex items-center justify-center py-12">
+          <div className="flex items-center gap-3">
+            <Loader2 className="h-6 w-6 text-blue-400 animate-spin" />
+            <span className="text-slate-300">Loading mission statement...</span>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -49,17 +108,33 @@ export default function MissionPage() {
               className="w-full h-32 px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-center text-lg"
               placeholder="Enter your organization's mission statement..."
             />
+            {saveError && (
+              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-center">
+                <p className="text-red-400 text-sm">{saveError}</p>
+              </div>
+            )}
             <div className="flex items-center justify-center gap-3">
               <button
                 onClick={handleSave}
-                className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors"
+                disabled={saving}
+                className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-500/50 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg transition-colors"
               >
-                <Save className="w-4 h-4" />
-                Save Mission
+                {saving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Save Mission
+                  </>
+                )}
               </button>
               <button
                 onClick={handleCancel}
-                className="flex items-center gap-2 bg-slate-600 hover:bg-slate-700 text-white px-6 py-2 rounded-lg transition-colors"
+                disabled={saving}
+                className="flex items-center gap-2 bg-slate-600 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg transition-colors"
               >
                 <X className="w-4 h-4" />
                 Cancel
